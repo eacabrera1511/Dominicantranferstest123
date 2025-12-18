@@ -257,8 +257,7 @@ export function PaymentStep({ item, bookingDetails, totalPrice, onBack, onComple
           ) : (
             <>
               <Lock className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
-              <span className="hidden xs:inline">Pay ${totalPrice}</span>
-              <span className="xs:hidden">Pay ${totalPrice}</span>
+              <span>Pay secure</span>
             </>
           )}
         </button>

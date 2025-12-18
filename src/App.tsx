@@ -808,12 +808,12 @@ function App() {
 
       <div className="relative max-w-4xl mx-auto h-full flex flex-col">
         <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-2 xs:px-3 sm:px-4 ${
-          scrolled ? 'pt-1 xs:pt-1.5 sm:pt-2 pb-1 xs:pb-1.5 sm:pb-2' : 'pt-2 xs:pt-3 sm:pt-4 md:pt-6 pb-2 xs:pb-2.5 sm:pb-3 md:pb-4'
+          scrolled ? 'pt-1 xs:pt-1.5 sm:pt-2 pb-1 xs:pb-1.5 sm:pb-2' : 'pt-2 xs:pt-2.5 sm:pt-3 md:pt-4 pb-2 xs:pb-2 sm:pb-2.5 md:pb-3'
         }`} style={{ paddingTop: `max(env(safe-area-inset-top), ${scrolled ? '4px' : '8px'})` }}>
           <div className={`max-w-4xl mx-auto rounded-xl xs:rounded-2xl border backdrop-blur-xl transition-all duration-300 ${
             scrolled
               ? 'bg-white/90 dark:bg-slate-800/90 border-slate-200/50 dark:border-slate-700/50 p-2 xs:p-2.5 sm:p-3 shadow-lg'
-              : 'bg-white/70 dark:bg-slate-800/70 border-slate-200/30 dark:border-slate-700/30 p-2.5 xs:p-3 sm:p-4 md:p-5 shadow-xl'
+              : 'bg-white/70 dark:bg-slate-800/70 border-slate-200/30 dark:border-slate-700/30 p-2 xs:p-2.5 sm:p-3 md:p-4 shadow-xl'
           }`}>
             <div className="flex items-center gap-2 xs:gap-2.5 sm:gap-3">
               <div className={`rounded-lg xs:rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-lg flex-shrink-0 transition-all duration-300 ${
@@ -829,31 +829,31 @@ function App() {
                   scrolled ? 'text-[10px] xs:text-xs' : 'text-[11px] xs:text-xs sm:text-sm'
                 }`}>#1 Rated Private Airport Transfers</p>
                 {!scrolled && (
-                  <div className="flex items-center gap-2 mt-1.5 overflow-x-auto scrollbar-hide">
-                    <div className="flex items-center gap-1 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 rounded-md whitespace-nowrap flex-shrink-0">
-                      <svg className="w-3 h-3 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 mt-1 xs:mt-1.5 overflow-x-auto scrollbar-hide pb-0.5">
+                    <div className="flex items-center gap-0.5 xs:gap-1 px-1.5 xs:px-2 py-0.5 bg-green-100 dark:bg-green-900/30 rounded whitespace-nowrap flex-shrink-0">
+                      <svg className="w-2.5 h-2.5 xs:w-3 xs:h-3 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span className="text-[9px] xs:text-[10px] font-semibold text-green-700 dark:text-green-300">SSL Secured</span>
+                      <span className="text-[8px] xs:text-[9px] sm:text-[10px] font-semibold text-green-700 dark:text-green-300">SSL</span>
                     </div>
-                    <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 rounded-md whitespace-nowrap flex-shrink-0">
-                      <svg className="w-3 h-3 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="flex items-center gap-0.5 xs:gap-1 px-1.5 xs:px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 rounded whitespace-nowrap flex-shrink-0">
+                      <svg className="w-2.5 h-2.5 xs:w-3 xs:h-3 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
                         <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"/>
                       </svg>
-                      <span className="text-[9px] xs:text-[10px] font-semibold text-blue-700 dark:text-blue-300">Licensed</span>
+                      <span className="text-[8px] xs:text-[9px] sm:text-[10px] font-semibold text-blue-700 dark:text-blue-300">Licensed</span>
                     </div>
-                    <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 rounded-md whitespace-nowrap flex-shrink-0">
-                      <svg className="w-3 h-3 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="flex items-center gap-0.5 xs:gap-1 px-1.5 xs:px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 rounded whitespace-nowrap flex-shrink-0">
+                      <svg className="w-2.5 h-2.5 xs:w-3 xs:h-3 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                       </svg>
-                      <span className="text-[9px] xs:text-[10px] font-semibold text-amber-700 dark:text-amber-300">5-Star Service</span>
+                      <span className="text-[8px] xs:text-[9px] sm:text-[10px] font-semibold text-amber-700 dark:text-amber-300">5-Star</span>
                     </div>
-                    <div className="flex items-center gap-1 px-2 py-0.5 bg-teal-100 dark:bg-teal-900/30 rounded-md whitespace-nowrap flex-shrink-0">
-                      <svg className="w-3 h-3 text-teal-600 dark:text-teal-400" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="flex items-center gap-0.5 xs:gap-1 px-1.5 xs:px-2 py-0.5 bg-teal-100 dark:bg-teal-900/30 rounded whitespace-nowrap flex-shrink-0">
+                      <svg className="w-2.5 h-2.5 xs:w-3 xs:h-3 text-teal-600 dark:text-teal-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
                       </svg>
-                      <span className="text-[9px] xs:text-[10px] font-semibold text-teal-700 dark:text-teal-300">Insured</span>
+                      <span className="text-[8px] xs:text-[9px] sm:text-[10px] font-semibold text-teal-700 dark:text-teal-300">Insured</span>
                     </div>
                   </div>
                 )}
@@ -939,7 +939,7 @@ function App() {
           </div>
         </header>
 
-        <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-2 xs:px-3 sm:px-4 pt-20 xs:pt-22 sm:pt-24 md:pt-28 pb-2 xs:pb-3 sm:pb-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-2 xs:px-3 sm:px-4 pt-24 xs:pt-28 sm:pt-32 md:pt-36 pb-2 xs:pb-3 sm:pb-4" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="space-y-3 xs:space-y-4">
             {messages.map((message, index) => {
               const isLastAssistantMessage = message.role === 'assistant' && index === messages.length - 1;

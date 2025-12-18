@@ -1,0 +1,1696 @@
+import { supabase, Hotel, Service } from './supabase';
+import { detectLanguage, getTranslations, Language } from './translations';
+
+export interface BookingAction {
+  action: 'START_BOOKING';
+  airport: string;
+  hotel: string;
+  region: string;
+  vehicle: string;
+  passengers: number;
+  suitcases: number;
+  tripType: string;
+  price: number;
+  currency: string;
+  paymentProvider: string;
+  paymentMethods: string[];
+  priceSource?: string;
+  originalPrice?: number;
+}
+
+export interface VehicleOption {
+  name: string;
+  capacity: number;
+  luggageCapacity: number;
+  oneWayPrice: number;
+  roundTripPrice: number;
+  recommended?: boolean;
+}
+
+export interface PriceScanRequest {
+  type: 'PRICE_SCAN';
+  airport: string;
+  hotel: string;
+  region: string;
+  basePrice: number;
+  route: string;
+  passengers: number;
+  luggage: number;
+  vehicleOptions: VehicleOption[];
+}
+
+export interface AgentResponse {
+  message: string;
+  hotels?: Hotel[];
+  services?: Service[];
+  suggestions?: string[];
+  bookingAction?: BookingAction;
+  priceScanRequest?: PriceScanRequest;
+  vehicleImage?: {
+    url: string;
+    alt: string;
+    caption: string;
+  };
+  languageSwitch?: 'en' | 'nl' | 'es';
+}
+
+type BookingStep =
+  | 'IDLE'
+  | 'AWAITING_AIRPORT'
+  | 'AWAITING_HOTEL'
+  | 'AWAITING_PASSENGERS'
+  | 'AWAITING_LUGGAGE'
+  | 'AWAITING_VEHICLE_SELECTION'
+  | 'AWAITING_TRIP_TYPE'
+  | 'AWAITING_CONFIRMATION';
+
+interface BookingContext {
+  step: BookingStep;
+  airport?: string;
+  hotel?: string;
+  region?: string;
+  vehicle?: string;
+  passengers?: number;
+  suitcases?: number;
+  tripType?: 'One-way' | 'Round trip';
+  price?: number;
+  priceSource?: string;
+  originalPrice?: number;
+  matchedPrice?: number;
+}
+
+const AIRPORTS: Record<string, string> = {
+  'PUJ': 'Punta Cana International Airport (PUJ)',
+  'SDQ': 'Santo Domingo Las Americas (SDQ)',
+  'LRM': 'La Romana International Airport (LRM)',
+  'POP': 'Puerto Plata Gregorio Luperon (POP)'
+};
+
+const ROUNDTRIP_MULTIPLIER = 1.9;
+
+const FALLBACK_VEHICLE_PRICING: Record<string, { base: number; perKm: number; capacity: number; luggage: number }> = {
+  'Sedan': { base: 25, perKm: 0.8, capacity: 3, luggage: 3 },
+  'SUV': { base: 35, perKm: 1.0, capacity: 4, luggage: 4 },
+  'Minivan': { base: 45, perKm: 1.2, capacity: 6, luggage: 6 },
+  'Suburban': { base: 65, perKm: 1.4, capacity: 5, luggage: 5 },
+  'Sprinter': { base: 95, perKm: 1.8, capacity: 12, luggage: 12 },
+  'Mini Bus': { base: 150, perKm: 2.5, capacity: 20, luggage: 20 }
+};
+
+const DISTANCE_KEYWORDS: Record<string, { km: number; zone: string }> = {
+  'downtown': { km: 15, zone: 'City Center' },
+  'centro': { km: 15, zone: 'City Center' },
+  'city center': { km: 15, zone: 'City Center' },
+  'beach': { km: 25, zone: 'Beach Area' },
+  'playa': { km: 25, zone: 'Beach Area' },
+  'resort': { km: 30, zone: 'Resort Area' },
+  'hotel': { km: 25, zone: 'Hotel Zone' },
+  'villa': { km: 35, zone: 'Villa Area' },
+  'airbnb': { km: 30, zone: 'Rental Area' },
+  'apartment': { km: 20, zone: 'Residential' },
+  'house': { km: 30, zone: 'Residential' },
+  'marina': { km: 35, zone: 'Marina Area' },
+  'golf': { km: 30, zone: 'Golf Resort' },
+  'all inclusive': { km: 30, zone: 'All-Inclusive Resort' },
+  'boutique': { km: 25, zone: 'Boutique Hotel' }
+};
+
+const AIRPORT_DEFAULT_DISTANCES: Record<string, number> = {
+  'PUJ': 25,
+  'SDQ': 30,
+  'LRM': 20,
+  'POP': 25
+};
+
+interface VehicleType {
+  id: string;
+  name: string;
+  passenger_capacity: number;
+  luggage_capacity: number;
+}
+
+interface PricingRule {
+  id: string;
+  origin: string;
+  destination: string;
+  vehicle_type_id: string;
+  base_price: number;
+  zone: string;
+}
+
+interface FleetVehicle {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  color: string;
+  capacity: number;
+  luggage_capacity: number;
+  image_url: string;
+  amenities: string[];
+  vehicle_type_id: string;
+}
+
+interface HotelZone {
+  id: string;
+  hotel_name: string;
+  zone_code: string;
+  zone_name: string;
+  search_terms: string[];
+  is_active: boolean;
+}
+
+export class TravelAgent {
+  private context: BookingContext = { step: 'IDLE' };
+  private hotels: Hotel[] = [];
+  private services: Service[] = [];
+  private vehicleTypes: VehicleType[] = [];
+  private pricingRules: PricingRule[] = [];
+  private fleetVehicles: FleetVehicle[] = [];
+  private hotelZones: HotelZone[] = [];
+  private conversationHistory: Array<{ role: string; content: string }> = [];
+  private currentLanguage: Language = 'en';
+
+  async initialize(): Promise<void> {
+    try {
+      const [hotelsResult, servicesResult, vehicleTypesResult, pricingRulesResult, vehiclesResult, hotelZonesResult] = await Promise.all([
+        supabase.from('hotels').select('*'),
+        supabase.from('services').select('*'),
+        supabase.from('vehicle_types').select('id, name, passenger_capacity, luggage_capacity').eq('is_active', true),
+        supabase.from('pricing_rules').select('id, origin, destination, vehicle_type_id, base_price, zone').eq('is_active', true),
+        supabase.from('fleet_vehicles').select('id, make, model, year, color, capacity, luggage_capacity, image_url, amenities, vehicle_type_id').eq('status', 'available'),
+        supabase.from('hotel_zones').select('*').eq('is_active', true)
+      ]);
+      if (hotelsResult.data) this.hotels = hotelsResult.data;
+      if (servicesResult.data) this.services = servicesResult.data;
+      if (vehicleTypesResult.data) this.vehicleTypes = vehicleTypesResult.data;
+      if (pricingRulesResult.data) this.pricingRules = pricingRulesResult.data;
+      if (vehiclesResult.data) this.fleetVehicles = vehiclesResult.data;
+      if (hotelZonesResult.data) this.hotelZones = hotelZonesResult.data;
+    } catch (error) {
+      console.error('Failed to initialize TravelAgent:', error);
+    }
+  }
+
+  setLanguage(lang: Language): void {
+    this.currentLanguage = lang;
+  }
+
+  async processQuery(userMessage: string): Promise<AgentResponse> {
+    return this.processMessage(userMessage);
+  }
+
+  async processMessage(userMessage: string): Promise<AgentResponse> {
+    const query = userMessage.toLowerCase().trim();
+
+    const detectedLang = detectLanguage(userMessage);
+    if (detectedLang) {
+      this.currentLanguage = detectedLang;
+      const t = getTranslations(detectedLang);
+      return {
+        message: t.chat.languageChanged,
+        suggestions: [t.services.bookNow, t.agent.anotherQuestion, 'Tell me about services'],
+        languageSwitch: detectedLang
+      };
+    }
+
+    if (query === 'start over' || query === 'reset' || query === 'cancel booking') {
+      this.context = { step: 'IDLE' };
+      this.conversationHistory = [];
+      return this.getWelcomeMessage();
+    }
+
+    if (this.context.step !== 'IDLE') {
+      return await this.handleBookingFlow(query, userMessage);
+    }
+
+    if (this.isGreeting(query)) {
+      return this.getWelcomeMessage();
+    }
+
+    // Check for FAQ queries FIRST (most specific)
+    if (this.isFAQQuery(query)) {
+      return this.handleFAQ(query);
+    }
+
+    // Then check for general questions BEFORE transfer detection
+    if (this.isGeneralQuestion(query)) {
+      return this.handleGeneralQuestion(userMessage);
+    }
+
+    // Only check transfer queries if it's not a general question or FAQ
+    const transferQuery = this.detectTransferQuery(query);
+    if (transferQuery) {
+      return transferQuery;
+    }
+
+    if (this.isBookingRelated(query)) {
+      return this.startGuidedBooking();
+    }
+
+    if (query.includes('fun facts') || query.includes('about dominican')) {
+      return this.showDominicanFunFacts();
+    }
+
+    if (this.isAskingForPhotos(query)) {
+      return this.showInstagramPhotos();
+    }
+
+    if (query.includes('pickup procedure') || query.includes('how does pickup work') || query.includes('real human')) {
+      return this.showPickupProcedure();
+    }
+
+    return this.handleGeneralQuestion(userMessage);
+  }
+
+  private async handleBookingFlow(query: string, originalMessage: string): Promise<AgentResponse> {
+    try {
+      if (query.includes('fun facts') || query.includes('about dominican')) {
+        const response = this.showDominicanFunFacts();
+        return this.addBookingContextToResponse(response);
+      }
+
+      if (this.isAskingForPhotos(query)) {
+        const response = this.showInstagramPhotos();
+        return this.addBookingContextToResponse(response);
+      }
+
+      if (query.includes('pickup procedure') || query.includes('how does pickup work') || query.includes('real human')) {
+        const response = this.showPickupProcedure();
+        return this.addBookingContextToResponse(response);
+      }
+
+      if (this.isFAQQuery(query)) {
+        const response = this.handleFAQ(query);
+        return this.addBookingContextToResponse(response);
+      }
+
+      if (this.isGeneralQuestion(query)) {
+        const response = await this.handleGeneralQuestion(originalMessage);
+        return this.addBookingContextToResponse(response);
+      }
+
+      if (query.includes('continue') || query.includes('resume') || query.includes('back to booking') || query.includes('proceed')) {
+        const stepMessages: Record<BookingStep, string> = {
+          'IDLE': 'Ready to start a new booking?',
+          'AWAITING_AIRPORT': 'Which airport will you be arriving at?',
+          'AWAITING_HOTEL': 'Where would you like to go? Tell me your hotel name or destination.',
+          'AWAITING_PASSENGERS': 'How many passengers will be traveling?',
+          'AWAITING_LUGGAGE': 'How many pieces of luggage will you have?',
+          'AWAITING_VEHICLE_SELECTION': 'Which vehicle would you like to book?',
+          'AWAITING_TRIP_TYPE': 'Would you like a one-way or round trip?',
+          'AWAITING_CONFIRMATION': 'Ready to confirm your booking?'
+        };
+
+        const parts = [];
+        if (this.context.airport) parts.push(`✓ Airport: ${this.context.airport}`);
+        if (this.context.hotel) parts.push(`✓ Hotel: ${this.context.hotel}`);
+        if (this.context.passengers) parts.push(`✓ ${this.context.passengers} passengers`);
+        if (this.context.suitcases !== undefined) parts.push(`✓ ${this.context.suitcases} suitcases`);
+        if (this.context.vehicle) parts.push(`✓ Vehicle: ${this.context.vehicle}`);
+        if (this.context.tripType) parts.push(`✓ ${this.context.tripType}`);
+
+        const progressMessage = parts.length > 0
+          ? `\n\nYour booking so far:\n${parts.join('\n')}\n\n`
+          : '';
+
+        return {
+          message: `Perfect! Let's continue with your booking.${progressMessage}${stepMessages[this.context.step] || 'How can I help?'}`,
+          suggestions: this.getSuggestionsForStep(this.context.step)
+        };
+      }
+
+      let response: AgentResponse;
+
+      switch (this.context.step) {
+        case 'AWAITING_AIRPORT':
+          response = this.handleAirportInput(query);
+          break;
+        case 'AWAITING_HOTEL':
+          response = this.handleHotelInput(query);
+          break;
+        case 'AWAITING_PASSENGERS':
+          response = this.handlePassengersInput(query);
+          break;
+        case 'AWAITING_LUGGAGE':
+          response = this.handleLuggageInput(query);
+          break;
+        case 'AWAITING_VEHICLE_SELECTION':
+          response = this.handleVehicleSelection(query);
+          break;
+        case 'AWAITING_TRIP_TYPE':
+          response = this.handleTripTypeInput(query);
+          break;
+        case 'AWAITING_CONFIRMATION':
+          response = this.handleConfirmationInput(query);
+          break;
+        default:
+          response = this.getWelcomeMessage();
+          break;
+      }
+
+      if (!response || !response.message || response.message === 'undefined' || response.message.includes('undefined')) {
+        const gptResponse = await this.handleGeneralQuestion(originalMessage);
+        return this.addBookingContextToResponse(gptResponse);
+      }
+
+      return response;
+    } catch (error) {
+      console.error('Error in handleBookingFlow:', error);
+      const gptResponse = await this.handleGeneralQuestion(originalMessage);
+      return this.addBookingContextToResponse(gptResponse);
+    }
+  }
+
+  private isGeneralQuestion(query: string): boolean {
+    const lowerQuery = query.toLowerCase();
+    const trimmedQuery = query.trim();
+
+    const explicitQuestionTriggers = [
+      'ask a question',
+      'ask another question',
+      'another question',
+      'tell me about',
+      'more questions',
+      'i have a question',
+      'quick question',
+      'can i ask'
+    ];
+
+    if (explicitQuestionTriggers.some(trigger => lowerQuery.includes(trigger))) {
+      return true;
+    }
+
+    // Check for numbers alone (like "2" or "3 passengers") - these are booking inputs
+    if (/^\d+\s*(passenger|people|person|suitcase|bag|luggage)?s?$/i.test(trimmedQuery)) {
+      return false;
+    }
+
+    // Check for simple confirmation responses - NOT general questions
+    const simpleResponses = /^(yes|no|ok|okay|sure|nope|yep|yeah|nah|alright|continue|proceed|go ahead|next|back)$/i;
+    if (simpleResponses.test(trimmedQuery)) {
+      return false;
+    }
+
+    // Check for simple location inputs - NOT general questions
+    const simpleLocationPattern = /^(puj|sdq|lrm|pop|punta cana|santo domingo|la romana|puerto plata)$/i;
+    if (simpleLocationPattern.test(trimmedQuery)) {
+      return false;
+    }
+
+    // Check for hotel name patterns - NOT general questions (unless they have question words)
+    const hasQuestionWord = /\b(what|where|when|why|how|who|which|can|do|does|is|are|will|should|could|would|may)\b/i.test(lowerQuery);
+    const hasHotelKeywords = /\b(hotel|resort|iberostar|hard rock|dreams|hyatt|marriott|hilton|now|secrets|excellence|bahia|majestic|riu)\b/i.test(lowerQuery);
+    if (hasHotelKeywords && !hasQuestionWord && trimmedQuery.length < 50) {
+      return false;
+    }
+
+    // Check for simple vehicle selections - NOT general questions
+    const vehicleSelectionPattern = /^(sedan|minivan|suv|suburban|sprinter|mini bus|bus|van|car)$/i;
+    if (vehicleSelectionPattern.test(trimmedQuery)) {
+      return false;
+    }
+
+    // Check for simple trip type selections - NOT general questions
+    const tripTypePattern = /^(one-way|round trip|roundtrip|one way|both ways|return|just one way)$/i;
+    if (tripTypePattern.test(trimmedQuery)) {
+      return false;
+    }
+
+    // Professional Airport Transportation specific questions - ALWAYS treat as general questions
+    const airportTransportationQuestions = [
+      // Pickup & Meeting Point Questions
+      'where will the driver', 'where does the driver', 'where do i meet', 'where can i meet',
+      'where to meet', 'where will i meet', 'where should i meet', 'how do i find',
+      'how will i find', 'where will you pick', 'where do you pick up',
+      'what is the pickup location', 'what is the meeting point', 'meeting point',
+      'where exactly', 'which terminal', 'arrivals hall', 'after customs', 'after immigration',
+
+      // Driver & Service Questions
+      'will the driver wait', 'does the driver wait', 'how long will driver wait',
+      'what if i cant find driver', 'driver contact', 'how to contact driver',
+      'will i receive driver info', 'driver details', 'driver name',
+      'speak english', 'english speaking', 'language', 'driver speaks',
+      'professional driver', 'licensed driver', 'experienced driver',
+
+      // Flight Delay Questions
+      'what if flight delayed', 'what if my flight', 'if flight is late',
+      'delayed flight', 'late flight', 'flight delay', 'plane delayed',
+      'do you track flight', 'flight tracking', 'monitor my flight',
+      'what if immigration', 'what if customs', 'long immigration line',
+
+      // Vehicle & Comfort Questions
+      'what type of vehicle', 'what kind of car', 'vehicle type', 'what vehicle',
+      'air conditioned', 'air conditioning', 'ac in car', 'clean vehicle',
+      'comfortable', 'modern vehicle', 'new vehicle', 'vehicle condition',
+      'size of vehicle', 'how big is', 'vehicle capacity',
+
+      // Luggage & Extra Items
+      'child seat', 'baby seat', 'car seat', 'booster seat', 'infant seat',
+      'golf clubs', 'surfboard', 'oversized luggage', 'extra luggage',
+      'wheelchair', 'accessibility', 'special needs', 'assistance',
+
+      // Pricing & Payment Questions
+      'is price per person', 'per person or per vehicle', 'price per passenger',
+      'per vehicle', 'total price', 'final price', 'fixed price',
+      'hidden fees', 'extra charges', 'additional cost', 'price change',
+      'surge pricing', 'night charge', 'weekend charge',
+      'how to pay', 'payment method', 'accept card', 'credit card',
+      'debit card', 'cash', 'pay online', 'pay driver', 'prepay',
+      'secure payment', 'payment secure', 'safe to pay',
+
+      // Service Type Questions
+      'private transfer', 'shared transfer', 'is it private', 'is it shared',
+      'shuttle service', 'shared shuttle', 'private ride', 'just us',
+      'other passengers', 'alone in car', 'only my group',
+
+      // Tipping Questions
+      'tip included', 'is tip included', 'should i tip', 'do i tip',
+      'how much to tip', 'tipping', 'gratuity', 'tip driver',
+      'tip expected', 'tip mandatory', 'tips required',
+
+      // Safety & Insurance Questions
+      'is it safe', 'are you safe', 'safe to use', 'safety',
+      'insured', 'insurance', 'vehicle insurance', 'liability',
+      'licensed', 'legal', 'registered', 'authorized',
+      'background check', 'vetted driver', 'trusted',
+
+      // Cancellation & Changes Questions
+      'cancellation policy', 'can i cancel', 'cancel booking', 'refund',
+      'free cancellation', 'cancellation fee', 'change booking',
+      'modify booking', 'reschedule', 'change date', 'change time',
+
+      // Service Area & Availability Questions
+      'what airports', 'which airports', 'do you cover', 'service area',
+      'available at', 'operate at', '24 hour', '24/7', 'all day',
+      'late night', 'early morning', 'midnight', 'available when',
+
+      // Booking Process Questions
+      'how to book', 'how do i book', 'booking process', 'when to book',
+      'how far in advance', 'book ahead', 'last minute', 'same day',
+      'book now or later', 'when should i book',
+
+      // Wait Time & Duration Questions
+      'how long does transfer take', 'how long is drive', 'drive time',
+      'transfer duration', 'journey time', 'travel time', 'how many minutes',
+      'waiting time', 'free waiting', 'will you wait for me',
+
+      // Communication Questions
+      'will you contact me', 'how will i know', 'confirmation',
+      'will i get details', 'booking confirmation', 'email confirmation',
+      'whatsapp', 'sms', 'text message', 'phone number',
+
+      // Comparison Questions
+      'vs taxi', 'versus taxi', 'better than taxi', 'compared to taxi',
+      'vs uber', 'versus uber', 'difference between', 'why choose you',
+
+      // Round Trip Questions
+      'can i book round trip', 'both ways', 'return transfer', 'round trip discount',
+      'cheaper round trip', 'return journey', 'back to airport',
+
+      // Group & Special Requests
+      'large group', 'big group', 'many people', 'group discount',
+      'wedding', 'corporate', 'business', 'event', 'special request',
+      'special requirements', 'multiple stops', 'stop along way'
+    ];
+
+    // Check for airport transportation specific questions
+    if (airportTransportationQuestions.some(pattern => lowerQuery.includes(pattern))) {
+      return true;
+    }
+
+    // Strong question indicators - informational queries
+    const strongQuestionIndicators = [
+      'what is', 'what are', 'what does', 'what if', 'what about', 'what should', 'what would',
+      'who is', 'who are', 'who do', 'who will', 'who can',
+      'when is', 'when do', 'when does', 'when will', 'when should', 'when can',
+      'where is', 'where are', 'where do', 'where will', 'where should', 'where can',
+      'why is', 'why do', 'why does', 'why should', 'why would', 'why cant',
+      'how does', 'how do', 'how can', 'how will', 'how should', 'how long', 'how much does', 'how many',
+      'can you tell', 'could you explain', 'could you tell', 'would you explain',
+      'tell me about', 'tell me more', 'explain to me', 'let me know',
+      'i want to know', 'i would like to know', 'i need to know',
+      'is it safe', 'is it possible', 'is there', 'is this',
+      'are you', 'are there', 'are these',
+      'do you', 'does it', 'does this', 'do i need',
+      'will you', 'will it', 'will i', 'will there',
+      'should i', 'should we', 'would you', 'would it'
+    ];
+
+    // If contains strong question indicators, it's likely a general question
+    if (strongQuestionIndicators.some(indicator => lowerQuery.includes(indicator))) {
+      // EXCEPTION: If it's a very short query with booking keywords, might be booking input
+      const containsBookingKeyword = /\b(puj|sdq|lrm|pop|passenger|suitcase|luggage|bag)\b/i.test(lowerQuery);
+      if (containsBookingKeyword && trimmedQuery.length < 25) {
+        return false;
+      }
+      return true;
+    }
+
+    // Check if query ends with question mark - strong indicator
+    if (trimmedQuery.endsWith('?')) {
+      // EXCEPTION: Very short queries with just location might be booking inputs
+      if (trimmedQuery.length < 15 && /^(puj|sdq|lrm|pop)/i.test(trimmedQuery)) {
+        return false;
+      }
+      return true;
+    }
+
+    // Check for booking flow continuation keywords - NOT general questions
+    const continuationKeywords = [
+      'continue', 'resume', 'proceed', 'back to booking', 'keep going',
+      'go on', 'next step', 'continue booking', 'finish booking'
+    ];
+    if (continuationKeywords.some(keyword => lowerQuery.includes(keyword))) {
+      return false;
+    }
+
+    // Booking input patterns - NOT general questions
+    const bookingInputPatterns = [
+      /^\d+\s+(passenger|people|person|guest|adult|child|kid)s?$/i,
+      /^(couple|solo|alone|just me|two of us|family)$/i,
+      /^\d+\s+(suitcase|luggage|bag)s?$/i,
+      /^[a-z\s]{3,40}\s+(hotel|resort)$/i,  // "Hard Rock Hotel"
+      /^(one-way|round trip|roundtrip|one way)$/i,
+      /^(puj|sdq|lrm|pop)(\s+to\s+|\s+-\s+|\s+airport)?/i
+    ];
+
+    if (bookingInputPatterns.some(pattern => pattern.test(trimmedQuery))) {
+      return false;
+    }
+
+    // Dominican Republic tourism/culture questions - general questions
+    const dominicanQuestionKeywords = [
+      'dominican', 'punta cana', 'santo domingo', 'weather', 'climate',
+      'temperature', 'season', 'rain', 'sunny', 'beach', 'beaches',
+      'restaurant', 'restaurants', 'food', 'dining', 'eat',
+      'attraction', 'attractions', 'things to do', 'activities',
+      'excursion', 'tour', 'sightseeing', 'visit',
+      'culture', 'history', 'people', 'language', 'currency',
+      'merengue', 'bachata', 'baseball', 'fun facts'
+    ];
+
+    const hasDominicanKeyword = dominicanQuestionKeywords.some(k => lowerQuery.includes(k));
+    if (hasDominicanKeyword && (hasQuestionWord || trimmedQuery.endsWith('?') || trimmedQuery.length > 20)) {
+      return true;
+    }
+
+    // If longer than 50 characters and has question-like structure, treat as general question
+    if (trimmedQuery.length > 50 && (hasQuestionWord || trimmedQuery.endsWith('?'))) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private getSuggestionsForStep(step: BookingStep): string[] {
+    switch (step) {
+      case 'AWAITING_AIRPORT':
+        return ['PUJ - Punta Cana', 'SDQ - Santo Domingo', 'LRM - La Romana', 'Ask a question'];
+      case 'AWAITING_HOTEL':
+        return ['Hard Rock Hotel', 'Iberostar Bavaro', 'Dreams Macao', 'Ask a question'];
+      case 'AWAITING_PASSENGERS':
+        return ['1 passenger', '2 passengers', '3-4 passengers', 'Ask a question'];
+      case 'AWAITING_LUGGAGE':
+        return ['2 suitcases', '4 suitcases', '6 suitcases', 'Ask a question'];
+      case 'AWAITING_VEHICLE_SELECTION':
+        return [...this.vehicleTypes.slice(0, 3).map(v => v.name), 'Ask a question'];
+      case 'AWAITING_TRIP_TYPE':
+        return ['One-way', 'Round trip', 'Ask a question'];
+      case 'AWAITING_CONFIRMATION':
+        return ['Yes, book now!', 'Change vehicle', 'Start over', 'Ask a question'];
+      default:
+        return ['Book a transfer', 'See prices', 'Ask a question'];
+    }
+  }
+
+  private detectTransferQuery(query: string): AgentResponse | null {
+    const airport = this.extractAirport(query);
+    if (!airport) return null;
+
+    const hotelMatch = this.findHotelInDatabase(query);
+    let region: string | null = null;
+    let hotelName: string = '';
+    let useFallback = false;
+
+    if (hotelMatch) {
+      region = hotelMatch.zone_name;
+      hotelName = hotelMatch.hotel_name;
+    } else {
+      region = this.detectRegionFromQuery(query);
+      if (region) {
+        hotelName = this.extractHotelName(query) || `Hotel in ${region}`;
+      } else {
+        hotelName = this.extractHotelName(query);
+        if (hotelName && hotelName.length > 3) {
+          const estimated = this.estimateDistanceFromQuery(query);
+          region = estimated.zone;
+          useFallback = true;
+        }
+      }
+    }
+
+    if (!region || !hotelName) return null;
+
+    const pricingRules = this.pricingRules.filter(
+      rule => rule.origin === airport && rule.destination === region
+    );
+
+    if (pricingRules.length === 0 && !useFallback) {
+      const estimated = this.estimateDistanceFromQuery(query);
+      region = estimated.zone;
+      useFallback = true;
+    }
+
+    this.context = {
+      step: 'AWAITING_PASSENGERS',
+      airport,
+      hotel: hotelName,
+      region,
+      priceSource: useFallback ? 'estimated' : 'standard'
+    };
+
+    const airportName = AIRPORTS[airport]?.split(' (')[0] || airport;
+
+    const message = useFallback
+      ? `I'll help you with a transfer from ${airportName} to ${hotelName}.\n\nHow many passengers will be traveling? (including children)`
+      : `Perfect! Transfer from ${airportName} to ${hotelName}.\n\nHow many passengers will be traveling? (including children)`;
+
+    return {
+      message,
+      suggestions: ['1 passenger', '2 passengers', '3-4 passengers', '5-6 passengers', '7+ passengers']
+    };
+  }
+
+  private getWelcomeMessage(): AgentResponse {
+    return {
+      message: `Welcome to Dominican Transfers!\n\nI'll help you book a comfortable ride to your destination.\n\nWhat's included:\n\n✓ Private airport pickups\n✓ Meet & greet at arrivals\n✓ Free flight tracking\n✓ English-speaking drivers\n✓ 24/7 support\n\nJust tell me your route (like "PUJ to Hard Rock Hotel") or ask me anything!`,
+      suggestions: [
+        'PUJ to Hard Rock Hotel',
+        'PUJ to Iberostar Bavaro',
+        'SDQ to JW Marriott',
+        'What if my flight is delayed?',
+        'How does pickup work?'
+      ]
+    };
+  }
+
+  private startGuidedBooking(): AgentResponse {
+    this.context = { step: 'AWAITING_AIRPORT' };
+    return {
+      message: `Let's get your transfer booked!\n\nWhich airport will you be arriving at?`,
+      suggestions: ['PUJ - Punta Cana', 'SDQ - Santo Domingo', 'LRM - La Romana', 'POP - Puerto Plata']
+    };
+  }
+
+  private handleAirportInput(query: string): AgentResponse {
+    const airport = this.extractAirport(query);
+
+    if (airport) {
+      this.context.airport = airport;
+      this.context.step = 'AWAITING_HOTEL';
+      const airportName = AIRPORTS[airport]?.split(' (')[0] || airport;
+      return {
+        message: `Great, ${airportName}!\n\nWhere would you like to go? Just tell me your hotel name or destination.`,
+        suggestions: ['Hard Rock Hotel', 'Iberostar Bavaro', 'Dreams Macao', 'Hyatt Zilara Cap Cana']
+      };
+    }
+
+    return {
+      message: "I didn't catch that. Which airport will you be arriving at?",
+      suggestions: ['PUJ - Punta Cana', 'SDQ - Santo Domingo', 'LRM - La Romana', 'POP - Puerto Plata']
+    };
+  }
+
+  private handleHotelInput(query: string): AgentResponse {
+    const hotelMatch = this.findHotelInDatabase(query);
+
+    if (hotelMatch) {
+      this.context.hotel = hotelMatch.hotel_name;
+      this.context.region = hotelMatch.zone_name;
+      this.context.step = 'AWAITING_PASSENGERS';
+      return this.askForPassengers();
+    }
+
+    const region = this.detectRegionFromQuery(query);
+    const hotelName = this.extractHotelName(query);
+
+    if (region) {
+      this.context.hotel = hotelName.length > 3 ? hotelName : `Hotel in ${region}`;
+      this.context.region = region;
+      this.context.step = 'AWAITING_PASSENGERS';
+      return this.askForPassengers();
+    }
+
+    const selectedRegion = this.detectRegionDirect(query);
+    if (selectedRegion) {
+      this.context.region = selectedRegion;
+      this.context.hotel = `Hotel in ${selectedRegion}`;
+      this.context.step = 'AWAITING_PASSENGERS';
+      return this.askForPassengers();
+    }
+
+    if (hotelName && hotelName.length > 2) {
+      const estimatedDistance = this.estimateDistanceFromQuery(query);
+      this.context.hotel = hotelName;
+      this.context.region = estimatedDistance.zone;
+      this.context.priceSource = 'estimated';
+      this.context.step = 'AWAITING_PASSENGERS';
+
+      const airportName = AIRPORTS[this.context.airport!]?.split(' (')[0] || this.context.airport;
+      return {
+        message: `Got it, ${hotelName}!\n\nHow many passengers will be traveling? (including children)`,
+        suggestions: ['1 passenger', '2 passengers', '3-4 passengers', '5-6 passengers', '7+ passengers']
+      };
+    }
+
+    return {
+      message: "Where will you be staying? You can tell me your hotel name, address, or the general area.",
+      suggestions: ['Hard Rock Hotel', 'Iberostar Bavaro', 'Dreams Macao', 'My hotel is not listed']
+    };
+  }
+
+  private estimateDistanceFromQuery(query: string): { km: number; zone: string } {
+    const lowerQuery = query.toLowerCase();
+
+    for (const [keyword, data] of Object.entries(DISTANCE_KEYWORDS)) {
+      if (lowerQuery.includes(keyword)) {
+        return data;
+      }
+    }
+
+    const defaultKm = AIRPORT_DEFAULT_DISTANCES[this.context.airport!] || 25;
+    return { km: defaultKm, zone: 'General Area' };
+  }
+
+  private generateFallbackPricing(airport: string, estimatedKm: number): VehicleOption[] {
+    const vehicleOptions: VehicleOption[] = [];
+
+    for (const [vehicleName, pricing] of Object.entries(FALLBACK_VEHICLE_PRICING)) {
+      const oneWayPrice = Math.round(pricing.base + (estimatedKm * pricing.perKm));
+      const roundTripPrice = Math.round(oneWayPrice * ROUNDTRIP_MULTIPLIER);
+
+      vehicleOptions.push({
+        name: vehicleName,
+        capacity: pricing.capacity,
+        luggageCapacity: pricing.luggage,
+        oneWayPrice,
+        roundTripPrice,
+        recommended: false
+      });
+    }
+
+    return vehicleOptions.sort((a, b) => a.oneWayPrice - b.oneWayPrice);
+  }
+
+  private askForPassengers(): AgentResponse {
+    const airportName = AIRPORTS[this.context.airport!]?.split(' (')[0] || this.context.airport;
+    return {
+      message: `Excellent! Transfer from ${airportName} to ${this.context.hotel}.\n\nHow many passengers will be traveling? (including children)`,
+      suggestions: ['1 passenger', '2 passengers', '3-4 passengers', '5-6 passengers', '7+ passengers']
+    };
+  }
+
+  private handlePassengersInput(query: string): AgentResponse {
+    let passengers = this.extractNumber(query);
+
+    if (query.includes('solo') || query.includes('alone') || query.includes('just me')) {
+      passengers = 1;
+    } else if (query.includes('couple') || query.includes('two of us')) {
+      passengers = 2;
+    } else if (query.includes('3-4') || query.includes('3 to 4')) {
+      passengers = 4;
+    } else if (query.includes('5-6') || query.includes('5 to 6')) {
+      passengers = 6;
+    } else if (query.includes('7+') || query.includes('7 or more')) {
+      passengers = 8;
+    }
+
+    if (passengers && passengers > 0 && passengers <= 30) {
+      this.context.passengers = passengers;
+      this.context.step = 'AWAITING_LUGGAGE';
+
+      const luggageSuggestions = passengers <= 2
+        ? ['1 suitcase', '2 suitcases', '3 suitcases']
+        : passengers <= 4
+          ? ['2 suitcases', '4 suitcases', '6 suitcases']
+          : ['4 suitcases', '6 suitcases', '8+ suitcases'];
+
+      return {
+        message: `Got it, ${passengers} passenger${passengers > 1 ? 's' : ''}.\n\nHow many pieces of luggage? (suitcases, large bags, golf clubs)`,
+        suggestions: luggageSuggestions
+      };
+    }
+
+    return {
+      message: "How many passengers will be traveling? This helps me recommend the right vehicle.",
+      suggestions: ['1 passenger', '2 passengers', '3-4 passengers', '5-6 passengers', '7+ passengers']
+    };
+  }
+
+  private handleLuggageInput(query: string): AgentResponse {
+    let suitcases = this.extractNumber(query);
+
+    if (query.includes('8+') || query.includes('8 or more') || query.includes('lots')) {
+      suitcases = 10;
+    }
+
+    if (suitcases !== null && suitcases >= 0 && suitcases <= 30) {
+      this.context.suitcases = suitcases;
+      return this.triggerPriceScanWithAllVehicles();
+    }
+
+    return {
+      message: "How many pieces of luggage will you have? Include checked bags and large carry-ons.",
+      suggestions: ['2 suitcases', '4 suitcases', '6 suitcases', '8+ suitcases']
+    };
+  }
+
+  private triggerPriceScanWithAllVehicles(): AgentResponse {
+    const airport = this.context.airport!;
+    const region = this.context.region!;
+    const hotelName = this.context.hotel!;
+    const passengers = this.context.passengers!;
+    const luggage = this.context.suitcases!;
+    const airportName = AIRPORTS[airport]?.split(' (')[0] || airport;
+
+    const pricingRules = this.pricingRules.filter(
+      rule => rule.origin === airport && rule.destination === region
+    );
+
+    let vehicleOptions: VehicleOption[] = [];
+    let recommendedVehicle: string | null = null;
+    let lowestPrice = Infinity;
+    let usingFallback = false;
+
+    if (pricingRules.length === 0) {
+      usingFallback = true;
+      const estimatedDistance = this.estimateDistanceFromQuery(hotelName);
+      vehicleOptions = this.generateFallbackPricing(airport, estimatedDistance.km);
+      this.context.priceSource = 'estimated';
+
+      for (const option of vehicleOptions) {
+        const canFit = passengers <= option.capacity && luggage <= option.luggageCapacity;
+        if (canFit && option.oneWayPrice < lowestPrice) {
+          lowestPrice = option.oneWayPrice;
+          recommendedVehicle = option.name;
+        }
+      }
+    } else {
+      for (const rule of pricingRules) {
+        const vehicle = this.vehicleTypes.find(v => v.id === rule.vehicle_type_id);
+        if (vehicle) {
+          const oneWayPrice = Number(rule.base_price);
+          const roundTripPrice = Math.round(oneWayPrice * ROUNDTRIP_MULTIPLIER);
+          const canFit = passengers <= vehicle.passenger_capacity && luggage <= vehicle.luggage_capacity;
+
+          const option: VehicleOption = {
+            name: vehicle.name,
+            capacity: vehicle.passenger_capacity,
+            luggageCapacity: vehicle.luggage_capacity,
+            oneWayPrice,
+            roundTripPrice,
+            recommended: false
+          };
+
+          vehicleOptions.push(option);
+
+          if (canFit && oneWayPrice < lowestPrice) {
+            lowestPrice = oneWayPrice;
+            recommendedVehicle = vehicle.name;
+          }
+        }
+      }
+    }
+
+    vehicleOptions.sort((a, b) => a.oneWayPrice - b.oneWayPrice);
+
+    if (recommendedVehicle) {
+      const recOption = vehicleOptions.find(v => v.name === recommendedVehicle);
+      if (recOption) recOption.recommended = true;
+    }
+
+    const scanMessage = usingFallback
+      ? `Calculating estimated rates for your transfer to ${hotelName}...`
+      : `Scanning live market rates for your transfer...`;
+
+    this.context.step = 'AWAITING_VEHICLE_SELECTION';
+
+    return {
+      message: scanMessage,
+      priceScanRequest: {
+        type: 'PRICE_SCAN',
+        airport,
+        hotel: hotelName,
+        region: usingFallback ? 'Estimated Zone' : region,
+        basePrice: lowestPrice === Infinity ? 45 : lowestPrice,
+        route: `${airportName} to ${hotelName}`,
+        passengers,
+        luggage,
+        vehicleOptions
+      },
+      suggestions: []
+    };
+  }
+
+  private handleVehicleSelection(query: string): AgentResponse {
+    const allVehicleNames = [
+      ...this.vehicleTypes.map(v => v.name),
+      ...Object.keys(FALLBACK_VEHICLE_PRICING)
+    ];
+    const uniqueVehicles = [...new Set(allVehicleNames)];
+
+    for (const vehicleName of uniqueVehicles) {
+      if (query.toLowerCase().includes(vehicleName.toLowerCase())) {
+        this.context.vehicle = vehicleName;
+        this.context.tripType = 'one-way';
+
+        const dbVehicle = this.vehicleTypes.find(v => v.name === vehicleName);
+        if (dbVehicle) {
+          const pricingRule = this.pricingRules.find(
+            r => r.origin === this.context.airport &&
+                 r.destination === this.context.region &&
+                 r.vehicle_type_id === dbVehicle.id
+          );
+
+          if (pricingRule) {
+            this.context.originalPrice = Number(pricingRule.base_price);
+          }
+        } else if (FALLBACK_VEHICLE_PRICING[vehicleName]) {
+          const fallback = FALLBACK_VEHICLE_PRICING[vehicleName];
+          const estimatedDistance = this.estimateDistanceFromQuery(this.context.hotel || '');
+          this.context.originalPrice = Math.round(fallback.base + (estimatedDistance.km * fallback.perKm));
+        }
+
+        this.calculatePrice();
+        return this.triggerBooking();
+      }
+    }
+
+    if (query.includes('book') || query.includes('select') || query.includes('choose')) {
+      return {
+        message: "Which vehicle would you like to book? Please select from the options shown above.",
+        suggestions: uniqueVehicles.slice(0, 4)
+      };
+    }
+
+    return {
+      message: "Please select a vehicle to continue with your booking.",
+      suggestions: uniqueVehicles.slice(0, 4)
+    };
+  }
+
+  private handleTripTypeInput(query: string): AgentResponse {
+    if (query.includes('round') || query.includes('both') || query.includes('return')) {
+      this.context.tripType = 'Round trip';
+    } else if (query.includes('one') || query.includes('single') || query.includes('only')) {
+      this.context.tripType = 'One-way';
+    } else {
+      return {
+        message: "Would you prefer a one-way transfer or round trip?\n\n✓ One-way: Airport to hotel\n✓ Round trip: Both ways (best value!)",
+        suggestions: ['One-way', 'Round trip']
+      };
+    }
+
+    this.calculatePrice();
+    this.context.step = 'AWAITING_CONFIRMATION';
+    return this.showBookingSummary();
+  }
+
+  private showBookingSummary(): AgentResponse {
+    const airportCode = this.context.airport || 'PUJ';
+    const airportName = AIRPORTS[airportCode]?.split(' (')[0] || airportCode;
+
+    return {
+      message: `Booking Summary\n\nRoute: ${airportName} → ${this.context.hotel}\nVehicle: ${this.context.vehicle}\nPassengers: ${this.context.passengers}\nLuggage: ${this.context.suitcases} piece${this.context.suitcases !== 1 ? 's' : ''}\nService: ${this.context.tripType}\n\nTotal: $${this.context.price} USD\n\nIncluded:\n\n✓ Meet & greet at arrivals\n✓ Flight tracking\n✓ Professional driver\n✓ All taxes & fees\n✓ Free cancellation (24hrs)\n\nReady to book?`,
+      suggestions: ['Yes, book now!', 'Change vehicle', 'Start over']
+    };
+  }
+
+  private handleConfirmationInput(query: string): AgentResponse {
+    const positiveResponses = ['yes', 'book', 'confirm', 'proceed', 'sounds good', 'perfect', 'ok', 'okay', 'sure', 'yep', 'yeah', 'go ahead', 'do it', 'absolutely', 'definitely', 'please', 'ready'];
+
+    if (query.includes('start over') || query.includes('cancel') || query === 'no') {
+      this.context = { step: 'IDLE' };
+      return this.getWelcomeMessage();
+    }
+
+    if (query.includes('change vehicle') || query.includes('different vehicle')) {
+      this.context.step = 'AWAITING_VEHICLE_SELECTION';
+      return {
+        message: "Which vehicle would you prefer?",
+        suggestions: this.vehicleTypes.slice(0, 4).map(v => v.name)
+      };
+    }
+
+    for (const vehicle of this.vehicleTypes) {
+      if (query.toLowerCase() === vehicle.name.toLowerCase()) {
+        this.context.vehicle = vehicle.name;
+        this.calculatePrice();
+        return this.showBookingSummary();
+      }
+    }
+
+    if (positiveResponses.some(r => query.includes(r))) {
+      return this.triggerBooking();
+    }
+
+    return {
+      message: "Would you like to proceed with this booking?",
+      suggestions: ['Yes, book now!', 'Change vehicle', 'Start over']
+    };
+  }
+
+  private triggerBooking(): AgentResponse {
+    const bookingAction: BookingAction = {
+      action: 'START_BOOKING',
+      airport: this.context.airport!,
+      hotel: this.context.hotel!,
+      region: this.context.region!,
+      vehicle: this.context.vehicle!,
+      passengers: this.context.passengers!,
+      suitcases: this.context.suitcases!,
+      tripType: this.context.tripType!,
+      price: this.context.price!,
+      currency: 'USD',
+      paymentProvider: 'Stripe',
+      paymentMethods: ['iDEAL', 'Card'],
+      priceSource: this.context.priceSource || 'standard',
+      originalPrice: this.context.originalPrice || this.context.price
+    };
+
+    this.context = { step: 'IDLE' };
+
+    return {
+      message: "Opening your secure booking form...\n\nYou're just a few clicks away from a stress-free arrival!",
+      bookingAction,
+      suggestions: []
+    };
+  }
+
+  private calculatePrice(): void {
+    if (this.context.matchedPrice) {
+      this.context.price = this.context.matchedPrice;
+      return;
+    }
+
+    if (!this.context.airport || !this.context.vehicle || !this.context.tripType) return;
+
+    const vehicle = this.vehicleTypes.find(v => v.name === this.context.vehicle);
+    let basePrice: number | null = null;
+
+    if (vehicle && this.context.region) {
+      const rule = this.pricingRules.find(
+        r => r.origin === this.context.airport &&
+             r.destination === this.context.region &&
+             r.vehicle_type_id === vehicle.id
+      );
+
+      if (rule) {
+        basePrice = Number(rule.base_price);
+      }
+    }
+
+    if (basePrice === null) {
+      const fallback = FALLBACK_VEHICLE_PRICING[this.context.vehicle!];
+      if (fallback) {
+        const estimatedDistance = this.estimateDistanceFromQuery(this.context.hotel || '');
+        basePrice = Math.round(fallback.base + (estimatedDistance.km * fallback.perKm));
+        this.context.priceSource = 'estimated';
+      } else {
+        basePrice = 45;
+      }
+    }
+
+    this.context.price = this.context.tripType === 'Round trip' ? Math.round(basePrice * ROUNDTRIP_MULTIPLIER) : basePrice;
+
+    if (!this.context.originalPrice) {
+      this.context.originalPrice = this.context.price;
+    }
+  }
+
+  private findHotelInDatabase(query: string): HotelZone | null {
+    const lowerQuery = query.toLowerCase();
+
+    for (const hotel of this.hotelZones) {
+      if (hotel.search_terms.some(term => lowerQuery.includes(term.toLowerCase()))) {
+        return hotel;
+      }
+      if (lowerQuery.includes(hotel.hotel_name.toLowerCase())) {
+        return hotel;
+      }
+    }
+
+    return null;
+  }
+
+  private extractAirport(query: string): string | null {
+    const lower = query.toLowerCase();
+
+    // Use word boundaries to avoid false matches (e.g., "pop" in "population")
+    if (lower.includes('puj') || lower.includes('punta cana')) return 'PUJ';
+    if (lower.includes('sdq') || lower.includes('santo domingo')) return 'SDQ';
+    if (lower.includes('lrm') || lower.includes('la romana')) return 'LRM';
+
+    // Only match POP if it's a standalone word or with airport context
+    if (/\bpop\b/.test(lower) || lower.includes('puerto plata')) return 'POP';
+
+    return null;
+  }
+
+  private detectRegionFromQuery(query: string): string | null {
+    const hotelMatch = this.findHotelInDatabase(query);
+    if (hotelMatch) {
+      return hotelMatch.zone_name;
+    }
+    return this.detectRegionDirect(query);
+  }
+
+  private detectRegionDirect(query: string): string | null {
+    const lowerQuery = query.toLowerCase();
+    if (lowerQuery.includes('bavaro') || (lowerQuery.includes('punta cana') && !lowerQuery.includes('cap'))) {
+      return 'Bavaro / Punta Cana';
+    }
+    if (lowerQuery.includes('cap cana')) {
+      return 'Cap Cana';
+    }
+    if (lowerQuery.includes('uvero alto') || lowerQuery.includes('macao')) {
+      return 'Uvero Alto';
+    }
+    if (lowerQuery.includes('santo domingo') || lowerQuery.includes('sdq')) {
+      return 'Santo Domingo';
+    }
+    if (lowerQuery.includes('la romana') || lowerQuery.includes('bayahibe') || lowerQuery.includes('dominicus')) {
+      return 'Bayahibe';
+    }
+    if (lowerQuery.includes('puerto plata') || lowerQuery.includes('playa dorada') || lowerQuery.includes('cofresi')) {
+      return 'Puerto Plata / Playa Dorada';
+    }
+    if (lowerQuery.includes('samana') || lowerQuery.includes('las terrenas')) {
+      return 'Samana / Las Terrenas';
+    }
+    if (lowerQuery.includes('sosua') || lowerQuery.includes('cabarete')) {
+      return 'Sosua / Cabarete';
+    }
+    if (lowerQuery.includes('juan dolio') || lowerQuery.includes('boca chica')) {
+      return 'Juan Dolio / Boca Chica';
+    }
+    return null;
+  }
+
+  private extractHotelName(query: string): string {
+    const stopWords = ['to', 'from', 'the', 'a', 'an', 'at', 'in', 'for', 'puj', 'sdq', 'lrm', 'pop', 'price', 'transfer', 'how', 'much', 'is', 'what'];
+    const words = query.split(/\s+/).filter(w => !stopWords.includes(w.toLowerCase()));
+    const capitalizedWords = words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+    return capitalizedWords.join(' ');
+  }
+
+  private extractNumber(query: string): number | null {
+    const match = query.match(/(\d+)/);
+    if (match) return parseInt(match[1]);
+    const wordNumbers: Record<string, number> = {
+      'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+      'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+      'eleven': 11, 'twelve': 12
+    };
+    for (const [word, num] of Object.entries(wordNumbers)) {
+      if (query.includes(word)) return num;
+    }
+    return null;
+  }
+
+  private isGreeting(query: string): boolean {
+    const greetings = ['hello', 'hi', 'hey', 'hola', 'good morning', 'good afternoon', 'good evening', 'howdy', 'greetings', 'start'];
+    return greetings.some(g => query === g || query.startsWith(g + ' ') || query.startsWith(g + ','));
+  }
+
+  private isBookingRelated(query: string): boolean {
+    const bookingKeywords = [
+      'book', 'transfer', 'airport', 'price', 'cost', 'how much',
+      'quote', 'rate', 'reservation', 'ride', 'taxi', 'transport', 'pickup',
+      'vehicle', 'car', 'van', 'suv', 'shuttle'
+    ];
+    return bookingKeywords.some(keyword => query.includes(keyword));
+  }
+
+  private isAskingForPhotos(query: string): boolean {
+    const photoKeywords = [
+      'photo', 'photos', 'picture', 'pictures', 'pic', 'pics',
+      'image', 'images', 'gallery', 'see your', 'show me',
+      'instagram', 'insta', 'look like', 'what do your',
+      'vehicle photos', 'car photos', 'fleet photos'
+    ];
+    return photoKeywords.some(keyword => query.includes(keyword));
+  }
+
+  private isFAQQuery(query: string): boolean {
+    const lowerQuery = query.toLowerCase();
+
+    const faqPatterns = [
+      // Pickup & Meeting Point FAQs
+      'where can i meet', 'where do i meet', 'where will i meet', 'where to meet',
+      'meet my driver', 'meet the driver', 'find my driver', 'find the driver',
+      'driver meet me', 'driver location', 'pickup location', 'pickup point',
+      'where driver', 'driver where', 'driver wait', 'driver waiting',
+      'arrivals hall', 'arrivals area', 'after customs', 'baggage claim',
+      'exit from airport', 'leaving airport', 'where exactly will',
+      'which exit', 'terminal exit', 'arrivals door',
+
+      // Flight Delay & Tracking FAQs
+      'flight delay', 'flight delayed', 'flight late', 'plane late',
+      'delayed flight', 'late flight', 'flight arrives late',
+      'will driver wait', 'driver wait for me', 'wait for delayed',
+      'track my flight', 'flight tracking', 'monitor flight',
+      'do you track flights', 'automatic tracking', 'flight monitor',
+      'what if late', 'arrive late', 'plane delayed',
+
+      // Pickup Process FAQs
+      'how does pickup work', 'how pickup works', 'pickup process',
+      'airport pickup', 'pickup procedure', 'how to get picked up',
+      'what happens after i land', 'what happens when i arrive',
+      'after landing', 'upon arrival', 'when i arrive',
+      'step by step', 'pickup instructions', 'how do i',
+
+      // Vehicle & Comfort FAQs
+      'air conditioned', 'air conditioning', 'ac in car', 'vehicles modern',
+      'what type of vehicle', 'what kind of car', 'vehicle type',
+      'comfortable vehicle', 'clean vehicle', 'vehicle condition',
+      'modern fleet', 'new cars', 'well maintained',
+      'vehicle amenities', 'wifi in car', 'bottled water',
+
+      // Child Seats & Special Equipment FAQs
+      'child seat', 'baby seat', 'car seat', 'booster seat',
+      'infant seat', 'child safety', 'kids seat',
+      'wheelchair', 'wheelchair accessible', 'disability',
+      'special needs', 'accessibility', 'walker',
+
+      // Pricing FAQs
+      'per person', 'per passenger', 'price per person', 'cost per person',
+      'private transfer', 'shared transfer', 'is it private', 'is it shared',
+      'hidden fee', 'hidden charge', 'extra fee', 'additional cost',
+      'price change', 'price increase', 'surge pricing',
+      'final price', 'fixed price', 'guaranteed price',
+      'night surcharge', 'weekend rate', 'holiday pricing',
+      'per vehicle pricing', 'total cost', 'all inclusive',
+
+      // Tipping FAQs
+      'tip driver', 'tipping', 'gratuity', 'should i tip',
+      'tip included', 'is tip included', 'how much to tip',
+      'tip expected', 'tip mandatory', 'tips required',
+      'do i need to tip', 'tipping culture', 'gratuity included',
+
+      // Safety & Insurance FAQs
+      'is it safe', 'are transfers safe', 'safe to use', 'safety',
+      'licensed driver', 'insured vehicle', 'insurance', 'safer than taxi',
+      'background check', 'vetted drivers', 'professional drivers',
+      'driver credentials', 'certified drivers', 'registered company',
+      'liability insurance', 'vehicle insurance', 'passenger insurance',
+
+      // Service Area & Availability FAQs
+      'what airport', 'which airport', 'what cities', 'service area',
+      'operate at night', 'late night', 'early morning', '24 hour',
+      'do you operate', 'available at', 'service available',
+      'which destinations', 'where do you go', 'coverage area',
+      '24/7 service', 'midnight pickup', 'red-eye flight',
+
+      // Cancellation & Changes FAQs
+      'cancellation', 'cancel booking', 'refund', 'cancel policy',
+      'cancellation policy', 'free cancellation', 'cancellation fee',
+      'change booking', 'modify booking', 'reschedule',
+      'change date', 'change time', 'update booking',
+      'refund policy', 'money back', 'cancel for free',
+
+      // Payment FAQs
+      'payment method', 'how to pay', 'accept card', 'credit card',
+      'secure payment', 'payment secure', 'stripe payment',
+      'debit card', 'cash payment', 'pay online', 'prepayment',
+      'pay driver', 'payment options', 'apple pay', 'google pay',
+      'ideal payment', 'bank transfer', 'paypal',
+
+      // Communication & Confirmation FAQs
+      'how will i know', 'confirmation', 'booking confirmation',
+      'will i get confirmation', 'email confirmation', 'sms',
+      'whatsapp', 'text message', 'driver details',
+      'will you contact', 'how do you contact', 'notification',
+      'contact information', 'phone number', 'driver phone',
+
+      // Service Type FAQs
+      'private or shared', 'just my group', 'only us',
+      'shuttle service', 'shared shuttle', 'private ride',
+      'other passengers', 'alone in car', 'exclusive',
+      'direct transfer', 'no stops', 'straight to hotel',
+
+      // Luggage FAQs
+      'luggage space', 'how much luggage', 'suitcase limit',
+      'oversized luggage', 'golf clubs', 'surfboard',
+      'sports equipment', 'extra bags', 'trunk space',
+
+      // Wait Time FAQs
+      'waiting time', 'free waiting', 'will you wait for me',
+      'how long will driver wait', 'complimentary waiting',
+      'wait at airport', 'patience', 'delayed passenger',
+
+      // Duration FAQs
+      'how long does transfer take', 'how long is drive', 'drive time',
+      'transfer duration', 'journey time', 'travel time',
+      'how many minutes', 'distance to', 'time to get',
+
+      // Round Trip FAQs
+      'can i book round-trip', 'can i book pickup and drop-off',
+      'is round-trip cheaper', 'round trip discount',
+      'both ways', 'return transfer', 'return journey',
+      'back to airport', 'round trip savings',
+
+      // Group & Corporate FAQs
+      'large group', 'big group', 'many people', 'group discount',
+      'wedding', 'corporate', 'business', 'event',
+      'multiple stops', 'stop along way', 'detour',
+
+      // Driver FAQs
+      'speak english', 'english speaking', 'driver language',
+      'professional driver', 'experienced driver', 'trained driver',
+      'driver uniform', 'how will i recognize', 'driver badge',
+
+      // Booking Process FAQs
+      'how does airport pickup work', 'how does airport transfer work',
+      'how do i get picked up', 'what is the airport pickup process',
+      'how will driver find me', 'where will driver meet',
+      'is driver waiting in arrivals', 'what airports do you',
+      'do you pick up from', 'which airports', 'is pickup available from',
+      'what if flight is delayed', 'will driver leave if',
+      'is there a waiting time', 'what if immigration takes',
+      'is airport pickup available', 'do you operate at night',
+      'can i get picked up after midnight', 'are vehicles air-conditioned',
+      'do you have ac in', 'can you accommodate large groups',
+      'do you have vans for groups', 'do you transport big families',
+      'do you have child seats', 'is price per person',
+      'do i pay per person', 'is transfer price shared',
+      'how is transfer price calculated', 'are airport pickup prices fixed',
+      'are there hidden fees', 'will price change after',
+      'is price guaranteed', 'do prices increase at night',
+      'can i book round-trip', 'can i book pickup and drop-off',
+      'is round-trip cheaper', 'is tipping expected',
+      'do i need to tip driver', 'is gratuity included',
+      'how much should i tip', 'are tips mandatory',
+      'is airport pickup safe', 'is airport transfer safe',
+      'are drivers licensed', 'is it safe to use private transfers',
+      'are vehicles insured', 'is this safer than taxi',
+      'how do i book airport pickup', 'can i book before arriving',
+      'how far in advance should i book',
+      'what should i do if i cant find my driver',
+      'what if i dont see my driver', 'who do i contact if driver missing',
+      'customer support', 'help line', 'emergency contact'
+    ];
+
+    if (faqPatterns.some(pattern => lowerQuery.includes(pattern))) {
+      return true;
+    }
+
+    const faqKeywords = [
+      'private', 'shared', 'shuttle', 'delay', 'delayed',
+      'meet driver', 'find driver', 'driver wait',
+      'per person', 'per vehicle', 'included',
+      'tip', 'tipping', 'gratuity',
+      'child seat', 'baby seat', 'car seat',
+      'cancel', 'refund', 'cancellation',
+      'payment', 'secure', 'stripe',
+      'safe', 'safety', 'licensed', 'insured',
+      'track', 'waiting', 'pickup procedure',
+      'confirmation', 'whatsapp', 'sms',
+      'round trip', 'round-trip', 'return',
+      'baggage', 'luggage space', 'trunk',
+      'accessibility', 'wheelchair', 'special needs'
+    ];
+
+    return faqKeywords.some(k => lowerQuery.includes(k));
+  }
+
+  private showDominicanFunFacts(): AgentResponse {
+    const funFacts = [
+      "The Dominican Republic was the first place Columbus landed in 1492 - and he loved it so much he's buried in Santo Domingo!",
+      "Baseball is basically a religion here. The DR has produced more MLB players per capita than any other country!",
+      "Pico Duarte is the highest peak in the Caribbean at 3,098m!",
+      "The merengue dance was invented here!",
+      "Larimar, a beautiful blue stone, is found ONLY in the Dominican Republic.",
+      "Santo Domingo has the first cathedral, hospital, and university in the Americas!",
+      "Dominican coffee was once used as currency!",
+      "The DR shares the island of Hispaniola with Haiti."
+    ];
+
+    const randomFacts = funFacts.sort(() => Math.random() - 0.5).slice(0, 3);
+
+    return {
+      message: `Fun Facts about the Dominican Republic:\n\n${randomFacts.map((fact, i) => `${i + 1}. ${fact}`).join('\n\n')}\n\nWant to explore this amazing island? I can help you book your transfer!`,
+      suggestions: ['Book a transfer', 'More fun facts', 'PUJ to Hard Rock Hotel']
+    };
+  }
+
+  private showInstagramPhotos(): AgentResponse {
+    return {
+      message: `Check out our Instagram for photos of our fleet and happy customers!\n\n@dominicantransfers\nhttps://www.instagram.com/dominicantransfers/\n\nYou'll find:\n\n✓ Our premium vehicles\n✓ Happy travelers\n✓ Beautiful Dominican destinations\n\nFollow us for travel tips and special offers!`,
+      suggestions: ['Book a transfer', 'See vehicles', 'PUJ - Punta Cana']
+    };
+  }
+
+  private showPickupProcedure(): AgentResponse {
+    return {
+      message: `How Your Pickup Works:\n\n1. Before You Land - Your driver tracks your flight\n\n2. At Arrivals - Driver waits with a sign showing YOUR NAME\n\n3. Easy to Spot - Branded shirts in the pickup zone\n\n4. Full Assistance - Help with luggage to your vehicle\n\n5. Direct Transfer - Straight to your hotel!\n\nYou'll get a WhatsApp with your driver's name, photo, and contact before pickup.`,
+      suggestions: ['Book now', 'What if my flight is delayed?', 'See prices']
+    };
+  }
+
+  private addBookingContextToResponse(response: AgentResponse): AgentResponse {
+    const isInBookingFlow = this.context.step !== 'IDLE';
+    const isAtConfirmationStep = this.context.step === 'AWAITING_CONFIRMATION';
+
+    if (!isInBookingFlow) {
+      return response;
+    }
+
+    const parts = [];
+    if (this.context.airport) parts.push(`Airport: ${this.context.airport}`);
+    if (this.context.hotel) parts.push(`Hotel: ${this.context.hotel}`);
+    if (this.context.passengers) parts.push(`${this.context.passengers} passengers`);
+    if (this.context.suitcases !== undefined) parts.push(`${this.context.suitcases} suitcases`);
+    if (this.context.vehicle) parts.push(`Vehicle: ${this.context.vehicle}`);
+    if (this.context.tripType) parts.push(`${this.context.tripType}`);
+    if (this.context.price) parts.push(`$${this.context.price}`);
+
+    let bookingContext = '';
+    if (parts.length > 0) {
+      if (isAtConfirmationStep) {
+        bookingContext = `\n\n📋 Your booking is ready to confirm:\n${parts.join(', ')}`;
+      } else {
+        bookingContext = `\n\n📋 Your booking in progress: ${parts.join(', ')}`;
+      }
+    }
+
+    const suggestions = isAtConfirmationStep
+      ? ['Yes, book now!', 'Ask another question', 'Change vehicle']
+      : ['Continue booking', 'Ask another question', 'Start over'];
+
+    let finalMessage = response.message;
+    if (isAtConfirmationStep) {
+      finalMessage = `${response.message}${bookingContext}\n\n✅ Ready to book? Type "Yes, book now!" to complete your reservation.`;
+    } else {
+      finalMessage = `${response.message}${bookingContext}\n\nType "Continue booking" when you're ready to proceed with your transfer.`;
+    }
+
+    return {
+      ...response,
+      message: finalMessage,
+      suggestions
+    };
+  }
+
+  private handleFAQ(query: string): AgentResponse {
+    const isInBookingFlow = this.context.step !== 'IDLE';
+    const isAtConfirmationStep = this.context.step === 'AWAITING_CONFIRMATION';
+
+    // Build booking context message if in booking flow
+    let bookingContext = '';
+    if (isInBookingFlow) {
+      const parts = [];
+      if (this.context.airport) parts.push(`Airport: ${this.context.airport}`);
+      if (this.context.hotel) parts.push(`Hotel: ${this.context.hotel}`);
+      if (this.context.passengers) parts.push(`${this.context.passengers} passengers`);
+      if (this.context.suitcases !== undefined) parts.push(`${this.context.suitcases} suitcases`);
+      if (this.context.vehicle) parts.push(`Vehicle: ${this.context.vehicle}`);
+      if (this.context.tripType) parts.push(`${this.context.tripType}`);
+      if (this.context.price) parts.push(`$${this.context.price}`);
+
+      if (parts.length > 0) {
+        if (isAtConfirmationStep) {
+          bookingContext = `\n\n📋 Your booking is ready to confirm:\n${parts.join(', ')}`;
+        } else {
+          bookingContext = `\n\n📋 Your booking in progress: ${parts.join(', ')}`;
+        }
+      }
+    }
+
+    // Dynamic suggestions based on booking state
+    const suggestions = isAtConfirmationStep
+      ? ['Yes, book now!', 'Ask another question', 'Change vehicle']
+      : isInBookingFlow
+      ? ['Continue booking', 'Ask another question', 'Start over']
+      : ['Book a transfer', 'See prices', 'More questions'];
+
+    let faqMessage = '';
+
+    // Handle specific FAQ queries
+    if (query.includes('delay') || query.includes('late flight') || query.includes('track')) {
+      faqMessage = `Flight Delays? No Problem!\n\n✓ We track your flight in real-time\n✓ Driver adjusts automatically to delays\n✓ No extra charges ever\n✓ 30 minutes or 3 hours late - same price\n\nYou'll never be stranded!`;
+    } else if (query.includes('meet') || query.includes('find') || query.includes('driver') || query.includes('pickup')) {
+      faqMessage = `How Your Pickup Works:\n\n1. Driver waits at arrivals with YOUR NAME on a sign\n2. Free flight tracking - no rush!\n3. Easy to spot in branded shirts\n4. Help with all your luggage\n5. Direct to your hotel\n\nYou'll get driver details via WhatsApp before pickup!`;
+    } else if (query.includes('private') || query.includes('shared') || query.includes('shuttle')) {
+      faqMessage = "All our transfers are 100% private - just you and your party in the vehicle.\n\nNo shared rides, no waiting. Direct to your destination!";
+    } else if (query.includes('per person') || query.includes('per vehicle') || query.includes('include')) {
+      faqMessage = "Our prices are per vehicle, not per person!\n\nEvery booking includes:\n\n✓ Meet & greet service\n✓ Flight tracking\n✓ Luggage assistance\n✓ All taxes and fees\n✓ No hidden charges";
+    } else if (query.includes('cancel') || query.includes('refund')) {
+      faqMessage = "Free Cancellation up to 24 hours before your transfer.\n\nPlans change - we understand! Full details in your confirmation email.";
+    } else if (query.includes('payment') || query.includes('secure') || query.includes('stripe')) {
+      faqMessage = "Secure Payments via Stripe\n\nYour card details are encrypted and never stored. Pay with:\n\n✓ Credit/Debit Card\n✓ iDEAL\n✓ Apple Pay\n✓ Google Pay";
+    } else if (query.includes('tip') || query.includes('tipping') || query.includes('gratuity')) {
+      faqMessage = "Tipping is appreciated but not required!\n\nOur drivers are well-paid professionals. If you'd like to tip for exceptional service, 10-15% is customary.";
+    } else if (query.includes('child seat') || query.includes('baby seat') || query.includes('car seat')) {
+      faqMessage = "Child Seats Available!\n\nWe provide complimentary child seats upon request. Just mention it in your special requests when booking!";
+    } else if (query.includes('safe') || query.includes('safety') || query.includes('licensed') || query.includes('insured')) {
+      faqMessage = "Your Safety is Our Priority!\n\n✓ Licensed, background-checked drivers\n✓ Fully insured vehicles\n✓ Modern, well-maintained fleet\n✓ GPS-tracked for your security\n✓ 24/7 customer support\n\nSafer than taxis, more reliable than rideshares!";
+    } else {
+      faqMessage = "Why Choose Dominican Transfers?\n\n✓ 100% private transfers\n✓ English-speaking drivers\n✓ Free flight tracking\n✓ Prices per vehicle\n✓ All taxes included\n✓ Free cancellation (24hrs)\n✓ Secure Stripe payments\n✓ 24/7 support\n\nHow can I help you today?";
+    }
+
+    // Add booking context reminder if in booking flow
+    let finalMessage = faqMessage;
+    if (isAtConfirmationStep) {
+      finalMessage = `${faqMessage}${bookingContext}\n\n✅ Ready to book? Type "Yes, book now!" to complete your reservation.`;
+    } else if (isInBookingFlow) {
+      finalMessage = `${faqMessage}${bookingContext}\n\nType "Continue booking" when you're ready to proceed with your transfer.`;
+    }
+
+    return {
+      message: finalMessage,
+      suggestions
+    };
+  }
+
+  private async handleGeneralQuestion(userMessage: string): Promise<AgentResponse> {
+    const isInBookingFlow = this.context.step !== 'IDLE';
+    const isAtConfirmationStep = this.context.step === 'AWAITING_CONFIRMATION';
+
+    // Build booking context message if in booking flow
+    let bookingContext = '';
+    if (isInBookingFlow) {
+      const parts = [];
+      if (this.context.airport) parts.push(`Airport: ${this.context.airport}`);
+      if (this.context.hotel) parts.push(`Hotel: ${this.context.hotel}`);
+      if (this.context.passengers) parts.push(`${this.context.passengers} passengers`);
+      if (this.context.suitcases !== undefined) parts.push(`${this.context.suitcases} suitcases`);
+      if (this.context.vehicle) parts.push(`Vehicle: ${this.context.vehicle}`);
+      if (this.context.tripType) parts.push(`${this.context.tripType}`);
+      if (this.context.price) parts.push(`$${this.context.price}`);
+
+      if (parts.length > 0) {
+        if (isAtConfirmationStep) {
+          bookingContext = `\n\n📋 Your booking is ready to confirm:\n${parts.join(', ')}`;
+        } else {
+          bookingContext = `\n\n📋 Your booking in progress: ${parts.join(', ')}`;
+        }
+      }
+    }
+
+    const suggestions = isAtConfirmationStep
+      ? ['Yes, book now!', 'Ask another question', 'Change vehicle']
+      : isInBookingFlow
+      ? ['Continue booking', 'Start over', 'Ask another question']
+      : ['Book a transfer', 'See prices', 'Ask another question'];
+
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/gpt-chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`
+        },
+        body: JSON.stringify({
+          message: userMessage,
+          conversationHistory: this.conversationHistory,
+          isInBookingFlow: isInBookingFlow,
+          bookingContext: this.context
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        return {
+          message: `I'd be happy to help! For questions about Dominican Republic travel, bookings, or our services, just ask. Or tell me your route to get started with a transfer quote!${bookingContext}`,
+          suggestions
+        };
+      }
+
+      const data = await response.json();
+
+      if (!data.response) {
+        return {
+          message: `I'd be happy to help! For questions about Dominican Republic travel, bookings, or our services, just ask. Or tell me your route to get started with a transfer quote!${bookingContext}`,
+          suggestions
+        };
+      }
+
+      this.conversationHistory.push(
+        { role: 'user', content: userMessage },
+        { role: 'assistant', content: data.response }
+      );
+
+      if (this.conversationHistory.length > 12) {
+        this.conversationHistory = this.conversationHistory.slice(-8);
+      }
+
+      // Add booking context reminder if in booking flow
+      let finalMessage = data.response;
+      if (isAtConfirmationStep) {
+        finalMessage = `${data.response}${bookingContext}\n\n✅ Ready to book? Type "Yes, book now!" to complete your reservation.`;
+      } else if (isInBookingFlow) {
+        finalMessage = `${data.response}${bookingContext}\n\nType "Continue booking" when you're ready to proceed with your transfer.`;
+      }
+
+      return {
+        message: finalMessage,
+        suggestions
+      };
+    } catch {
+      return {
+        message: `I'd be happy to help! For questions about Dominican Republic travel, bookings, or our services, just ask. Or tell me your route to get started with a transfer quote!${bookingContext}`,
+        suggestions
+      };
+    }
+  }
+
+  getGreeting(): AgentResponse {
+    return this.getWelcomeMessage();
+  }
+
+  resetContext(): void {
+    this.context = { step: 'IDLE' };
+    this.conversationHistory = [];
+  }
+
+  setContextForPriceScan(data: { airport: string; hotel: string; region: string; passengers: number; luggage: number }): void {
+    this.context = {
+      step: 'AWAITING_VEHICLE_SELECTION',
+      airport: data.airport,
+      hotel: data.hotel,
+      region: data.region,
+      passengers: data.passengers,
+      suitcases: data.luggage
+    };
+  }
+}

@@ -94,6 +94,8 @@ const AIRPORTS: Record<string, string> = {
 const ROUNDTRIP_MULTIPLIER = 1.9;
 
 const FALLBACK_VEHICLE_PRICING: Record<string, { base: number; perKm: number; capacity: number; luggage: number }> = {
+  'Sedan': { base: 25, perKm: 0.8, capacity: 3, luggage: 3 },
+  'SUV': { base: 35, perKm: 1.0, capacity: 4, luggage: 4 },
   'Minivan': { base: 45, perKm: 1.2, capacity: 6, luggage: 6 },
   'Suburban': { base: 65, perKm: 1.4, capacity: 5, luggage: 5 },
   'Sprinter': { base: 95, perKm: 1.8, capacity: 12, luggage: 12 },

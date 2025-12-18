@@ -236,23 +236,24 @@ export class TravelAgent {
       return this.getWelcomeMessage();
     }
 
-    // Check for FAQ queries FIRST (most specific)
-    if (this.isFAQQuery(query)) {
-      return this.handleFAQ(query);
-    }
-
-    // Then check for general questions BEFORE transfer detection
-    if (this.isGeneralQuestion(query)) {
-      return this.handleGeneralQuestion(userMessage);
-    }
-
-    // Extract booking information from natural language queries
+    // Extract booking information from natural language queries FIRST (before FAQ/general questions)
+    // This ensures "I'm flying into punta cana with 4 adults" is treated as booking, not general chat
     const extractedInfo = this.extractBookingInformation(query);
     if (extractedInfo.hasInfo) {
       return this.handleExtractedBookingInfo(extractedInfo, query);
     }
 
-    // Only check transfer queries if it's not a general question or FAQ
+    // Check for FAQ queries
+    if (this.isFAQQuery(query)) {
+      return this.handleFAQ(query);
+    }
+
+    // Check for general questions ONLY if no booking info was extracted
+    if (this.isGeneralQuestion(query)) {
+      return this.handleGeneralQuestion(userMessage);
+    }
+
+    // Check for transfer queries (route-based like "PUJ to Hard Rock")
     const transferQuery = this.detectTransferQuery(query);
     if (transferQuery) {
       return transferQuery;
@@ -737,7 +738,24 @@ export class TravelAgent {
 
     const lowerQuery = query.toLowerCase();
 
-    // Detect price inquiries FIRST
+    // Detect BOOKING INTENT first - any mention of travel/arrival with airport
+    const bookingIntentPatterns = [
+      /(?:i am|i'm|we are|we're)\s+(?:flying|coming|arriving|landing|getting|traveling)/i,
+      /(?:will be|going to be)\s+(?:flying|coming|arriving|landing|getting|traveling)/i,
+      /(?:flying|coming|arriving|landing|getting|traveling)\s+(?:in|into|to|at)/i,
+      /(?:need|want|looking for)\s+(?:a\s+)?(?:transfer|ride|pickup|transport)/i,
+      /(?:book|booking|reserve|reserving)\s+(?:a\s+)?(?:transfer|ride|pickup|transport)/i
+    ];
+
+    let hasBookingIntent = false;
+    for (const pattern of bookingIntentPatterns) {
+      if (pattern.test(query)) {
+        hasBookingIntent = true;
+        break;
+      }
+    }
+
+    // Detect price inquiries
     const priceInquiryPatterns = [
       /(?:how much|what(?:'s| is) the (?:price|cost|rate))/i,
       /(?:i (?:would like to|want to|need to) know (?:the )?(?:price|cost|rate))/i,
@@ -753,6 +771,7 @@ export class TravelAgent {
       if (pattern.test(query)) {
         info.isPriceInquiry = true;
         info.hasInfo = true;
+        hasBookingIntent = true;
         break;
       }
     }
@@ -908,15 +927,26 @@ export class TravelAgent {
       }
     }
 
+    // CRITICAL: If we detected booking intent (flying, arriving, etc.) AND have an airport,
+    // treat this as a booking query even if other info is missing
+    if (hasBookingIntent && info.airport) {
+      info.hasInfo = true;
+    }
+
+    // Also mark as booking if we have airport + passengers (clear booking intent)
+    if (info.airport && info.passengers) {
+      info.hasInfo = true;
+    }
+
+    // Or if we have airport + date (planning a transfer)
+    if (info.airport && info.date) {
+      info.hasInfo = true;
+    }
+
     return info;
   }
 
   private handleExtractedBookingInfo(extractedInfo: ReturnType<typeof this.extractBookingInformation>, originalQuery: string): AgentResponse {
-    // Build thank you message
-    const acknowledgedList = extractedInfo.acknowledgedInfo.join(', ');
-    const isEmptyAcknowledgement = acknowledgedList.trim() === '';
-    let thankYouMessage = isEmptyAcknowledgement ? '' : `Perfect! I've noted: ${acknowledgedList}.\n\n`;
-
     // Pre-fill context with extracted information
     if (extractedInfo.airport) {
       this.context.airport = extractedInfo.airport;
@@ -937,6 +967,34 @@ export class TravelAgent {
       this.context.tripType = extractedInfo.tripType;
     }
 
+    // Build comprehensive recap message
+    const recapParts: string[] = [];
+    if (this.context.airport) {
+      const airportName = AIRPORTS[this.context.airport]?.split(' (')[0] || this.context.airport;
+      recapParts.push(`✓ ${airportName}`);
+    }
+    if (extractedInfo.date) {
+      recapParts.push(`✓ Arriving ${extractedInfo.date}`);
+    }
+    if (this.context.passengers) {
+      recapParts.push(`✓ ${this.context.passengers} passenger${this.context.passengers !== 1 ? 's' : ''}`);
+    }
+    if (this.context.hotel) {
+      recapParts.push(`✓ ${this.context.hotel}`);
+    } else if (this.context.region) {
+      recapParts.push(`✓ ${this.context.region}`);
+    }
+    if (this.context.suitcases !== undefined) {
+      recapParts.push(`✓ ${this.context.suitcases} suitcase${this.context.suitcases !== 1 ? 's' : ''}`);
+    }
+    if (this.context.tripType) {
+      recapParts.push(`✓ ${this.context.tripType}`);
+    }
+
+    const recapMessage = recapParts.length > 0
+      ? `Perfect! Here's what I have:\n\n${recapParts.join('\n')}\n\n`
+      : '';
+
     // Handle price inquiries specially
     if (extractedInfo.isPriceInquiry) {
       if (!this.context.airport) {
@@ -949,9 +1007,8 @@ export class TravelAgent {
 
       if (!this.context.hotel && !this.context.region) {
         this.context.step = 'AWAITING_HOTEL';
-        const airportName = AIRPORTS[this.context.airport]?.split(' (')[0] || this.context.airport;
         return {
-          message: `Great! For ${airportName} transfers.\n\nWhere would you like to go? Tell me your hotel name or destination.`,
+          message: recapMessage + "Where would you like to go? Tell me your hotel name or destination.",
           suggestions: ['Hard Rock Hotel', 'Iberostar Bavaro', 'Dreams Macao', 'Hyatt Zilara Cap Cana']
         };
       }
@@ -959,7 +1016,7 @@ export class TravelAgent {
       if (!this.context.passengers) {
         this.context.step = 'AWAITING_PASSENGERS';
         return {
-          message: thankYouMessage + "How many passengers will be traveling?",
+          message: recapMessage + "How many passengers will be traveling?",
           suggestions: ['1 passenger', '2 passengers', '3-4 passengers', '5-6 passengers', '7+ passengers']
         };
       }
@@ -967,7 +1024,7 @@ export class TravelAgent {
       if (this.context.suitcases === undefined) {
         this.context.step = 'AWAITING_LUGGAGE';
         return {
-          message: thankYouMessage + "And how many suitcases will you have?",
+          message: recapMessage + "And how many suitcases will you have?",
           suggestions: ['1-2 suitcases', '3-4 suitcases', '5-6 suitcases', 'No luggage']
         };
       }
@@ -977,16 +1034,15 @@ export class TravelAgent {
     if (!this.context.airport) {
       this.context.step = 'AWAITING_AIRPORT';
       return {
-        message: thankYouMessage + "Which airport will you be arriving at?",
+        message: recapMessage + "Which airport will you be arriving at?",
         suggestions: ['PUJ - Punta Cana', 'SDQ - Santo Domingo', 'LRM - La Romana', 'POP - Puerto Plata']
       };
     }
 
     if (!this.context.hotel && !this.context.region) {
       this.context.step = 'AWAITING_HOTEL';
-      const airportName = AIRPORTS[this.context.airport]?.split(' (')[0] || this.context.airport;
       return {
-        message: thankYouMessage + `Great choice with ${airportName}!\n\nWhere would you like to go? Just tell me your hotel name or destination.`,
+        message: recapMessage + "Where would you like to go? Tell me your hotel name or destination.",
         suggestions: ['Hard Rock Hotel', 'Iberostar Bavaro', 'Dreams Macao', 'Hyatt Zilara Cap Cana']
       };
     }
@@ -994,7 +1050,7 @@ export class TravelAgent {
     if (!this.context.passengers) {
       this.context.step = 'AWAITING_PASSENGERS';
       return {
-        message: thankYouMessage + "How many passengers will be traveling? (including children)",
+        message: recapMessage + "How many passengers will be traveling? (including children)",
         suggestions: ['1 passenger', '2 passengers', '3-4 passengers', '5-6 passengers']
       };
     }
@@ -1002,7 +1058,7 @@ export class TravelAgent {
     if (this.context.suitcases === undefined) {
       this.context.step = 'AWAITING_LUGGAGE';
       return {
-        message: thankYouMessage + "Perfect! How many suitcases will you have in total?",
+        message: recapMessage + "How many suitcases will you have in total?",
         suggestions: ['1-2 suitcases', '3-4 suitcases', '5-6 suitcases', 'No luggage']
       };
     }
@@ -1081,7 +1137,7 @@ export class TravelAgent {
       const routeDescription = `${airportName} → ${hotelName}`;
 
       return {
-        message: thankYouMessage + `Scanning the market for the best rates on your ${routeDescription} transfer...`,
+        message: recapMessage + `Scanning live market rates for your transfer...\n\n${routeDescription}`,
         priceScanRequest: {
           type: 'PRICE_SCAN',
           airport,

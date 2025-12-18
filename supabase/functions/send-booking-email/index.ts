@@ -540,7 +540,16 @@ Deno.serve(async (req: Request) => {
           console.log('✅ Email sent successfully:', emailResult.id);
         } else {
           emailError = emailResult.message || emailResult.error?.message || JSON.stringify(emailResult) || 'Failed to send email';
-          console.error('❌ Resend API error:', emailResult);
+          
+          // Check if this is a test mode error
+          if (emailError.includes('only send testing emails') || emailError.includes('verify a domain')) {
+            console.warn('⚠️ Resend is in TEST MODE - domain verification required');
+            console.warn('⚠️ Email attempted to:', recipientEmail);
+            console.warn('⚠️ To fix: Verify dominicantransfers.nl at https://resend.com/domains');
+            emailError = `TEST MODE: ${emailError}`;
+          } else {
+            console.error('❌ Resend API error:', emailResult);
+          }
         }
       } catch (sendError: any) {
         emailError = sendError.message || 'Unknown send error';

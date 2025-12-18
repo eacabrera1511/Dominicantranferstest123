@@ -128,6 +128,7 @@ interface VehicleType {
   name: string;
   passenger_capacity: number;
   luggage_capacity: number;
+  image_url?: string;
 }
 
 interface PricingRule {

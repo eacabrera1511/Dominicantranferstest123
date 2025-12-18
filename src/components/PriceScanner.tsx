@@ -8,7 +8,6 @@ interface VehicleOption {
   oneWayPrice: number;
   roundTripPrice: number;
   recommended?: boolean;
-  imageUrl?: string;
 }
 
 interface CompetitorPrice {
@@ -265,36 +264,22 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
               {isSuburban && (
                 <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-yellow-500/10 to-amber-500/5 rounded-lg animate-pulse pointer-events-none" />
               )}
-
-              {vehicle.imageUrl && (
-                <div className="relative w-full mb-2 xs:mb-3 sm:mb-3.5 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
-                  <img
-                    src={vehicle.imageUrl}
-                    alt={vehicle.name}
-                    className="w-full h-32 xs:h-36 sm:h-40 md:h-44 object-contain"
-                  />
-                  {vehicle.recommended && (
-                    <div className="absolute top-2 right-2">
-                      <span className="inline-flex items-center gap-0.5 xs:gap-1 px-1.5 xs:px-2 py-0.5 xs:py-1 bg-emerald-500 text-white text-[10px] xs:text-xs font-medium rounded-full whitespace-nowrap shadow-lg">
+              <div className="flex items-start justify-between gap-2 xs:gap-3 relative">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 xs:gap-2 flex-wrap">
+                    <p className={`font-semibold text-xs xs:text-sm ${isSuburban ? 'text-amber-700 dark:text-amber-400' : 'text-gray-900 dark:text-white'}`}>
+                      {vehicle.name}
+                      {isSuburban && <span className="ml-1">🔥</span>}
+                    </p>
+                    {vehicle.recommended && (
+                      <span className="inline-flex items-center gap-0.5 xs:gap-1 px-1.5 xs:px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 text-[10px] xs:text-xs font-medium rounded-full whitespace-nowrap">
                         <Star className="w-2.5 h-2.5 xs:w-3 xs:h-3 fill-current" />
                         <span className="hidden xs:inline">Best Fit</span>
                         <span className="xs:hidden">Best</span>
                       </span>
-                    </div>
-                  )}
-                  {isSuburban && (
-                    <div className="absolute top-2 left-2">
-                      <span className="inline-flex items-center px-2 py-1 bg-amber-500 text-white text-xs font-bold rounded-full shadow-lg">
-                        🔥 VIP
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="flex items-start justify-between gap-2 xs:gap-3 relative">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 xs:gap-3 text-[10px] xs:text-xs text-gray-500 dark:text-gray-400">
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 xs:gap-3 mt-0.5 xs:mt-1 text-[10px] xs:text-xs text-gray-500 dark:text-gray-400">
                     <span className="flex items-center gap-0.5 xs:gap-1">
                       <Users className="w-2.5 h-2.5 xs:w-3 xs:h-3" />
                       {vehicle.capacity}

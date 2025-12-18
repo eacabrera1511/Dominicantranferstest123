@@ -23,7 +23,7 @@ export function PriceComparison({ basePrice, competitors, route, onBookNow, onPr
 
   useEffect(() => {
     const fetchDiscount = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('global_discount_settings')
         .select('discount_percentage')
         .eq('is_active', true)
@@ -31,8 +31,14 @@ export function PriceComparison({ basePrice, competitors, route, onBookNow, onPr
         .limit(1)
         .maybeSingle();
 
+      if (error) {
+        console.error('PriceComparison - Error fetching discount:', error);
+      }
+
       if (data) {
-        setDiscountPercentage(Number(data.discount_percentage) || 0);
+        const discountValue = Number(data.discount_percentage) || 0;
+        console.log('PriceComparison - Fetched discount percentage:', discountValue);
+        setDiscountPercentage(discountValue);
       }
     };
 

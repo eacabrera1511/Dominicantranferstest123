@@ -214,34 +214,46 @@ export function AdminPricing() {
       return;
     }
 
-    if (globalDiscount) {
-      await supabase
+    try {
+      if (globalDiscount) {
+        const { error: updateError } = await supabase
+          .from('global_discount_settings')
+          .update({ is_active: false })
+          .eq('id', globalDiscount.id);
+
+        if (updateError) {
+          console.error('Error deactivating old discount:', updateError);
+        }
+      }
+
+      const { data, error } = await supabase
         .from('global_discount_settings')
-        .update({ is_active: false })
-        .eq('id', globalDiscount.id);
-    }
+        .insert([{
+          discount_percentage: discountFormData.discount_percentage,
+          is_active: true,
+          reason: discountFormData.reason || null,
+          start_date: new Date().toISOString(),
+          created_by: 'admin'
+        }])
+        .select();
 
-    const { error } = await supabase
-      .from('global_discount_settings')
-      .insert([{
-        discount_percentage: discountFormData.discount_percentage,
-        is_active: true,
-        reason: discountFormData.reason || null,
-        start_date: new Date().toISOString(),
-        created_by: 'admin'
-      }]);
-
-    if (error) {
-      console.error('Error setting discount:', error);
-      alert('Failed to set discount. Please try again.');
-    } else {
-      setShowDiscountModal(false);
-      setDiscountFormData({
-        discount_percentage: 0,
-        is_active: true,
-        reason: '',
-      });
-      fetchData();
+      if (error) {
+        console.error('Error setting discount:', error);
+        alert(`Failed to set discount: ${error.message}`);
+      } else {
+        console.log('Discount set successfully:', data);
+        alert(`Discount updated successfully to ${discountFormData.discount_percentage}%!`);
+        setShowDiscountModal(false);
+        setDiscountFormData({
+          discount_percentage: 0,
+          is_active: true,
+          reason: '',
+        });
+        await fetchData();
+      }
+    } catch (err) {
+      console.error('Exception setting discount:', err);
+      alert('An unexpected error occurred. Please try again.');
     }
   };
 
@@ -249,12 +261,23 @@ export function AdminPricing() {
     if (!globalDiscount) return;
     if (!confirm('Are you sure you want to deactivate the current discount?')) return;
 
-    await supabase
-      .from('global_discount_settings')
-      .update({ is_active: false })
-      .eq('id', globalDiscount.id);
+    try {
+      const { error } = await supabase
+        .from('global_discount_settings')
+        .update({ is_active: false })
+        .eq('id', globalDiscount.id);
 
-    fetchData();
+      if (error) {
+        console.error('Error deactivating discount:', error);
+        alert(`Failed to deactivate discount: ${error.message}`);
+      } else {
+        alert('Discount deactivated successfully!');
+        await fetchData();
+      }
+    } catch (err) {
+      console.error('Exception deactivating discount:', err);
+      alert('An unexpected error occurred. Please try again.');
+    }
   };
 
   const stats = {
@@ -326,9 +349,9 @@ export function AdminPricing() {
             <button
               onClick={() => {
                 setDiscountFormData({
-                  discount_percentage: globalDiscount?.discount_percentage || 0,
+                  discount_percentage: Number(globalDiscount?.discount_percentage) || 0,
                   is_active: true,
-                  reason: '',
+                  reason: globalDiscount?.reason || '',
                 });
                 setShowDiscountModal(true);
               }}

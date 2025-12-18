@@ -44,7 +44,7 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
 
   useEffect(() => {
     const fetchDiscount = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('global_discount_settings')
         .select('discount_percentage')
         .eq('is_active', true)
@@ -52,8 +52,14 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
         .limit(1)
         .maybeSingle();
 
+      if (error) {
+        console.error('Error fetching discount:', error);
+      }
+
       if (data) {
-        setDiscountPercentage(Number(data.discount_percentage) || 0);
+        const discountValue = Number(data.discount_percentage) || 0;
+        console.log('Fetched discount percentage:', discountValue);
+        setDiscountPercentage(discountValue);
       }
     };
 
@@ -67,7 +73,8 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-      setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+      const timeString = `${hours}h ${minutes}m ${seconds}s`;
+      setTimeLeft(timeString);
     };
 
     fetchDiscount();

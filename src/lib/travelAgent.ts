@@ -728,6 +728,7 @@ export class TravelAgent {
       luggage?: number;
       tripType?: 'One-way' | 'Round trip';
       date?: string;
+      isPriceInquiry?: boolean;
       acknowledgedInfo: string[];
     } = {
       hasInfo: false,
@@ -736,12 +737,45 @@ export class TravelAgent {
 
     const lowerQuery = query.toLowerCase();
 
-    // Extract airport
+    // Detect price inquiries FIRST
+    const priceInquiryPatterns = [
+      /(?:how much|what(?:'s| is) the (?:price|cost|rate))/i,
+      /(?:i (?:would like to|want to|need to) know (?:the )?(?:price|cost|rate))/i,
+      /(?:can you (?:tell me|give me) (?:the )?(?:price|cost|rate))/i,
+      /(?:what (?:does|do) (?:it|transfers?) cost)/i,
+      /(?:price(?:s)? (?:for|of))/i,
+      /(?:cost(?:s)? (?:for|of))/i,
+      /(?:rate(?:s)? (?:for|of))/i,
+      /(?:quote(?:s)? (?:for|of))/i
+    ];
+
+    for (const pattern of priceInquiryPatterns) {
+      if (pattern.test(query)) {
+        info.isPriceInquiry = true;
+        info.hasInfo = true;
+        break;
+      }
+    }
+
+    // Enhanced airport extraction with context patterns
     const airportPatterns = [
-      { pattern: /\b(puj|punta cana)\b/i, code: 'PUJ' },
-      { pattern: /\b(sdq|santo domingo)\b/i, code: 'SDQ' },
-      { pattern: /\b(lrm|la romana)\b/i, code: 'LRM' },
-      { pattern: /\b(pop|puerto plata)\b/i, code: 'POP' }
+      // Direct mentions
+      { pattern: /\b(puj|punta cana(?:\s+airport)?)\b/i, code: 'PUJ' },
+      { pattern: /\b(sdq|santo domingo(?:\s+airport)?)\b/i, code: 'SDQ' },
+      { pattern: /\b(lrm|la romana(?:\s+airport)?)\b/i, code: 'LRM' },
+      { pattern: /\b(pop|puerto plata(?:\s+airport)?)\b/i, code: 'POP' },
+
+      // Contextual patterns - arriving/flying/landing
+      { pattern: /(?:arriving|landing|flying|getting)\s+(?:at|into|to|in)\s+(?:the\s+)?(?:puj|punta cana(?:\s+airport)?)/i, code: 'PUJ' },
+      { pattern: /(?:arriving|landing|flying|getting)\s+(?:at|into|to|in)\s+(?:the\s+)?(?:sdq|santo domingo(?:\s+airport)?)/i, code: 'SDQ' },
+      { pattern: /(?:arriving|landing|flying|getting)\s+(?:at|into|to|in)\s+(?:the\s+)?(?:lrm|la romana(?:\s+airport)?)/i, code: 'LRM' },
+      { pattern: /(?:arriving|landing|flying|getting)\s+(?:at|into|to|in)\s+(?:the\s+)?(?:pop|puerto plata(?:\s+airport)?)/i, code: 'POP' },
+
+      // From airport patterns
+      { pattern: /(?:from|pickup at|leaving)\s+(?:the\s+)?(?:puj|punta cana(?:\s+airport)?)/i, code: 'PUJ' },
+      { pattern: /(?:from|pickup at|leaving)\s+(?:the\s+)?(?:sdq|santo domingo(?:\s+airport)?)/i, code: 'SDQ' },
+      { pattern: /(?:from|pickup at|leaving)\s+(?:the\s+)?(?:lrm|la romana(?:\s+airport)?)/i, code: 'LRM' },
+      { pattern: /(?:from|pickup at|leaving)\s+(?:the\s+)?(?:pop|puerto plata(?:\s+airport)?)/i, code: 'POP' }
     ];
 
     for (const { pattern, code } of airportPatterns) {
@@ -753,13 +787,21 @@ export class TravelAgent {
       }
     }
 
-    // Extract passengers (adults, people, passengers, family, etc.)
+    // Enhanced passenger extraction with context
     const passengerPatterns = [
+      // Standard patterns
       /(\d+)\s*(?:adults?|passengers?|people|persons?|pax)/i,
       /(?:family|group)\s+of\s+(\d+)/i,
       /(\d+)\s+in\s+(?:my|our)\s+(?:party|group)/i,
       /(?:we|us|there)\s+(?:are|will be)\s+(\d+)/i,
-      /(\d+)\s+traveling/i
+      /(\d+)\s+traveling/i,
+
+      // New contextual patterns - "with X adults"
+      /(?:with|bringing|traveling with)\s+(\d+)\s+(?:adults?|people|passengers?|persons?)/i,
+      /(?:party of|group of)\s+(\d+)/i,
+      /(?:for|booking for)\s+(\d+)\s+(?:adults?|people|passengers?|persons?)/i,
+      /(?:total of|total)\s+(\d+)\s+(?:adults?|people|passengers?|persons?)/i,
+      /(\d+)\s+(?:adults?|people|passengers?|persons?)\s+(?:total|in total)/i
     ];
 
     for (const pattern of passengerPatterns) {
@@ -775,10 +817,12 @@ export class TravelAgent {
       }
     }
 
-    // Extract luggage/suitcases
+    // Enhanced luggage extraction
     const luggagePatterns = [
       /(\d+)\s*(?:suitcases?|bags?|luggage|pieces?)/i,
-      /with\s+(\d+)\s+(?:checked\s+)?(?:bag|luggage)/i
+      /with\s+(\d+)\s+(?:checked\s+)?(?:bag|luggage)/i,
+      /(\d+)\s+(?:pieces? of )?luggage/i,
+      /(?:bringing|carrying|have)\s+(\d+)\s+(?:suitcases?|bags?)/i
     ];
 
     for (const pattern of luggagePatterns) {
@@ -794,30 +838,44 @@ export class TravelAgent {
       }
     }
 
-    // Extract trip type
-    if (/\b(round\s*trip|return|both\s*ways?|two\s*ways?)\b/i.test(lowerQuery)) {
+    // Enhanced trip type detection
+    if (/\b(round\s*trip|return|both\s*ways?|two\s*ways?|back and forth)\b/i.test(lowerQuery)) {
       info.tripType = 'Round trip';
       info.acknowledgedInfo.push('round trip');
       info.hasInfo = true;
-    } else if (/\b(one\s*way|single|just\s+(?:there|to))\b/i.test(lowerQuery)) {
+    } else if (/\b(one\s*way|single|just\s+(?:there|to)|drop off only)\b/i.test(lowerQuery)) {
       info.tripType = 'One-way';
       info.acknowledgedInfo.push('one-way');
       info.hasInfo = true;
     }
 
-    // Extract date (various formats)
+    // Enhanced date extraction with more formats
     const datePatterns = [
-      /(?:on|arriving|coming|landing|getting\s+in)\s+(?:on\s+)?([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?)/i,
-      /(?:on|arriving|coming|landing)\s+(?:the\s+)?(\d{1,2}(?:st|nd|rd|th)?(?:\s+of\s+)?[A-Za-z]+)/i,
-      /(?:december|january|february|march|april|may|june|july|august|september|october|november)\s+\d{1,2}/i,
-      /\d{1,2}\s+(?:december|january|february|march|april|may|june|july|august|september|october|november)/i,
+      // Month + Day patterns
+      /(?:on|arriving|coming|landing|getting\s+in|flying\s+in)\s+(?:on\s+)?(?:the\s+)?([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?)/i,
+      /(?:on|arriving|coming|landing|flying\s+in)\s+(?:the\s+)?(\d{1,2}(?:st|nd|rd|th)?(?:\s+(?:of\s+)?)[A-Za-z]+)/i,
+
+      // Named month patterns
+      /(?:on|arriving|coming|landing|flying in|getting in)\s+(?:the\s+)?(\d{1,2})\s+(january|februari|february|march|april|may|june|july|august|september|october|november|december)/i,
+      /(january|februari|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2}(?:st|nd|rd|th)?)/i,
+      /(\d{1,2})\s+(january|januari|februari|february|march|april|may|june|july|august|september|october|november|december)/i,
+
+      // "the 2 january" pattern
+      /(?:the\s+)?(\d{1,2})\s+(january|januari|februari|february|march|april|may|june|july|august|september|october|november|december)/i,
+
+      // Just date mention
       /(?:on|arriving)\s+(?:the\s+)?(\d{1,2}(?:st|nd|rd|th)?)/i
     ];
 
     for (const pattern of datePatterns) {
       const match = query.match(pattern);
       if (match) {
-        info.date = match[1] || match[0];
+        if (match[2]) {
+          // Month + day (like "2 january")
+          info.date = `${match[2]} ${match[1]}`;
+        } else {
+          info.date = match[1] || match[0];
+        }
         info.acknowledgedInfo.push(`arriving ${info.date}`);
         info.hasInfo = true;
         break;
@@ -856,7 +914,8 @@ export class TravelAgent {
   private handleExtractedBookingInfo(extractedInfo: ReturnType<typeof this.extractBookingInformation>, originalQuery: string): AgentResponse {
     // Build thank you message
     const acknowledgedList = extractedInfo.acknowledgedInfo.join(', ');
-    let thankYouMessage = `Perfect! I've noted: ${acknowledgedList}.\n\n`;
+    const isEmptyAcknowledgement = acknowledgedList.trim() === '';
+    let thankYouMessage = isEmptyAcknowledgement ? '' : `Perfect! I've noted: ${acknowledgedList}.\n\n`;
 
     // Pre-fill context with extracted information
     if (extractedInfo.airport) {
@@ -876,6 +935,42 @@ export class TravelAgent {
     }
     if (extractedInfo.tripType) {
       this.context.tripType = extractedInfo.tripType;
+    }
+
+    // Handle price inquiries specially
+    if (extractedInfo.isPriceInquiry) {
+      if (!this.context.airport) {
+        this.context.step = 'AWAITING_AIRPORT';
+        return {
+          message: "I'd be happy to help you with pricing for airport transfers!\n\nTo give you accurate prices, which airport will you be arriving at?",
+          suggestions: ['PUJ - Punta Cana', 'SDQ - Santo Domingo', 'LRM - La Romana', 'POP - Puerto Plata']
+        };
+      }
+
+      if (!this.context.hotel && !this.context.region) {
+        this.context.step = 'AWAITING_HOTEL';
+        const airportName = AIRPORTS[this.context.airport]?.split(' (')[0] || this.context.airport;
+        return {
+          message: `Great! For ${airportName} transfers.\n\nWhere would you like to go? Tell me your hotel name or destination.`,
+          suggestions: ['Hard Rock Hotel', 'Iberostar Bavaro', 'Dreams Macao', 'Hyatt Zilara Cap Cana']
+        };
+      }
+
+      if (!this.context.passengers) {
+        this.context.step = 'AWAITING_PASSENGERS';
+        return {
+          message: thankYouMessage + "How many passengers will be traveling?",
+          suggestions: ['1 passenger', '2 passengers', '3-4 passengers', '5-6 passengers', '7+ passengers']
+        };
+      }
+
+      if (this.context.suitcases === undefined) {
+        this.context.step = 'AWAITING_LUGGAGE';
+        return {
+          message: thankYouMessage + "And how many suitcases will you have?",
+          suggestions: ['1-2 suitcases', '3-4 suitcases', '5-6 suitcases', 'No luggage']
+        };
+      }
     }
 
     // Determine next step based on what's missing

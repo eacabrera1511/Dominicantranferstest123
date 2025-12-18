@@ -209,6 +209,11 @@ export function AdminPricing() {
   const handleDiscountSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (discountFormData.discount_percentage < 0 || discountFormData.discount_percentage > 100) {
+      alert('Please enter a valid discount percentage between 0 and 100');
+      return;
+    }
+
     if (globalDiscount) {
       await supabase
         .from('global_discount_settings')
@@ -219,12 +224,23 @@ export function AdminPricing() {
     const { error } = await supabase
       .from('global_discount_settings')
       .insert([{
-        ...discountFormData,
+        discount_percentage: discountFormData.discount_percentage,
+        is_active: true,
+        reason: discountFormData.reason || null,
+        start_date: new Date().toISOString(),
         created_by: 'admin'
       }]);
 
-    if (!error) {
+    if (error) {
+      console.error('Error setting discount:', error);
+      alert('Failed to set discount. Please try again.');
+    } else {
       setShowDiscountModal(false);
+      setDiscountFormData({
+        discount_percentage: 0,
+        is_active: true,
+        reason: '',
+      });
       fetchData();
     }
   };

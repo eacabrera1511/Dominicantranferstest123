@@ -35,6 +35,7 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
   const [scanProgress, setScanProgress] = useState(0);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleOption | null>(null);
   const [discountPercentage, setDiscountPercentage] = useState(0);
+  const [timeLeft, setTimeLeft] = useState('');
   const [competitors, setCompetitors] = useState<CompetitorPrice[]>([
     { name: 'Booking.com', logo: 'B', price: 0, status: 'scanning' },
     { name: 'Expedia', logo: 'E', price: 0, status: 'scanning' },
@@ -56,7 +57,22 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
       }
     };
 
+    const updateCountdown = () => {
+      const now = new Date();
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const diff = endOfDay.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+    };
+
     fetchDiscount();
+    updateCountdown();
+    const countdownInterval = setInterval(updateCountdown, 1000);
 
     const progressInterval = setInterval(() => {
       setScanProgress(prev => Math.min(prev + 2, 100));
@@ -95,7 +111,10 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
 
     scanCompetitors();
 
-    return () => clearInterval(progressInterval);
+    return () => {
+      clearInterval(progressInterval);
+      clearInterval(countdownInterval);
+    };
   }, [basePrice, discountPercentage]);
 
   if (phase === 'scanning') {
@@ -221,6 +240,28 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
 
   return (
     <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-gray-800 dark:to-gray-900 rounded-xl p-3 xs:p-4 sm:p-5 shadow-lg border border-emerald-200 dark:border-gray-700">
+      {discountPercentage > 0 && timeLeft && (
+        <div className="mb-3 sm:mb-4 bg-gradient-to-r from-amber-500 to-red-500 rounded-lg p-2 xs:p-3 shadow-lg animate-pulse">
+          <div className="flex flex-col xs:flex-row items-center justify-center gap-1 xs:gap-2">
+            <div className="flex items-center gap-1.5 xs:gap-2">
+              <svg className="w-4 h-4 xs:w-5 xs:h-5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span className="text-white font-bold text-xs xs:text-sm sm:text-base">
+                {discountPercentage}% OFF ENDS IN:
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="bg-white/20 backdrop-blur-sm rounded px-1.5 xs:px-2 py-0.5 xs:py-1">
+                <span className="text-white font-mono font-bold text-xs xs:text-sm sm:text-base tabular-nums">
+                  {timeLeft}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="text-center mb-3 sm:mb-4">
         <div className="inline-flex items-center justify-center w-10 h-10 xs:w-12 xs:h-12 bg-emerald-500 rounded-full mb-2 shadow-lg shadow-emerald-500/30">
           <Check className="w-5 h-5 xs:w-6 xs:h-6 text-white" />

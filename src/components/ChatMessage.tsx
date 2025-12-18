@@ -26,6 +26,11 @@ interface ChatMessageProps {
     alt: string;
     caption: string;
   };
+  galleryImages?: {
+    url: string;
+    title: string;
+    description: string;
+  }[];
   priceScanner?: {
     basePrice: number;
     route: string;
@@ -46,7 +51,7 @@ interface ChatMessageProps {
   };
 }
 
-export function ChatMessage({ role, content, vehicleImage, priceScanner, priceComparison }: ChatMessageProps) {
+export function ChatMessage({ role, content, vehicleImage, galleryImages, priceScanner, priceComparison }: ChatMessageProps) {
   const isUser = role === 'user';
 
   return (
@@ -77,6 +82,28 @@ export function ChatMessage({ role, content, vehicleImage, priceScanner, priceCo
               className="w-full rounded-2xl shadow-lg border border-slate-200/50 dark:border-white/20"
             />
             <p className="text-xs text-slate-500 dark:text-gray-300 mt-2 text-center">{vehicleImage.caption}</p>
+          </div>
+        )}
+
+        {galleryImages && galleryImages.length > 0 && (
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {galleryImages.map((image, index) => (
+              <div key={index} className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                <img
+                  src={image.url}
+                  alt={image.title}
+                  className="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <p className="text-white text-sm font-semibold">{image.title}</p>
+                    {image.description && (
+                      <p className="text-white/80 text-xs line-clamp-2">{image.description}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

@@ -32,6 +32,7 @@ function App() {
   const [pendingBookingData, setPendingBookingData] = useState<BookingAction | null>(null);
   const [bookingModalKey, setBookingModalKey] = useState(0);
   const [messageVehicleImages, setMessageVehicleImages] = useState<Map<string, { url: string; alt: string; caption: string }>>(new Map());
+  const [messageGalleryImages, setMessageGalleryImages] = useState<Map<string, { url: string; title: string; description: string }[]>>(new Map());
   const [messagePriceScanner, setMessagePriceScanner] = useState<Map<string, any>>(new Map());
   const [messagePriceComparison, setMessagePriceComparison] = useState<Map<string, any>>(new Map());
   const [currentPriceScanData, setCurrentPriceScanData] = useState<any>(null);
@@ -502,6 +503,14 @@ function App() {
         });
       }
 
+      if (response.galleryImages && response.galleryImages.length > 0) {
+        setMessageGalleryImages((prev) => {
+          const newMap = new Map(prev);
+          newMap.set(assistantMessage.id, response.galleryImages!);
+          return newMap;
+        });
+      }
+
       if (response.suggestions) {
         setCurrentSuggestions(response.suggestions);
       }
@@ -914,6 +923,7 @@ function App() {
                     role={message.role}
                     content={message.content}
                     vehicleImage={messageVehicleImages.get(message.id)}
+                    galleryImages={messageGalleryImages.get(message.id)}
                     priceScanner={scannerData ? {
                       basePrice: scannerData.basePrice,
                       route: scannerData.route,

@@ -51,6 +51,11 @@ export interface AgentResponse {
     alt: string;
     caption: string;
   };
+  galleryImages?: {
+    url: string;
+    title: string;
+    description: string;
+  }[];
   languageSwitch?: 'en' | 'nl' | 'es';
 }
 
@@ -256,6 +261,10 @@ export class TravelAgent {
       return this.showInstagramPhotos();
     }
 
+    if (this.isAskingAboutVehiclesOrDrivers(query)) {
+      return await this.showVehicleGallery();
+    }
+
     if (query.includes('pickup procedure') || query.includes('how does pickup work') || query.includes('real human')) {
       return this.showPickupProcedure();
     }
@@ -272,6 +281,11 @@ export class TravelAgent {
 
       if (this.isAskingForPhotos(query)) {
         const response = this.showInstagramPhotos();
+        return this.addBookingContextToResponse(response);
+      }
+
+      if (this.isAskingAboutVehiclesOrDrivers(query)) {
+        const response = await this.showVehicleGallery();
         return this.addBookingContextToResponse(response);
       }
 
@@ -1241,6 +1255,79 @@ export class TravelAgent {
       'vehicle photos', 'car photos', 'fleet photos'
     ];
     return photoKeywords.some(keyword => query.includes(keyword));
+  }
+
+  private isAskingAboutVehiclesOrDrivers(query: string): boolean {
+    const vehicleDriverKeywords = [
+      'what does the van look like',
+      'what does the car look like',
+      'what do the vans look like',
+      'what do the cars look like',
+      'show me the van',
+      'show me the car',
+      'show me the vehicle',
+      'show me the fleet',
+      'see the van',
+      'see the car',
+      'see the vehicle',
+      'see the fleet',
+      'who is going to pick me up',
+      'who will pick me up',
+      'who picks me up',
+      'meet my driver',
+      'see my driver',
+      'show me the driver',
+      'show me my driver',
+      'what does your driver look like',
+      'picture of the van',
+      'picture of the car',
+      'picture of the vehicle',
+      'picture of the driver'
+    ];
+    return vehicleDriverKeywords.some(keyword => query.includes(keyword));
+  }
+
+  private async showVehicleGallery(): Promise<AgentResponse> {
+    try {
+      const { data: galleryItems, error } = await supabase
+        .from('experience_gallery')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+
+      if (error) throw error;
+
+      const galleryImages = galleryItems && galleryItems.length > 0
+        ? galleryItems.map(item => ({
+            url: item.media_url,
+            title: item.title,
+            description: item.description || ''
+          }))
+        : [];
+
+      const message = `Here are our vehicles and team! 📸\n\nAll our vehicles are professionally maintained and cleaned after every trip. Our drivers are experienced, licensed, and friendly - ready to make your transfer comfortable and safe!\n\nWould you like to book a transfer?`;
+
+      return {
+        message,
+        galleryImages,
+        suggestions: [
+          'Book a transfer',
+          'Check prices',
+          'View destinations',
+          'Ask another question'
+        ]
+      };
+    } catch (error) {
+      console.error('Error loading vehicle gallery:', error);
+      return {
+        message: 'Let me tell you about our fleet! We have modern, well-maintained vehicles ranging from comfortable sedans to spacious vans. All our drivers are professional, experienced, and dedicated to making your trip safe and comfortable.\n\nWould you like to book a transfer?',
+        suggestions: [
+          'Book a transfer',
+          'Check prices',
+          'Ask another question'
+        ]
+      };
+    }
   }
 
   private isFAQQuery(query: string): boolean {

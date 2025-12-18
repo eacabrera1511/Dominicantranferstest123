@@ -25,6 +25,7 @@ export interface VehicleOption {
   oneWayPrice: number;
   roundTripPrice: number;
   recommended?: boolean;
+  imageUrl?: string;
 }
 
 export interface PriceScanRequest {
@@ -176,7 +177,7 @@ export class TravelAgent {
       const [hotelsResult, servicesResult, vehicleTypesResult, pricingRulesResult, vehiclesResult, hotelZonesResult] = await Promise.all([
         supabase.from('hotels').select('*'),
         supabase.from('services').select('*'),
-        supabase.from('vehicle_types').select('id, name, passenger_capacity, luggage_capacity').eq('is_active', true),
+        supabase.from('vehicle_types').select('id, name, passenger_capacity, luggage_capacity, image_url').eq('is_active', true),
         supabase.from('pricing_rules').select('id, origin, destination, vehicle_type_id, base_price, zone').eq('is_active', true),
         supabase.from('fleet_vehicles').select('id, make, model, year, color, capacity, luggage_capacity, image_url, amenities, vehicle_type_id').eq('status', 'available'),
         supabase.from('hotel_zones').select('*').eq('is_active', true)
@@ -910,7 +911,8 @@ export class TravelAgent {
             luggageCapacity: vehicle.luggage_capacity,
             oneWayPrice,
             roundTripPrice,
-            recommended: false
+            recommended: false,
+            imageUrl: vehicle.image_url
           };
 
           vehicleOptions.push(option);

@@ -804,7 +804,14 @@ export class TravelAgent {
     const vehicleOptions: VehicleOption[] = [];
 
     for (const [vehicleName, pricing] of Object.entries(FALLBACK_VEHICLE_PRICING)) {
-      const oneWayPrice = Math.round(pricing.base + (estimatedKm * pricing.perKm));
+      let oneWayPrice = Math.round(pricing.base + (estimatedKm * pricing.perKm));
+
+      // Apply global discount
+      if (this.globalDiscountPercentage > 0) {
+        const discountMultiplier = 1 - (this.globalDiscountPercentage / 100);
+        oneWayPrice = Math.round(oneWayPrice * discountMultiplier);
+      }
+
       const roundTripPrice = Math.round(oneWayPrice * ROUNDTRIP_MULTIPLIER);
 
       vehicleOptions.push({
@@ -917,7 +924,14 @@ export class TravelAgent {
       for (const rule of pricingRules) {
         const vehicle = this.vehicleTypes.find(v => v.id === rule.vehicle_type_id);
         if (vehicle) {
-          const oneWayPrice = Number(rule.base_price);
+          let oneWayPrice = Number(rule.base_price);
+
+          // Apply global discount
+          if (this.globalDiscountPercentage > 0) {
+            const discountMultiplier = 1 - (this.globalDiscountPercentage / 100);
+            oneWayPrice = Math.round(oneWayPrice * discountMultiplier);
+          }
+
           const roundTripPrice = Math.round(oneWayPrice * ROUNDTRIP_MULTIPLIER);
           const canFit = passengers <= vehicle.passenger_capacity && luggage <= vehicle.luggage_capacity;
 

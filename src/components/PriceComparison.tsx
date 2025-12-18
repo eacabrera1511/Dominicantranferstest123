@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 interface CompetitorPrice {
   name: string;
@@ -18,6 +19,25 @@ export function PriceComparison({ basePrice, competitors, route, onBookNow, onPr
   const [showPriceMatch, setShowPriceMatch] = useState(false);
   const [customPrice, setCustomPrice] = useState('');
   const [error, setError] = useState('');
+  const [discountPercentage, setDiscountPercentage] = useState(0);
+
+  useEffect(() => {
+    const fetchDiscount = async () => {
+      const { data } = await supabase
+        .from('global_discount_settings')
+        .select('discount_percentage')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (data) {
+        setDiscountPercentage(Number(data.discount_percentage) || 0);
+      }
+    };
+
+    fetchDiscount();
+  }, []);
 
   const allPrices = [
     ...competitors,
@@ -179,6 +199,16 @@ export function PriceComparison({ basePrice, competitors, route, onBookNow, onPr
           <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-600 dark:text-green-400 mb-2 sm:mb-3">
             ${basePrice}
           </p>
+          {discountPercentage > 0 && (
+            <div className="mb-2 sm:mb-3">
+              <p className="text-xs sm:text-sm font-bold text-amber-600 dark:text-amber-400 px-2">
+                🔥 {discountPercentage}% DISCOUNT APPLIED!
+              </p>
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 px-2 mt-1">
+                Original price: <span className="line-through">${Math.round(basePrice / (1 - (discountPercentage / 100)))}</span>
+              </p>
+            </div>
+          )}
           <p className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white px-2">
             Would you like to book now at this price?
           </p>
@@ -206,6 +236,7 @@ export function PriceComparison({ basePrice, competitors, route, onBookNow, onPr
       <div className="mt-3 sm:mt-4 text-center">
         <p className="text-xs text-gray-500 dark:text-gray-400 px-2">
           🛡️ Best Price Guaranteed | 💯 Verified Market Rates
+          {discountPercentage > 0 && <span className="block text-amber-600 dark:text-amber-400 font-semibold mt-1">⚡ Limited Time: {discountPercentage}% OFF All Services!</span>}
         </p>
       </div>
     </div>

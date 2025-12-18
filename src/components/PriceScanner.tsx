@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Check, Users, Briefcase, Star, Wifi } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface VehicleOption {
   name: string;
@@ -33,6 +34,7 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
   const [phase, setPhase] = useState<'scanning' | 'results'>('scanning');
   const [scanProgress, setScanProgress] = useState(0);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleOption | null>(null);
+  const [discountPercentage, setDiscountPercentage] = useState(0);
   const [competitors, setCompetitors] = useState<CompetitorPrice[]>([
     { name: 'Booking.com', logo: 'B', price: 0, status: 'scanning' },
     { name: 'Expedia', logo: 'E', price: 0, status: 'scanning' },
@@ -40,6 +42,22 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
   ]);
 
   useEffect(() => {
+    const fetchDiscount = async () => {
+      const { data } = await supabase
+        .from('global_discount_settings')
+        .select('discount_percentage')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (data) {
+        setDiscountPercentage(Number(data.discount_percentage) || 0);
+      }
+    };
+
+    fetchDiscount();
+
     const progressInterval = setInterval(() => {
       setScanProgress(prev => Math.min(prev + 2, 100));
     }, 50);
@@ -48,8 +66,9 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
       for (let i = 0; i < competitors.length; i++) {
         await new Promise(resolve => setTimeout(resolve, 600 + Math.random() * 400));
 
-        const priceMultiplier = 1.08 + Math.random() * 0.15;
-        const competitorPrice = Math.round(basePrice * priceMultiplier);
+        const originalPrice = basePrice / (1 - (discountPercentage / 100));
+        const priceMultiplier = 1.15 + Math.random() * 0.25;
+        const competitorPrice = Math.round(originalPrice * priceMultiplier);
 
         setCompetitors(prev => prev.map((comp, idx) =>
           idx === i
@@ -65,9 +84,10 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
       setTimeout(() => {
         clearInterval(progressInterval);
         setPhase('results');
+        const originalPrice = basePrice / (1 - (discountPercentage / 100));
         onComplete(competitors.map((comp, idx) => ({
           ...comp,
-          price: Math.round(basePrice * (1.08 + (idx * 0.05))),
+          price: Math.round(originalPrice * (1.15 + (idx * 0.1))),
           status: 'complete'
         })));
       }, 300);
@@ -76,7 +96,7 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
     scanCompetitors();
 
     return () => clearInterval(progressInterval);
-  }, [basePrice]);
+  }, [basePrice, discountPercentage]);
 
   if (phase === 'scanning') {
     return (
@@ -350,14 +370,26 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
           ))}
         </div>
         <div className="mt-1.5 xs:mt-2 pt-1.5 xs:pt-2 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-[10px] xs:text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
-            Save up to ${Math.round(basePrice * 0.15)} with us!
-          </p>
+          {discountPercentage > 0 ? (
+            <div className="space-y-1">
+              <p className="text-[10px] xs:text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
+                Save up to ${competitors.length > 0 ? Math.round(competitors[0].price - basePrice) : Math.round(basePrice * 0.5)} with us!
+              </p>
+              <p className="text-[9px] xs:text-[10px] text-amber-600 dark:text-amber-400 font-bold">
+                🔥 {discountPercentage}% DISCOUNT ACTIVE!
+              </p>
+            </div>
+          ) : (
+            <p className="text-[10px] xs:text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
+              Save up to ${Math.round(basePrice * 0.15)} with us!
+            </p>
+          )}
         </div>
       </div>
 
       <p className="text-center text-[9px] xs:text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-3 xs:mt-4 px-2">
         All prices include taxes, meet & greet, and flight tracking
+        {discountPercentage > 0 && <span className="block text-amber-600 dark:text-amber-400 font-semibold mt-1">Limited Time: {discountPercentage}% OFF All Services!</span>}
       </p>
     </div>
   );

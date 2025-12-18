@@ -187,6 +187,13 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
             from { transform: translate(-50%, -50%) rotate(0deg); }
             to { transform: translate(-50%, -50%) rotate(360deg); }
           }
+          @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
+          }
+          .animate-pulse-subtle {
+            animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+          }
         `}</style>
       </div>
     );
@@ -220,9 +227,16 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
 
       {vehicleOptions && vehicleOptions.length > 0 && (
         <div className="space-y-2 xs:space-y-2.5 sm:space-y-3 mb-3 sm:mb-4">
-          <p className="text-[10px] xs:text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-            Select Your Vehicle
-          </p>
+          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg p-3 xs:p-3.5 sm:p-4 shadow-lg border border-emerald-400 dark:border-emerald-600 animate-pulse-subtle">
+            <div className="flex items-center justify-center gap-2 text-white">
+              <svg className="w-4 h-4 xs:w-5 xs:h-5 animate-bounce" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clipRule="evenodd" transform="rotate(270 10 10)"/>
+              </svg>
+              <p className="text-xs xs:text-sm sm:text-base font-bold tracking-wide">
+                Click a vehicle below to continue
+              </p>
+            </div>
+          </div>
           {vehicleOptions.filter((vehicle) => {
             if (!passengers) return true;
 
@@ -253,12 +267,12 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
                 setSelectedVehicle(vehicle);
                 onSelectVehicle?.(vehicle);
               }}
-              className={`w-full text-left bg-white dark:bg-gray-800 rounded-lg p-2.5 xs:p-3 sm:p-3.5 shadow-sm border-2 transition-all duration-200 active:scale-[0.98] relative ${
+              className={`group w-full text-left bg-white dark:bg-gray-800 rounded-lg p-2.5 xs:p-3 sm:p-3.5 shadow-sm border-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] relative cursor-pointer ${
                 isSelected
                   ? 'border-teal-500 ring-4 ring-teal-200 dark:ring-teal-900 shadow-teal-100 dark:shadow-none bg-teal-50 dark:bg-teal-950/20'
                   : vehicle.recommended
-                  ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-900 shadow-emerald-100 dark:shadow-none'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-700 active:border-emerald-400'
+                  ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-900 shadow-emerald-100 dark:shadow-none hover:ring-4'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-lg active:border-emerald-400'
               } ${isSuburban ? 'shadow-[0_0_20px_rgba(251,191,36,0.4)] border-amber-400 dark:border-amber-500' : ''}`}
             >
               {isSuburban && (
@@ -303,6 +317,20 @@ export function PriceScanner({ basePrice, route, passengers, luggage, vehicleOpt
                 <span className="text-gray-500 dark:text-gray-400">Round trip</span>
                 <span className="font-semibold text-gray-700 dark:text-gray-300">${vehicle.roundTripPrice}</span>
               </div>
+              {!isSelected && (
+                <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 flex items-center justify-center gap-1.5 text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
+                  <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                  </svg>
+                  <span className="text-[10px] xs:text-xs font-semibold">Click to select this vehicle</span>
+                </div>
+              )}
+              {isSelected && (
+                <div className="mt-2 pt-2 border-t border-teal-200 dark:border-teal-800 flex items-center justify-center gap-1.5 text-teal-600 dark:text-teal-400">
+                  <Check className="w-3.5 h-3.5 xs:w-4 xs:h-4" />
+                  <span className="text-[10px] xs:text-xs font-semibold">Selected - Continuing...</span>
+                </div>
+              )}
             </button>
             );
           })}

@@ -175,16 +175,18 @@ export class TravelAgent {
   private hotelZones: HotelZone[] = [];
   private conversationHistory: Array<{ role: string; content: string }> = [];
   private currentLanguage: Language = 'en';
+  private globalDiscountPercentage: number = 0;
 
   async initialize(): Promise<void> {
     try {
-      const [hotelsResult, servicesResult, vehicleTypesResult, pricingRulesResult, vehiclesResult, hotelZonesResult] = await Promise.all([
+      const [hotelsResult, servicesResult, vehicleTypesResult, pricingRulesResult, vehiclesResult, hotelZonesResult, discountResult] = await Promise.all([
         supabase.from('hotels').select('*'),
         supabase.from('services').select('*'),
         supabase.from('vehicle_types').select('id, name, passenger_capacity, luggage_capacity').eq('is_active', true),
         supabase.from('pricing_rules').select('id, origin, destination, vehicle_type_id, base_price, zone').eq('is_active', true),
         supabase.from('fleet_vehicles').select('id, make, model, year, color, capacity, luggage_capacity, image_url, amenities, vehicle_type_id').eq('status', 'available'),
-        supabase.from('hotel_zones').select('*').eq('is_active', true)
+        supabase.from('hotel_zones').select('*').eq('is_active', true),
+        supabase.from('global_discount_settings').select('discount_percentage').eq('is_active', true).order('created_at', { ascending: false }).limit(1).maybeSingle()
       ]);
       if (hotelsResult.data) this.hotels = hotelsResult.data;
       if (servicesResult.data) this.services = servicesResult.data;
@@ -192,6 +194,7 @@ export class TravelAgent {
       if (pricingRulesResult.data) this.pricingRules = pricingRulesResult.data;
       if (vehiclesResult.data) this.fleetVehicles = vehiclesResult.data;
       if (hotelZonesResult.data) this.hotelZones = hotelZonesResult.data;
+      if (discountResult.data) this.globalDiscountPercentage = Number(discountResult.data.discount_percentage) || 0;
     } catch (error) {
       console.error('Failed to initialize TravelAgent:', error);
     }
@@ -1136,11 +1139,18 @@ export class TravelAgent {
       }
     }
 
-    this.context.price = this.context.tripType === 'Round trip' ? Math.round(basePrice * ROUNDTRIP_MULTIPLIER) : basePrice;
+    let calculatedPrice = this.context.tripType === 'Round trip' ? Math.round(basePrice * ROUNDTRIP_MULTIPLIER) : basePrice;
 
     if (!this.context.originalPrice) {
-      this.context.originalPrice = this.context.price;
+      this.context.originalPrice = calculatedPrice;
     }
+
+    if (this.globalDiscountPercentage > 0) {
+      const discountMultiplier = 1 - (this.globalDiscountPercentage / 100);
+      calculatedPrice = Math.round(calculatedPrice * discountMultiplier);
+    }
+
+    this.context.price = calculatedPrice;
   }
 
   private findHotelInDatabase(query: string): HotelZone | null {

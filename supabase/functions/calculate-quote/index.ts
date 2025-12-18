@@ -83,10 +83,27 @@ Deno.serve(async (req: Request) => {
       rules_applied.push(pricingRule.id);
 
       // Apply roundtrip multiplier if needed
+      let calculatedPrice = base_price;
       if (tripType === 'round-trip') {
-        total_price = Math.round(base_price * ROUNDTRIP_MULTIPLIER);
+        calculatedPrice = Math.round(base_price * ROUNDTRIP_MULTIPLIER);
+      }
+
+      // Apply global discount if active
+      const { data: activeDiscount } = await supabase
+        .from('global_discount_settings')
+        .select('discount_percentage')
+        .eq('is_active', true)
+        .lte('start_date', new Date().toISOString())
+        .or('end_date.is.null,end_date.gt.' + new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (activeDiscount && activeDiscount.discount_percentage > 0) {
+        const discountMultiplier = 1 - (Number(activeDiscount.discount_percentage) / 100);
+        total_price = Math.round(calculatedPrice * discountMultiplier);
       } else {
-        total_price = base_price;
+        total_price = calculatedPrice;
       }
     } else {
       // No pricing rule found - return error

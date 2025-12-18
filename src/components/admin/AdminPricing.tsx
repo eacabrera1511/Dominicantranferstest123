@@ -30,14 +30,31 @@ interface HotelZone {
   is_active: boolean;
 }
 
+interface GlobalDiscount {
+  id: string;
+  discount_percentage: number;
+  is_active: boolean;
+  reason: string;
+  start_date: string;
+  end_date: string | null;
+  created_by: string;
+}
+
 export function AdminPricing() {
   const [pricingRules, setPricingRules] = useState<PricingRule[]>([]);
   const [vehicleTypes, setVehicleTypes] = useState<VehicleType[]>([]);
   const [hotelZones, setHotelZones] = useState<HotelZone[]>([]);
+  const [globalDiscount, setGlobalDiscount] = useState<GlobalDiscount | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAddRule, setShowAddRule] = useState(false);
   const [editingRule, setEditingRule] = useState<PricingRule | null>(null);
   const [selectedZone, setSelectedZone] = useState<string>('all');
+  const [showDiscountModal, setShowDiscountModal] = useState(false);
+  const [discountFormData, setDiscountFormData] = useState({
+    discount_percentage: 0,
+    is_active: true,
+    reason: '',
+  });
 
   const [formData, setFormData] = useState({
     route_name: '',
@@ -78,6 +95,14 @@ export function AdminPricing() {
       .order('zone_code', { ascending: true })
       .order('hotel_name', { ascending: true });
 
+    const { data: discountData } = await supabase
+      .from('global_discount_settings')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
     if (rulesData) {
       const mapped = rulesData.map((r: any) => ({
         ...r,
@@ -92,6 +117,10 @@ export function AdminPricing() {
 
     if (hotelsData) {
       setHotelZones(hotelsData);
+    }
+
+    if (discountData) {
+      setGlobalDiscount(discountData);
     }
 
     setLoading(false);
@@ -177,6 +206,41 @@ export function AdminPricing() {
     setEditingRule(null);
   };
 
+  const handleDiscountSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (globalDiscount) {
+      await supabase
+        .from('global_discount_settings')
+        .update({ is_active: false })
+        .eq('id', globalDiscount.id);
+    }
+
+    const { error } = await supabase
+      .from('global_discount_settings')
+      .insert([{
+        ...discountFormData,
+        created_by: 'admin'
+      }]);
+
+    if (!error) {
+      setShowDiscountModal(false);
+      fetchData();
+    }
+  };
+
+  const handleDeactivateDiscount = async () => {
+    if (!globalDiscount) return;
+    if (!confirm('Are you sure you want to deactivate the current discount?')) return;
+
+    await supabase
+      .from('global_discount_settings')
+      .update({ is_active: false })
+      .eq('id', globalDiscount.id);
+
+    fetchData();
+  };
+
   const stats = {
     totalRules: pricingRules.length,
     activeRules: pricingRules.filter(r => r.active).length,
@@ -211,6 +275,53 @@ export function AdminPricing() {
           <Plus className="w-4 h-4" />
           Add Pricing Rule
         </button>
+      </div>
+
+      <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-xl p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <DollarSign className="w-6 h-6 text-amber-400" />
+              <h2 className="text-xl font-bold text-white">Global Discount</h2>
+            </div>
+            {globalDiscount ? (
+              <div className="space-y-2">
+                <p className="text-gray-300">
+                  Current discount: <span className="text-2xl font-bold text-amber-400">{globalDiscount.discount_percentage}%</span> OFF all services
+                </p>
+                {globalDiscount.reason && (
+                  <p className="text-sm text-gray-400">Reason: {globalDiscount.reason}</p>
+                )}
+                <p className="text-xs text-gray-500">Active since: {new Date(globalDiscount.start_date).toLocaleDateString()}</p>
+              </div>
+            ) : (
+              <p className="text-gray-400">No active discount</p>
+            )}
+          </div>
+          <div className="flex gap-2">
+            {globalDiscount && (
+              <button
+                onClick={handleDeactivateDiscount}
+                className="px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all"
+              >
+                Deactivate
+              </button>
+            )}
+            <button
+              onClick={() => {
+                setDiscountFormData({
+                  discount_percentage: globalDiscount?.discount_percentage || 0,
+                  is_active: true,
+                  reason: '',
+                });
+                setShowDiscountModal(true);
+              }}
+              className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all font-medium"
+            >
+              {globalDiscount ? 'Update Discount' : 'Set Discount'}
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -518,6 +629,67 @@ export function AdminPricing() {
                   className="flex-1 px-4 py-2 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 text-white font-medium hover:from-red-600 hover:to-orange-600 transition-all"
                 >
                   {editingRule ? 'Update Rule' : 'Add Rule'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showDiscountModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
+          <div className="bg-slate-800 rounded-2xl border border-white/10 p-6 max-w-md w-full">
+            <h2 className="text-xl font-bold text-white mb-4">
+              {globalDiscount ? 'Update Global Discount' : 'Set Global Discount'}
+            </h2>
+
+            <form onSubmit={handleDiscountSubmit} className="space-y-4">
+              <div>
+                <label className="block text-gray-400 text-sm mb-2">Discount Percentage (%)</label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  max="100"
+                  step="1"
+                  placeholder="e.g., 80"
+                  value={discountFormData.discount_percentage}
+                  onChange={(e) => setDiscountFormData({ ...discountFormData, discount_percentage: parseFloat(e.target.value) })}
+                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                />
+                <p className="text-xs text-gray-500 mt-1">Enter a percentage between 0 and 100</p>
+              </div>
+
+              <div>
+                <label className="block text-gray-400 text-sm mb-2">Reason (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Holiday Sale, Promotional Discount"
+                  value={discountFormData.reason}
+                  onChange={(e) => setDiscountFormData({ ...discountFormData, reason: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                />
+              </div>
+
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
+                <p className="text-sm text-amber-400">
+                  This discount will apply to all services and pricing calculations across the entire platform.
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowDiscountModal(false)}
+                  className="flex-1 px-4 py-2 rounded-xl bg-white/5 text-gray-400 hover:bg-white/10 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium hover:from-amber-600 hover:to-orange-600 transition-all"
+                >
+                  {globalDiscount ? 'Update Discount' : 'Set Discount'}
                 </button>
               </div>
             </form>

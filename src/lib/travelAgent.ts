@@ -246,6 +246,12 @@ export class TravelAgent {
       return this.handleGeneralQuestion(userMessage);
     }
 
+    // Extract booking information from natural language queries
+    const extractedInfo = this.extractBookingInformation(query);
+    if (extractedInfo.hasInfo) {
+      return this.handleExtractedBookingInfo(extractedInfo, query);
+    }
+
     // Only check transfer queries if it's not a general question or FAQ
     const transferQuery = this.detectTransferQuery(query);
     if (transferQuery) {
@@ -710,6 +716,294 @@ export class TravelAgent {
         'How does pickup work?'
       ]
     };
+  }
+
+  private extractBookingInformation(query: string) {
+    const info: {
+      hasInfo: boolean;
+      airport?: string;
+      hotel?: string;
+      region?: string;
+      passengers?: number;
+      luggage?: number;
+      tripType?: 'One-way' | 'Round trip';
+      date?: string;
+      acknowledgedInfo: string[];
+    } = {
+      hasInfo: false,
+      acknowledgedInfo: []
+    };
+
+    const lowerQuery = query.toLowerCase();
+
+    // Extract airport
+    const airportPatterns = [
+      { pattern: /\b(puj|punta cana)\b/i, code: 'PUJ' },
+      { pattern: /\b(sdq|santo domingo)\b/i, code: 'SDQ' },
+      { pattern: /\b(lrm|la romana)\b/i, code: 'LRM' },
+      { pattern: /\b(pop|puerto plata)\b/i, code: 'POP' }
+    ];
+
+    for (const { pattern, code } of airportPatterns) {
+      if (pattern.test(lowerQuery)) {
+        info.airport = code;
+        info.acknowledgedInfo.push(`${AIRPORTS[code]?.split(' (')[0] || code} airport`);
+        info.hasInfo = true;
+        break;
+      }
+    }
+
+    // Extract passengers (adults, people, passengers, family, etc.)
+    const passengerPatterns = [
+      /(\d+)\s*(?:adults?|passengers?|people|persons?|pax)/i,
+      /(?:family|group)\s+of\s+(\d+)/i,
+      /(\d+)\s+in\s+(?:my|our)\s+(?:party|group)/i,
+      /(?:we|us|there)\s+(?:are|will be)\s+(\d+)/i,
+      /(\d+)\s+traveling/i
+    ];
+
+    for (const pattern of passengerPatterns) {
+      const match = query.match(pattern);
+      if (match && match[1]) {
+        const count = parseInt(match[1]);
+        if (count >= 1 && count <= 50) {
+          info.passengers = count;
+          info.acknowledgedInfo.push(`${count} passenger${count !== 1 ? 's' : ''}`);
+          info.hasInfo = true;
+          break;
+        }
+      }
+    }
+
+    // Extract luggage/suitcases
+    const luggagePatterns = [
+      /(\d+)\s*(?:suitcases?|bags?|luggage|pieces?)/i,
+      /with\s+(\d+)\s+(?:checked\s+)?(?:bag|luggage)/i
+    ];
+
+    for (const pattern of luggagePatterns) {
+      const match = query.match(pattern);
+      if (match && match[1]) {
+        const count = parseInt(match[1]);
+        if (count >= 0 && count <= 50) {
+          info.luggage = count;
+          info.acknowledgedInfo.push(`${count} suitcase${count !== 1 ? 's' : ''}`);
+          info.hasInfo = true;
+          break;
+        }
+      }
+    }
+
+    // Extract trip type
+    if (/\b(round\s*trip|return|both\s*ways?|two\s*ways?)\b/i.test(lowerQuery)) {
+      info.tripType = 'Round trip';
+      info.acknowledgedInfo.push('round trip');
+      info.hasInfo = true;
+    } else if (/\b(one\s*way|single|just\s+(?:there|to))\b/i.test(lowerQuery)) {
+      info.tripType = 'One-way';
+      info.acknowledgedInfo.push('one-way');
+      info.hasInfo = true;
+    }
+
+    // Extract date (various formats)
+    const datePatterns = [
+      /(?:on|arriving|coming|landing|getting\s+in)\s+(?:on\s+)?([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?)/i,
+      /(?:on|arriving|coming|landing)\s+(?:the\s+)?(\d{1,2}(?:st|nd|rd|th)?(?:\s+of\s+)?[A-Za-z]+)/i,
+      /(?:december|january|february|march|april|may|june|july|august|september|october|november)\s+\d{1,2}/i,
+      /\d{1,2}\s+(?:december|january|february|march|april|may|june|july|august|september|october|november)/i,
+      /(?:on|arriving)\s+(?:the\s+)?(\d{1,2}(?:st|nd|rd|th)?)/i
+    ];
+
+    for (const pattern of datePatterns) {
+      const match = query.match(pattern);
+      if (match) {
+        info.date = match[1] || match[0];
+        info.acknowledgedInfo.push(`arriving ${info.date}`);
+        info.hasInfo = true;
+        break;
+      }
+    }
+
+    // Extract hotel/destination
+    const hotelMatch = this.findHotelInDatabase(query);
+    if (hotelMatch) {
+      info.hotel = hotelMatch.hotel_name;
+      info.region = hotelMatch.zone_name;
+      info.acknowledgedInfo.push(`${hotelMatch.hotel_name}`);
+      info.hasInfo = true;
+    } else {
+      // Check for region mentions
+      const regionPatterns = [
+        { pattern: /\b(bavaro|punta cana beach|arena gorda)\b/i, region: 'Zone A - Bavaro' },
+        { pattern: /\b(uvero alto)\b/i, region: 'Zone B - Uvero Alto' },
+        { pattern: /\b(cap cana|cabo)\b/i, region: 'Zone C - Cap Cana' },
+        { pattern: /\b(la romana|bayahibe)\b/i, region: 'Zone D - La Romana' }
+      ];
+
+      for (const { pattern, region } of regionPatterns) {
+        if (pattern.test(lowerQuery)) {
+          info.region = region;
+          info.acknowledgedInfo.push(region);
+          info.hasInfo = true;
+          break;
+        }
+      }
+    }
+
+    return info;
+  }
+
+  private handleExtractedBookingInfo(extractedInfo: ReturnType<typeof this.extractBookingInformation>, originalQuery: string): AgentResponse {
+    // Build thank you message
+    const acknowledgedList = extractedInfo.acknowledgedInfo.join(', ');
+    let thankYouMessage = `Perfect! I've noted: ${acknowledgedList}.\n\n`;
+
+    // Pre-fill context with extracted information
+    if (extractedInfo.airport) {
+      this.context.airport = extractedInfo.airport;
+    }
+    if (extractedInfo.hotel) {
+      this.context.hotel = extractedInfo.hotel;
+    }
+    if (extractedInfo.region) {
+      this.context.region = extractedInfo.region;
+    }
+    if (extractedInfo.passengers) {
+      this.context.passengers = extractedInfo.passengers;
+    }
+    if (extractedInfo.luggage !== undefined) {
+      this.context.suitcases = extractedInfo.luggage;
+    }
+    if (extractedInfo.tripType) {
+      this.context.tripType = extractedInfo.tripType;
+    }
+
+    // Determine next step based on what's missing
+    if (!this.context.airport) {
+      this.context.step = 'AWAITING_AIRPORT';
+      return {
+        message: thankYouMessage + "Which airport will you be arriving at?",
+        suggestions: ['PUJ - Punta Cana', 'SDQ - Santo Domingo', 'LRM - La Romana', 'POP - Puerto Plata']
+      };
+    }
+
+    if (!this.context.hotel && !this.context.region) {
+      this.context.step = 'AWAITING_HOTEL';
+      const airportName = AIRPORTS[this.context.airport]?.split(' (')[0] || this.context.airport;
+      return {
+        message: thankYouMessage + `Great choice with ${airportName}!\n\nWhere would you like to go? Just tell me your hotel name or destination.`,
+        suggestions: ['Hard Rock Hotel', 'Iberostar Bavaro', 'Dreams Macao', 'Hyatt Zilara Cap Cana']
+      };
+    }
+
+    if (!this.context.passengers) {
+      this.context.step = 'AWAITING_PASSENGERS';
+      return {
+        message: thankYouMessage + "How many passengers will be traveling? (including children)",
+        suggestions: ['1 passenger', '2 passengers', '3-4 passengers', '5-6 passengers']
+      };
+    }
+
+    if (this.context.suitcases === undefined) {
+      this.context.step = 'AWAITING_LUGGAGE';
+      return {
+        message: thankYouMessage + "Perfect! How many suitcases will you have in total?",
+        suggestions: ['1-2 suitcases', '3-4 suitcases', '5-6 suitcases', 'No luggage']
+      };
+    }
+
+    // If we have airport, hotel/region, passengers, and luggage, trigger price scan
+    if (this.context.airport && (this.context.hotel || this.context.region) && this.context.passengers && this.context.suitcases !== undefined) {
+      this.context.step = 'AWAITING_VEHICLE_SELECTION';
+
+      const airport = this.context.airport;
+      const region = this.context.region!;
+      const hotelName = this.context.hotel || `Hotel in ${region}`;
+      const passengers = this.context.passengers;
+      const luggage = this.context.suitcases;
+
+      const pricingRules = this.pricingRules.filter(
+        rule => rule.origin === airport && rule.destination === region
+      );
+
+      let vehicleOptions: VehicleOption[] = [];
+      let lowestPrice = Infinity;
+      let recommendedVehicle: string | null = null;
+
+      if (pricingRules.length === 0) {
+        const estimatedDistance = this.estimateDistanceFromQuery(hotelName);
+        vehicleOptions = this.generateFallbackPricing(airport, estimatedDistance.km);
+        this.context.priceSource = 'estimated';
+
+        for (const option of vehicleOptions) {
+          const canFit = passengers <= option.capacity && luggage <= option.luggageCapacity;
+          if (canFit && option.oneWayPrice < lowestPrice) {
+            lowestPrice = option.oneWayPrice;
+            recommendedVehicle = option.name;
+          }
+        }
+      } else {
+        for (const rule of pricingRules) {
+          const vehicle = this.vehicleTypes.find(v => v.id === rule.vehicle_type_id);
+          if (vehicle) {
+            let oneWayPrice = Number(rule.base_price);
+
+            if (this.globalDiscountPercentage > 0) {
+              const discountMultiplier = 1 - (this.globalDiscountPercentage / 100);
+              oneWayPrice = Math.round(oneWayPrice * discountMultiplier);
+            }
+
+            const roundTripPrice = Math.round(oneWayPrice * ROUNDTRIP_MULTIPLIER);
+            const canFit = passengers <= vehicle.passenger_capacity && luggage <= vehicle.luggage_capacity;
+
+            const option: VehicleOption = {
+              name: vehicle.name,
+              capacity: vehicle.passenger_capacity,
+              luggageCapacity: vehicle.luggage_capacity,
+              oneWayPrice,
+              roundTripPrice,
+              recommended: false
+            };
+
+            vehicleOptions.push(option);
+
+            if (canFit && oneWayPrice < lowestPrice) {
+              lowestPrice = oneWayPrice;
+              recommendedVehicle = vehicle.name;
+            }
+          }
+        }
+      }
+
+      vehicleOptions.sort((a, b) => a.oneWayPrice - b.oneWayPrice);
+
+      if (recommendedVehicle) {
+        const recOption = vehicleOptions.find(v => v.name === recommendedVehicle);
+        if (recOption) recOption.recommended = true;
+      }
+
+      const airportName = AIRPORTS[airport]?.split(' (')[0] || airport;
+      const routeDescription = `${airportName} → ${hotelName}`;
+
+      return {
+        message: thankYouMessage + `Scanning the market for the best rates on your ${routeDescription} transfer...`,
+        priceScanRequest: {
+          type: 'PRICE_SCAN',
+          airport,
+          hotel: hotelName,
+          region,
+          basePrice: lowestPrice,
+          route: routeDescription,
+          passengers,
+          luggage,
+          vehicleOptions
+        },
+        suggestions: []
+      };
+    }
+
+    // Fallback
+    return this.startGuidedBooking();
   }
 
   private startGuidedBooking(): AgentResponse {

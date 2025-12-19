@@ -8,7 +8,7 @@ Click conversion tracking has been implemented to measure user engagement **befo
 
 ## 🎯 What Gets Tracked
 
-### Conversion Label: `AW-17810479345/vMD-CIrB8dMZEPGx2axC`
+### Conversion Label: `AW-17810479345/vMD-CIrB8dMbEPGx2axC`
 
 **Tracks user engagement on:**
 
@@ -43,7 +43,7 @@ function gtag_report_conversion(url) {
     }
   };
   gtag('event', 'conversion', {
-    'send_to': 'AW-17810479345/vMD-CIrB8dMZEPGx2axC',
+    'send_to': 'AW-17810479345/vMD-CIrB8dMbEPGx2axC',
     'value': 1.0,
     'currency': 'EUR',
     'event_callback': callback
@@ -113,7 +113,7 @@ if (response.bookingAction) {
 Your site now tracks **two distinct conversion types**:
 
 ### 1. Click Conversions (Engagement)
-- **Label:** `AW-17810479345/vMD-CIrB8dMZEPGx2axC`
+- **Label:** `AW-17810479345/vMD-CIrB8dMbEPGx2axC`
 - **Value:** €1.00
 - **When:** User clicks phone, email, or initiates booking
 - **Purpose:** Measure early-stage interest and optimize for engagement
@@ -210,7 +210,7 @@ window.gtag_report_conversion();
 2. **You Should See Two Conversion Actions:**
 
    **Action 1: Page View / Click Conversion**
-   - Label: `vMD-CIrB8dMZEPGx2axC`
+   - Label: `vMD-CIrB8dMbEPGx2axC`
    - Value: €1.00
    - Count: Every
    - Category: Engagement / Lead
@@ -350,7 +350,7 @@ If you want different values for different actions:
 // Phone calls might be worth more than emails
 function trackPhoneClick() {
   gtag('event', 'conversion', {
-    'send_to': 'AW-17810479345/vMD-CIrB8dMZEPGx2axC',
+    'send_to': 'AW-17810479345/vMD-CIrB8dMbEPGx2axC',
     'value': 5.0,  // €5 for phone calls
     'currency': 'EUR'
   });
@@ -358,7 +358,7 @@ function trackPhoneClick() {
 
 function trackEmailClick() {
   gtag('event', 'conversion', {
-    'send_to': 'AW-17810479345/vMD-CIrB8dMZEPGx2axC',
+    'send_to': 'AW-17810479345/vMD-CIrB8dMbEPGx2axC',
     'value': 1.0,  // €1 for emails
     'currency': 'EUR'
   });

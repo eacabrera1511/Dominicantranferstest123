@@ -25,7 +25,7 @@ Your Google Ads conversion tracking has been **fully implemented and audited** w
 - Currency code
 
 ### 3. Click Conversion Tracking
-**Label:** `AW-17810479345/vMD-CIrB8dMZEPGx2axC`
+**Label:** `AW-17810479345/vMD-CIrB8dMbEPGx2axC`
 
 **Triggers on:**
 - Phone button clicks

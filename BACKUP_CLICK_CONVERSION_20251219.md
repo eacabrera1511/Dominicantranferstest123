@@ -17,7 +17,7 @@ Full implementation of engagement tracking **before** purchase conversions.
 ```javascript
 function gtag_report_conversion(url) {
   gtag('event', 'conversion', {
-    'send_to': 'AW-17810479345/vMD-CIrB8dMZEPGx2axC',
+    'send_to': 'AW-17810479345/vMD-CIrB8dMbEPGx2axC',
     'value': 1.0,
     'currency': 'EUR',
     'event_callback': callback
@@ -55,7 +55,7 @@ function gtag_report_conversion(url) {
 - **Purpose:** Revenue tracking & ROI
 
 #### Click Conversions (NEW)
-- **Label:** `AW-17810479345/vMD-CIrB8dMZEPGx2axC`
+- **Label:** `AW-17810479345/vMD-CIrB8dMbEPGx2axC`
 - **Value:** €1.00 per engagement
 - **Triggers:** Phone clicks, email clicks, booking initiation
 - **Purpose:** Early-funnel optimization & retargeting
@@ -129,7 +129,7 @@ After restoring this backup, verify:
 ### Click Conversion Parameters:
 ```javascript
 {
-  'send_to': 'AW-17810479345/vMD-CIrB8dMZEPGx2axC',
+  'send_to': 'AW-17810479345/vMD-CIrB8dMbEPGx2axC',
   'value': 1.0,
   'currency': 'EUR',
   'event_callback': callback

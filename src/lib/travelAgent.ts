@@ -236,6 +236,10 @@ export class TravelAgent {
       return this.getWelcomeMessage();
     }
 
+    if (query.includes('landing page') || (query.includes('landing') && query.includes('link'))) {
+      return this.generateLandingPageLinks();
+    }
+
     // Extract booking information from natural language queries FIRST (before FAQ/general questions)
     // This ensures "I'm flying into punta cana with 4 adults" is treated as booking, not general chat
     const extractedInfo = this.extractBookingInformation(query);
@@ -1158,11 +1162,31 @@ export class TravelAgent {
   }
 
   private startGuidedBooking(): AgentResponse {
-    this.context = { step: 'AWAITING_AIRPORT' };
-    return {
-      message: `Let's get your transfer booked!\n\nWhich airport will you be arriving at?`,
-      suggestions: ['PUJ - Punta Cana', 'SDQ - Santo Domingo', 'LRM - La Romana', 'POP - Puerto Plata']
-    };
+    if (this.context.airport && this.context.hotel) {
+      this.context.step = 'AWAITING_PASSENGERS';
+      return {
+        message: `Perfect! I see you're looking for a transfer from ${this.context.airport} to ${this.context.hotel}.\n\nHow many passengers will be traveling?`,
+        suggestions: ['1 passenger', '2 passengers', '3 passengers', '4 passengers', '6 passengers']
+      };
+    } else if (this.context.airport) {
+      this.context.step = 'AWAITING_HOTEL';
+      return {
+        message: `Great! I see you're arriving at ${this.context.airport}.\n\nWhere would you like to go? Tell me your hotel name or destination.`,
+        suggestions: ['Hard Rock Hotel', 'Iberostar', 'Dreams Resort', 'Excellence Resort', 'Bavaro area']
+      };
+    } else if (this.context.hotel) {
+      this.context.step = 'AWAITING_AIRPORT';
+      return {
+        message: `I see you're going to ${this.context.hotel}.\n\nWhich airport will you be arriving at?`,
+        suggestions: ['PUJ - Punta Cana', 'SDQ - Santo Domingo', 'LRM - La Romana', 'POP - Puerto Plata']
+      };
+    } else {
+      this.context.step = 'AWAITING_AIRPORT';
+      return {
+        message: `Let's get your transfer booked!\n\nWhich airport will you be arriving at?`,
+        suggestions: ['PUJ - Punta Cana', 'SDQ - Santo Domingo', 'LRM - La Romana', 'POP - Puerto Plata']
+      };
+    }
   }
 
   private handleAirportInput(query: string): AgentResponse {
@@ -2247,6 +2271,69 @@ export class TravelAgent {
       region: data.region,
       passengers: data.passengers,
       suitcases: data.luggage
+    };
+  }
+
+  setLandingPageContext(data: { airport?: string; destination?: string }): void {
+    if (data.airport) {
+      this.context.airport = data.airport.toUpperCase();
+    }
+    if (data.destination) {
+      this.context.hotel = data.destination;
+    }
+  }
+
+  hasLandingPageContext(): boolean {
+    return !!(this.context.airport || this.context.hotel);
+  }
+
+  private generateLandingPageLinks(): AgentResponse {
+    const baseUrl = 'https://www.dominicantransfers.com';
+
+    const popularHotels = [
+      { name: 'Hard Rock Hotel', param: 'hard+rock+hotel' },
+      { name: 'Iberostar Bavaro', param: 'iberostar+bavaro' },
+      { name: 'Dreams Punta Cana', param: 'dreams+punta+cana' },
+      { name: 'Excellence Punta Cana', param: 'excellence+punta+cana' },
+      { name: 'Secrets Cap Cana', param: 'secrets+cap+cana' },
+      { name: 'Bavaro Princess', param: 'bavaro+princess' }
+    ];
+
+    const airports = [
+      { code: 'puj', name: 'Punta Cana' },
+      { code: 'sdq', name: 'Santo Domingo' }
+    ];
+
+    let message = `Here are your Google Ads landing page URLs:\n\n`;
+
+    message += `📍 **Specific Hotel Pages (Highest Quality Score)**\n`;
+    popularHotels.forEach(hotel => {
+      const url = `${baseUrl}/?arrival=puj&destination=${hotel.param}`;
+      message += `\n${hotel.name}:\n${url}\n`;
+    });
+
+    message += `\n\n✈️ **Airport-Only Pages**\n`;
+    airports.forEach(airport => {
+      const url = `${baseUrl}/?arrival=${airport.code}`;
+      message += `\n${airport.name} Airport:\n${url}\n`;
+    });
+
+    message += `\n\n🎯 **Dynamic URL Template (Use in Google Ads)**\n`;
+    message += `${baseUrl}/?arrival=puj&destination={keyword}\n`;
+    message += `\nGoogle will replace {keyword} with the search term automatically.\n`;
+
+    message += `\n\n📊 **Test Page**\n`;
+    message += `${baseUrl}/landing-page-test.html\n`;
+    message += `\nInteractive test page with all scenarios and copy buttons.`;
+
+    return {
+      message,
+      suggestions: [
+        'Test a landing page',
+        'Google Ads setup help',
+        'How to improve Quality Score',
+        'Ask a question'
+      ]
     };
   }
 }

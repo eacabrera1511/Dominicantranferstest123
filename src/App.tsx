@@ -183,6 +183,13 @@ function App() {
       const arrival = urlParams.get('arrival');
       const destination = urlParams.get('destination');
 
+      if (arrival || destination) {
+        agent.setLandingPageContext({
+          airport: arrival || undefined,
+          destination: destination ? destination.replace(/\+/g, ' ').replace(/-/g, ' ').trim() : undefined
+        });
+      }
+
       const dynamicWelcome = generateDynamicWelcome(arrival, destination);
 
       const welcomeMessage: Message = {

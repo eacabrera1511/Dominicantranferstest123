@@ -16,6 +16,12 @@ import { CompactGallery } from './components/CompactGallery';
 import Gallery from './components/Gallery';
 import { initializeChatConversation, saveChatMessage, getCurrentChatConversationId, resetChatConversation } from './lib/chatTranscripts';
 
+declare global {
+  interface Window {
+    gtag?: (command: string, targetId: string, config?: any) => void;
+  }
+}
+
 function App() {
   const { language, setLanguage } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -66,6 +72,33 @@ function App() {
   useEffect(() => {
     agent.setLanguage(language);
   }, [language, agent]);
+
+  useEffect(() => {
+    if (showPaymentSuccess && paymentBookingRef) {
+      const fetchBookingAndTrackConversion = async () => {
+        try {
+          const { data } = await supabase
+            .from('bookings')
+            .select('total_price, id')
+            .eq('reference', paymentBookingRef)
+            .maybeSingle();
+
+          if (data && window.gtag) {
+            window.gtag('event', 'conversion', {
+              'send_to': 'AW-17810479345',
+              'value': data.total_price || 0,
+              'currency': 'USD',
+              'transaction_id': paymentBookingRef
+            });
+          }
+        } catch (error) {
+          console.error('Error tracking conversion:', error);
+        }
+      };
+
+      fetchBookingAndTrackConversion();
+    }
+  }, [showPaymentSuccess, paymentBookingRef]);
 
   useEffect(() => {
     let mounted = true;

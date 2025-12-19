@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface SuccessStepProps {
   item: any;
@@ -9,8 +10,26 @@ interface SuccessStepProps {
   onClose: () => void;
 }
 
+declare global {
+  interface Window {
+    gtag?: (command: string, targetId: string, config?: any) => void;
+  }
+}
+
 export function SuccessStep({ item, bookingData, customerInfo, totalPrice, completedBooking, onClose }: SuccessStepProps) {
   const bookingReference = completedBooking?.reference || `BK-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
+
+  useEffect(() => {
+    if (window.gtag && completedBooking) {
+      window.gtag('event', 'conversion', {
+        'send_to': 'AW-17810479345',
+        'value': totalPrice,
+        'currency': 'USD',
+        'transaction_id': bookingReference
+      });
+    }
+  }, [completedBooking, totalPrice, bookingReference]);
+
   return (
     <div className="text-center space-y-3 xs:space-y-4 sm:space-y-6 animate-fadeIn">
       <div className="w-14 h-14 xs:w-16 xs:h-16 sm:w-20 sm:h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto animate-scaleIn">

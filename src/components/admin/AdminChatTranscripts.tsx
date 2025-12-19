@@ -130,7 +130,12 @@ export function AdminChatTranscripts() {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+      const messageData = data || [];
+      setMessages(messageData);
+
+      // Automatically expand all messages when loading
+      const allMessageIds = messageData.map(m => m.id);
+      setExpandedMessages(new Set(allMessageIds));
     } catch (error) {
       console.error('Error loading messages:', error);
     }
@@ -139,7 +144,6 @@ export function AdminChatTranscripts() {
   function handleSelectConversation(conversation: ChatConversation) {
     setSelectedConversation(conversation);
     setMessageSearchQuery('');
-    setExpandedMessages(new Set());
     loadMessages(conversation.id);
   }
 
@@ -554,10 +558,10 @@ export function AdminChatTranscripts() {
                       msg.metadata.priceCalculated ||
                       msg.metadata.suggestions
                     );
-                    const isLongMessage = msg.content.length > 500;
+                    const isLongMessage = msg.content.length > 300;
                     const isExpanded = expandedMessages.has(msg.id);
                     const displayContent = isLongMessage && !isExpanded
-                      ? msg.content.substring(0, 500) + '...'
+                      ? msg.content.substring(0, 300) + '...'
                       : msg.content;
 
                     return (

@@ -14,7 +14,7 @@ Your Google Ads conversion tracking has been **fully implemented and audited** w
 - Loads on every page
 - Async loading for performance
 
-### 2. Conversion Tracking
+### 2. Purchase Conversion Tracking
 **Triggers on:**
 - Payment success (Stripe redirect)
 - Booking confirmation page
@@ -24,16 +24,31 @@ Your Google Ads conversion tracking has been **fully implemented and audited** w
 - Unique booking reference
 - Currency code
 
-### 3. Debug & Verification Tools
+### 3. Click Conversion Tracking
+**Label:** `AW-17810479345/vMD-CIrB8dMZEPGx2axC`
+
+**Triggers on:**
+- Phone button clicks
+- Email button clicks
+- Booking initiation in chat
+
+**Data Tracked:**
+- Engagement value (€1.00)
+- User intent signals
+- Early-stage funnel actions
+
+### 4. Debug & Verification Tools
 **New Files Created:**
 - `src/lib/gtagVerification.ts` - Verification utilities
 - `public/test-gtag.html` - Standalone test page
 - `GOOGLE_ADS_TROUBLESHOOTING.md` - Complete troubleshooting guide
+- `GOOGLE_ADS_CLICK_CONVERSION_SETUP.md` - Click conversion documentation
 
 **Console Commands Available:**
 ```javascript
 window.verifyGoogleAds()           // Check tag status
-window.testGoogleAdsConversion()   // Send test conversion
+window.testGoogleAdsConversion()   // Send test purchase conversion
+window.gtag_report_conversion()    // Send test click conversion
 ```
 
 ---
@@ -54,8 +69,9 @@ window.testGoogleAdsConversion()   // Send test conversion
 1. Visit: `https://www.dominicantransfers.nl/test-gtag.html`
 2. Click "Run Diagnostics"
 3. Verify all checks show ✅
-4. Click "Send Test Conversion"
-5. Wait 3-6 hours and check Google Ads dashboard
+4. Click "Send Test Conversion" (purchase)
+5. Click "Test Click Conversion" (engagement)
+6. Wait 3-6 hours and check Google Ads dashboard
 
 **Option B: Using Browser Console**
 1. Visit: `https://www.dominicantransfers.nl`
@@ -153,6 +169,16 @@ Loaded: ✅
 DataLayer: ✅
 gtag Function: ✅
 Account ID: AW-17810479345
+```
+
+### On Phone/Email Button Click
+```
+🎯 Click conversion tracked: button click
+```
+
+### On Booking Initiation
+```
+🎯 Click conversion tracked: button click
 ```
 
 ### On Booking Completion

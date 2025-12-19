@@ -100,6 +100,7 @@
     <h2>Actions</h2>
     <button onclick="runDiagnostics()">🔍 Run Diagnostics</button>
     <button onclick="testConversion()">🧪 Send Test Conversion</button>
+    <button onclick="testClickConversion()">👆 Test Click Conversion</button>
     <button onclick="checkDataLayer()">📊 View DataLayer</button>
 
     <div id="output"></div>
@@ -219,6 +220,31 @@ Transaction ID: ${testId}<br>
 Account: AW-17810479345
         </div>
         <p>Check your Google Ads dashboard in 3-6 hours to see this test conversion.</p>
+      `;
+    }
+
+    function testClickConversion() {
+      if (typeof window.gtag_report_conversion !== 'function') {
+        updateStatus('❌ Cannot send click conversion - gtag_report_conversion not loaded', 'error');
+        return;
+      }
+
+      console.log('👆 Sending test click conversion...');
+
+      window.gtag_report_conversion();
+
+      updateStatus('✅ Click conversion sent! Check Google Ads dashboard in 3-6 hours.', 'success');
+
+      const output = document.getElementById('output');
+      output.innerHTML = `
+        <h3>Click Conversion Sent</h3>
+        <div class="code">
+Conversion Label: AW-17810479345/vMD-CIrB8dMZEPGx2axC<br>
+Value: €1.00<br>
+Currency: EUR<br>
+Type: Click/Engagement
+        </div>
+        <p>This tracks user engagement (clicks on phone button, booking initiation, etc.)</p>
       `;
     }
 

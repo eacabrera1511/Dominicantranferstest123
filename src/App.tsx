@@ -21,6 +21,7 @@ declare global {
   interface Window {
     gtag?: (command: string, targetId: string, config?: any) => void;
     dataLayer?: any[];
+    gtag_report_conversion?: (url?: string) => boolean;
   }
 }
 
@@ -616,11 +617,17 @@ function App() {
   };
 
   const handleCallAgent = () => {
+    if (typeof window.gtag_report_conversion === 'function') {
+      window.gtag_report_conversion();
+    }
     window.open('tel:+18095551234', '_self');
     setShowAgentMenu(false);
   };
 
   const handleEmailAgent = () => {
+    if (typeof window.gtag_report_conversion === 'function') {
+      window.gtag_report_conversion();
+    }
     window.open('mailto:info@dominicantransfers.com?subject=Transfer Inquiry', '_self');
     setShowAgentMenu(false);
   };
@@ -679,6 +686,9 @@ function App() {
     }
 
     if (response.bookingAction) {
+      if (typeof window.gtag_report_conversion === 'function') {
+        window.gtag_report_conversion();
+      }
       setChatBookingData(response.bookingAction);
       setBookingModalKey(prev => prev + 1);
       setShowChatBooking(true);

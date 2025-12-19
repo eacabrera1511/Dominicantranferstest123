@@ -438,9 +438,10 @@ REMEMBER: You're a knowledgeable AI assistant first, transfer specialist second.
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "o1",
+          model: "gpt-4o",
           messages: messages,
-          max_completion_tokens: 4000,
+          max_tokens: 1000,
+          temperature: 0.7,
         }),
         signal: controller.signal,
       });

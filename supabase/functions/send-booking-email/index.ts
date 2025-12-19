@@ -250,7 +250,7 @@ const generateCustomerEmailHTML = (booking: any, emailType: string, cancellation
                     </td>
                     <td width="4%"></td>
                     <td width="48%" style="text-align: center;">
-                      <a href="tel:+18091234567" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none;">Call +1 809 123 4567</a>
+                      <a href="tel:+31625584645" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none;">Call +31 6 2558 4645</a>
                     </td>
                   </tr>
                 </table>

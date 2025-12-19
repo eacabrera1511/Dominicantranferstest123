@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, DollarSign, LogOut,
   Menu, X, ChevronRight, Shield, Users, Car, UserCog, Calendar,
-  UsersIcon, MapPin, Navigation, Instagram, MessageSquare, AlertTriangle
+  UsersIcon, MapPin, Navigation, Instagram, MessageSquare, AlertTriangle, Settings
 } from 'lucide-react';
 import { AdminLogin } from './AdminLogin';
 import { AdminOverview } from './AdminOverview';
@@ -16,6 +16,7 @@ import { AdminDispatch } from './AdminDispatch';
 import { AdminGallery } from './AdminGallery';
 import { AdminChatTranscripts } from './AdminChatTranscripts';
 import AdminTroubleshooting from './AdminTroubleshooting';
+import AdminCompanySettings from './AdminCompanySettings';
 
 interface AdminUser {
   id: string;
@@ -28,7 +29,7 @@ interface AdminDashboardProps {
   onExit: () => void;
 }
 
-type TabType = 'overview' | 'bookings' | 'dispatch' | 'fleet' | 'drivers' | 'customers' | 'pricing' | 'financials' | 'reels' | 'chat' | 'troubleshooting';
+type TabType = 'overview' | 'bookings' | 'dispatch' | 'fleet' | 'drivers' | 'customers' | 'pricing' | 'financials' | 'reels' | 'chat' | 'troubleshooting' | 'settings';
 
 export function AdminDashboard({ onExit }: AdminDashboardProps) {
   const [admin, setAdmin] = useState<AdminUser | null>(null);
@@ -65,6 +66,7 @@ export function AdminDashboard({ onExit }: AdminDashboardProps) {
     { id: 'pricing' as TabType, label: 'Pricing', icon: MapPin },
     { id: 'financials' as TabType, label: 'Financials', icon: DollarSign },
     { id: 'reels' as TabType, label: 'Gallery', icon: Instagram },
+    { id: 'settings' as TabType, label: 'Company Settings', icon: Settings },
     { id: 'troubleshooting' as TabType, label: 'Troubleshooting', icon: AlertTriangle },
   ];
 
@@ -221,6 +223,7 @@ export function AdminDashboard({ onExit }: AdminDashboardProps) {
           {activeTab === 'pricing' && <AdminPricing />}
           {activeTab === 'financials' && <AdminFinancials />}
           {activeTab === 'reels' && <AdminGallery />}
+          {activeTab === 'settings' && <AdminCompanySettings />}
           {activeTab === 'troubleshooting' && <AdminTroubleshooting />}
         </main>
       </div>
@@ -236,6 +239,7 @@ export function AdminDashboard({ onExit }: AdminDashboardProps) {
         {activeTab === 'pricing' && <AdminPricing />}
         {activeTab === 'financials' && <AdminFinancials />}
         {activeTab === 'reels' && <AdminGallery />}
+        {activeTab === 'settings' && <AdminCompanySettings />}
         {activeTab === 'troubleshooting' && <AdminTroubleshooting />}
       </div>
     </div>

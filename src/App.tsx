@@ -620,7 +620,7 @@ function App() {
     if (typeof window.gtag_report_conversion === 'function') {
       window.gtag_report_conversion();
     }
-    window.open('tel:+18095551234', '_self');
+    window.open('tel:+31625584645', '_self');
     setShowAgentMenu(false);
   };
 

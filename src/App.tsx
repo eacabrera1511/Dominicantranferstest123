@@ -135,33 +135,37 @@ function App() {
       let suggestions: string[] = [];
 
       if (arrival && cleanDestination) {
-        const arrivalName = arrival.toLowerCase() === 'puj' ? 'Punta Cana Airport' : arrival.toUpperCase();
-        welcomeMsg = `Welcome 👋\nPrivate airport transfer from ${arrivalName} to ${cleanDestination}.`;
+        const arrivalName = arrival.toLowerCase() === 'puj' ? 'Punta Cana Airport' :
+                          arrival.toLowerCase() === 'sdq' ? 'Santo Domingo Airport' :
+                          arrival.toUpperCase();
+        welcomeMsg = `Welcome! 👋\n\nLooking for a private transfer from ${arrivalName} to ${cleanDestination}?\n\nI can help you book the perfect ride with instant pricing.`;
         suggestions = [
-          `PUJ → ${cleanDestination}`,
-          'One-Way Transfer',
-          'Roundtrip Transfer',
-          'See vehicle options',
-          'Get instant quote'
+          `Quote for ${cleanDestination} transfer`,
+          `Best price to ${cleanDestination}`,
+          `Vehicle options to ${cleanDestination}`,
+          'One-way or roundtrip?',
+          'How many passengers?'
         ];
       } else if (arrival) {
-        const arrivalName = arrival.toLowerCase() === 'puj' ? 'Punta Cana Airport' : arrival.toUpperCase();
-        welcomeMsg = `Welcome 👋\nPrivate airport transfers from ${arrivalName}.`;
+        const arrivalName = arrival.toLowerCase() === 'puj' ? 'Punta Cana Airport' :
+                          arrival.toLowerCase() === 'sdq' ? 'Santo Domingo Airport' :
+                          arrival.toUpperCase();
+        welcomeMsg = `Welcome! 👋\n\nNeed a private transfer from ${arrivalName}?\n\nTell me your hotel or destination, and I'll get you an instant quote.`;
         suggestions = [
-          'PUJ → Hotel / Resort',
-          'One-Way Transfer',
-          'Roundtrip Transfer',
-          'See prices',
-          'View all vehicles'
+          `${arrival.toUpperCase()} → Punta Cana hotels`,
+          `${arrival.toUpperCase()} → Bavaro resorts`,
+          `Show me ${arrival.toUpperCase()} prices`,
+          'One-way airport transfer',
+          'Roundtrip airport transfer'
         ];
       } else {
-        welcomeMsg = `Welcome 👋\nPrivate airport transfers in the Dominican Republic.`;
+        welcomeMsg = `Welcome! 👋\n\nPrivate airport transfers in the Dominican Republic.\n\nWhere are you headed?`;
         suggestions = [
-          'PUJ → Punta Cana Hotel',
-          'Airport Transfer Quote',
-          'See prices',
-          'View vehicles',
-          'Ask a question'
+          'Punta Cana Airport to hotel',
+          'Santo Domingo transfers',
+          'Get instant quote',
+          'See our vehicles',
+          'Compare our prices'
         ];
       }
 
@@ -206,7 +210,7 @@ function App() {
 
         const chatConvId = getCurrentChatConversationId();
         if (chatConvId && mounted) {
-          await saveChatMessage(chatConvId, 'assistant', greeting.message, 'greeting');
+          await saveChatMessage(chatConvId, 'assistant', dynamicWelcome.message, 'greeting');
         }
       } catch (err) {
         console.error('Failed to create conversation:', err);

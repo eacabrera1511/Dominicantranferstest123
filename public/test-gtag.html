@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Ads Tag Test - Dominicantransfers.nl</title>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17810479345"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-17810479345');
+
+    // Debug logging
+    console.log('✅ Google Ads gtag initialized:', 'AW-17810479345');
+    window.gtagLoaded = true;
+  </script>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .container {
+      background: white;
+      color: #333;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #667eea;
+      margin-top: 0;
+    }
+    .status {
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+    .success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+    .error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+    .info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 10px 10px 0;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #5568d3;
+    }
+    .code {
+      background: #f4f4f4;
+      padding: 12px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+    .emoji {
+      font-size: 24px;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><span class="emoji">🎯</span>Google Ads Tag Test Page</h1>
+
+    <p><strong>Purpose:</strong> This page tests if Google Ads tracking is properly installed on dominicantransfers.nl</p>
+
+    <div id="status"></div>
+
+    <h2>Actions</h2>
+    <button onclick="runDiagnostics()">🔍 Run Diagnostics</button>
+    <button onclick="testConversion()">🧪 Send Test Conversion</button>
+    <button onclick="checkDataLayer()">📊 View DataLayer</button>
+
+    <div id="output"></div>
+
+    <h2>Instructions</h2>
+    <ol>
+      <li>Open this page on your production domain: <code>https://www.dominicantransfers.nl/test-gtag.html</code></li>
+      <li>Open Developer Tools (F12) and go to Console tab</li>
+      <li>Click "Run Diagnostics" above</li>
+      <li>Verify all checks show ✅</li>
+      <li>Test conversion tracking with "Send Test Conversion"</li>
+      <li>Check Google Ads dashboard in 3-6 hours for test conversion</li>
+    </ol>
+
+    <h2>Google Tag Assistant</h2>
+    <p>Install the <a href="https://chrome.google.com/webstore/detail/tag-assistant-legacy-by-g/kejbdjndbnbjgmefkgdddjlbokphdefk" target="_blank">Google Tag Assistant Chrome Extension</a> to automatically verify the tag.</p>
+
+    <h2>Expected Console Output</h2>
+    <div class="code">
+✅ Google Ads gtag initialized: AW-17810479345
+🎯 Google Ads Tracking Status
+Loaded: ✅
+DataLayer: ✅
+gtag Function: ✅
+Account ID: AW-17810479345
+    </div>
+  </div>
+
+  <script>
+    function updateStatus(message, type = 'info') {
+      const statusDiv = document.getElementById('status');
+      statusDiv.className = 'status ' + type;
+      statusDiv.innerHTML = message;
+    }
+
+    function runDiagnostics() {
+      const output = document.getElementById('output');
+      const results = [];
+
+      // Check gtag
+      const gtagExists = typeof window.gtag === 'function';
+      results.push(`1. gtag function: ${gtagExists ? '✅' : '❌'}`);
+
+      // Check dataLayer
+      const dataLayerExists = Array.isArray(window.dataLayer);
+      results.push(`2. dataLayer: ${dataLayerExists ? '✅' : '❌'}`);
+
+      // Check domain
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      results.push(`3. Production URL: ${!isLocalhost ? '✅' : '❌ (Using localhost - won\'t be detected by Google)'}`);
+
+      // Check if loaded
+      const isLoaded = gtagExists && dataLayerExists;
+      results.push(`4. Overall Status: ${isLoaded ? '✅ READY' : '❌ NOT READY'}`);
+
+      // Test network connectivity
+      results.push(`5. Testing Google connectivity...`);
+
+      fetch('https://www.googletagmanager.com/gtag/js?id=AW-17810479345', {method: 'HEAD'})
+        .then(response => {
+          results.push(`6. Google Tag Manager: ${response.ok ? '✅ Reachable' : '❌ Not reachable'}`);
+          displayResults(results, isLoaded);
+        })
+        .catch(error => {
+          results.push(`6. Google Tag Manager: ❌ Blocked (${error.message})`);
+          displayResults(results, false);
+        });
+
+      console.log('🔍 Running diagnostics...');
+      console.log('Account ID: AW-17810479345');
+      console.log('URL:', window.location.href);
+    }
+
+    function displayResults(results, isSuccess) {
+      const output = document.getElementById('output');
+      output.innerHTML = `
+        <h3>Diagnostic Results</h3>
+        <div class="code">${results.join('<br>')}</div>
+      `;
+
+      if (isSuccess) {
+        updateStatus('✅ All checks passed! Google Ads tag is properly installed.', 'success');
+      } else {
+        updateStatus('❌ Some checks failed. See results above.', 'error');
+      }
+    }
+
+    function testConversion() {
+      if (typeof window.gtag !== 'function') {
+        updateStatus('❌ Cannot send test conversion - gtag not loaded', 'error');
+        return;
+      }
+
+      const testValue = 99.99;
+      const testId = 'TEST-' + Date.now();
+
+      console.log('🧪 Sending test conversion...');
+      console.log('Value:', testValue);
+      console.log('Transaction ID:', testId);
+
+      window.gtag('event', 'conversion', {
+        'send_to': 'AW-17810479345',
+        'value': testValue,
+        'currency': 'USD',
+        'transaction_id': testId
+      });
+
+      updateStatus(`✅ Test conversion sent! Transaction ID: ${testId}. Check Google Ads dashboard in 3-6 hours.`, 'success');
+
+      const output = document.getElementById('output');
+      output.innerHTML = `
+        <h3>Test Conversion Sent</h3>
+        <div class="code">
+Value: $${testValue}<br>
+Currency: USD<br>
+Transaction ID: ${testId}<br>
+Account: AW-17810479345
+        </div>
+        <p>Check your Google Ads dashboard in 3-6 hours to see this test conversion.</p>
+      `;
+    }
+
+    function checkDataLayer() {
+      if (!Array.isArray(window.dataLayer)) {
+        updateStatus('❌ dataLayer not found', 'error');
+        return;
+      }
+
+      const output = document.getElementById('output');
+      output.innerHTML = `
+        <h3>DataLayer Contents</h3>
+        <div class="code">${JSON.stringify(window.dataLayer, null, 2)}</div>
+      `;
+
+      updateStatus(`✅ dataLayer has ${window.dataLayer.length} entries`, 'success');
+      console.log('dataLayer:', window.dataLayer);
+    }
+
+    // Auto-run diagnostics on load
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        console.log('🎯 Auto-running diagnostics...');
+        runDiagnostics();
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

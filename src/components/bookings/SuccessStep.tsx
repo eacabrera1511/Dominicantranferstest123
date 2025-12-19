@@ -21,12 +21,23 @@ export function SuccessStep({ item, bookingData, customerInfo, totalPrice, compl
 
   useEffect(() => {
     if (window.gtag && completedBooking) {
+      console.log('🎯 Firing Google Ads conversion from SuccessStep:', {
+        value: totalPrice,
+        transaction_id: bookingReference
+      });
+
       window.gtag('event', 'conversion', {
         'send_to': 'AW-17810479345',
         'value': totalPrice,
         'currency': 'USD',
         'transaction_id': bookingReference
       });
+
+      console.log('✅ Conversion event sent successfully');
+    } else if (!window.gtag) {
+      console.error('❌ gtag function not available in SuccessStep');
+    } else if (!completedBooking) {
+      console.warn('⚠️ No completed booking data for conversion tracking');
     }
   }, [completedBooking, totalPrice, bookingReference]);
 

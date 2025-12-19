@@ -15,10 +15,12 @@ import { getTranslations } from './lib/translations';
 import { CompactGallery } from './components/CompactGallery';
 import Gallery from './components/Gallery';
 import { initializeChatConversation, saveChatMessage, getCurrentChatConversationId, resetChatConversation } from './lib/chatTranscripts';
+import { logGoogleAdsStatus } from './lib/gtagVerification';
 
 declare global {
   interface Window {
     gtag?: (command: string, targetId: string, config?: any) => void;
+    dataLayer?: any[];
   }
 }
 
@@ -70,6 +72,17 @@ function App() {
   }, [darkMode]);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      const status = logGoogleAdsStatus();
+      if (!status.isLoaded) {
+        console.warn('⚠️ Google Ads tracking not fully loaded after 2 seconds');
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     agent.setLanguage(language);
   }, [language, agent]);
 
@@ -84,12 +97,21 @@ function App() {
             .maybeSingle();
 
           if (data && window.gtag) {
+            console.log('🎯 Firing Google Ads conversion:', {
+              value: data.total_price,
+              transaction_id: paymentBookingRef
+            });
+
             window.gtag('event', 'conversion', {
               'send_to': 'AW-17810479345',
               'value': data.total_price || 0,
               'currency': 'USD',
               'transaction_id': paymentBookingRef
             });
+
+            console.log('✅ Conversion event sent successfully');
+          } else if (!window.gtag) {
+            console.error('❌ gtag function not available');
           }
         } catch (error) {
           console.error('Error tracking conversion:', error);

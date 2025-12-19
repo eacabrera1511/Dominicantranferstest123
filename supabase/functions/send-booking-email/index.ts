@@ -450,13 +450,19 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+
+    // TEMPORARY FIX: Use correct verified API key for dominicantransfers.com
+    // TODO: Update RESEND_API_KEY secret in Supabase dashboard to this value, then remove this hardcoded fallback
+    // Dashboard location: https://supabase.com/dashboard/project/gwlaxeonvfywhecwtupv/settings/functions
+    const VERIFIED_RESEND_KEY = 're_f7z8m4Ea_Ap88RBv1vQGdU8z3Wjp5MxpL';
+    const resendApiKey = VERIFIED_RESEND_KEY; // Using verified key directly until dashboard is updated
     const resendFromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'Dominican Transfers <Booking@dominicantransfers.com>';
 
     console.log('Email function invoked with:', {
       hasResendKey: !!resendApiKey,
       fromEmail: resendFromEmail,
-      supabaseUrl
+      supabaseUrl,
+      usingVerifiedKey: true
     });
 
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -541,7 +547,6 @@ Deno.serve(async (req: Request) => {
         } else {
           emailError = emailResult.message || emailResult.error?.message || JSON.stringify(emailResult) || 'Failed to send email';
           
-          // Check if this is a test mode error
           if (emailError.includes('only send testing emails') || emailError.includes('verify a domain')) {
             console.warn('⚠️ Resend is in TEST MODE - domain verification required');
             console.warn('⚠️ Email attempted to:', recipientEmail);

@@ -236,7 +236,7 @@ export class TravelAgent {
       return this.getWelcomeMessage();
     }
 
-    if (query.includes('landing page') || (query.includes('landing') && query.includes('link'))) {
+    if (query.includes('landing page') || query.includes('landing pages') || (query.includes('landing') && query.includes('link')) || query.includes('google ads url')) {
       return this.generateLandingPageLinks();
     }
 
@@ -754,6 +754,33 @@ export class TravelAgent {
     let hasBookingIntent = false;
     for (const pattern of bookingIntentPatterns) {
       if (pattern.test(query)) {
+        hasBookingIntent = true;
+        break;
+      }
+    }
+
+    // Detect landing page suggestion patterns and extract hotel name
+    const landingPageSuggestionPatterns = [
+      /(?:quote for|best price to|vehicle options to|transfer to)\s+(.+?)(?:\s+transfer)?$/i,
+      /(?:price for|cost for|rate for)\s+(.+?)(?:\s+transfer)?$/i
+    ];
+
+    for (const pattern of landingPageSuggestionPatterns) {
+      const match = query.match(pattern);
+      if (match && match[1]) {
+        const destination = match[1].trim();
+        // Set the hotel from the suggestion
+        const hotelMatch = this.findHotelInDatabase(destination);
+        if (hotelMatch) {
+          info.hotel = hotelMatch.hotel_name;
+          info.region = hotelMatch.zone_name;
+          info.acknowledgedInfo.push(hotelMatch.hotel_name);
+        } else {
+          info.hotel = destination;
+          info.acknowledgedInfo.push(destination);
+        }
+        info.isPriceInquiry = true;
+        info.hasInfo = true;
         hasBookingIntent = true;
         break;
       }
@@ -2279,7 +2306,15 @@ export class TravelAgent {
       this.context.airport = data.airport.toUpperCase();
     }
     if (data.destination) {
-      this.context.hotel = data.destination;
+      const hotelMatch = this.findHotelInDatabase(data.destination);
+      if (hotelMatch) {
+        this.context.hotel = hotelMatch.hotel_name;
+        this.context.region = hotelMatch.zone_name;
+      } else {
+        this.context.hotel = data.destination;
+        const estimatedDistance = this.estimateDistanceFromQuery(data.destination);
+        this.context.region = estimatedDistance.zone;
+      }
     }
   }
 

@@ -45,7 +45,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const frontendUrl = Deno.env.get("FRONTEND_URL") || "https://travelsmart.com";
+    const frontendUrl = Deno.env.get("FRONTEND_URL") || "https://dominicantransfers.com";
     const recoveryUrl = `${frontendUrl}?resume=${incompleteBookingId}`;
 
     const htmlContent = `
@@ -66,7 +66,7 @@ Deno.serve(async (req: Request) => {
                 <tr>
                   <td style="background: linear-gradient(90deg, #10b981 0%, #14b8a6 100%); padding: 30px 40px; text-align: center;">
                     <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 700;">
-                      🚗 TravelSmart
+                      🚗 Dominican Transfers
                     </h1>
                     <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
                       Premium Airport Transfers
@@ -153,9 +153,9 @@ Deno.serve(async (req: Request) => {
                 <tr>
                   <td style="padding: 30px 40px; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.05);">
                     <p style="margin: 0; color: rgba(255,255,255,0.4); font-size: 12px; text-align: center; line-height: 1.6;">
-                      TravelSmart - Premium Airport Transfer Service<br>
+                      Dominican Transfers - Premium Airport Transfer Service<br>
                       Dominican Republic<br>
-                      <a href="mailto:support@travelsmart.com" style="color: #10b981; text-decoration: none;">support@travelsmart.com</a>
+                      <a href="mailto:support@dominicantransfers.com" style="color: #10b981; text-decoration: none;">support@dominicantransfers.com</a>
                     </p>
                   </td>
                 </tr>
@@ -174,9 +174,9 @@ Deno.serve(async (req: Request) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "TravelSmart <bookings@travelsmart.com>",
+        from: "Dominican Transfers <Booking@dominicantransfers.com>",
         to: [email],
-        subject: "Complete Your TravelSmart Booking 🚗",
+        subject: "Complete Your Dominican Transfers Booking 🚗",
         html: htmlContent,
       }),
     });

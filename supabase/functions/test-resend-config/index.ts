@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
 
   try {
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
-    const resendFromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'Dominican Transfers <info@dominicantransfers.nl>';
+    const resendFromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'Dominican Transfers <Booking@dominicantransfers.com>';
 
     const config = {
       resend_configured: !!resendApiKey,

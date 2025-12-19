@@ -246,7 +246,7 @@ const generateCustomerEmailHTML = (booking: any, emailType: string, cancellation
                 <table width="100%" cellpadding="0" cellspacing="0">
                   <tr>
                     <td width="48%" style="text-align: center;">
-                      <a href="mailto:info@dominicantransfers.nl" style="display: inline-block; padding: 12px 24px; background: #ffffff; color: #059669; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; border: 2px solid #10b981;">Email Support</a>
+                      <a href="mailto:info@dominicantransfers.com" style="display: inline-block; padding: 12px 24px; background: #ffffff; color: #059669; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; border: 2px solid #10b981;">Email Support</a>
                     </td>
                     <td width="4%"></td>
                     <td width="48%" style="text-align: center;">
@@ -451,7 +451,7 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
-    const resendFromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'Dominican Transfers <info@dominicantransfers.nl>';
+    const resendFromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'Dominican Transfers <Booking@dominicantransfers.com>';
 
     console.log('Email function invoked with:', {
       hasResendKey: !!resendApiKey,
@@ -485,7 +485,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const isAdminEmail = emailType === 'admin_notification';
-    const recipientEmail = isAdminEmail ? (adminEmail || 'info@dominicantransfers.nl') : booking.customer_email;
+    const recipientEmail = isAdminEmail ? (adminEmail || 'info@dominicantransfers.com') : booking.customer_email;
     const emailSubject = getEmailSubject(emailType, booking.reference);
 
     let cancellationToken: string | null = null;

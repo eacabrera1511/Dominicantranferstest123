@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, User, Bot, Calendar, Search, Eye, ExternalLink, Filter, Trash2, CheckCircle, XCircle, Clock, Target, TrendingUp, AlertCircle } from 'lucide-react';
+import { MessageSquare, User, Bot, Calendar, Search, Eye, ExternalLink, Filter, Trash2, CheckCircle, XCircle, Clock, Target, TrendingUp, AlertCircle, Maximize2, Minimize2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface ChatConversation {
@@ -42,6 +42,7 @@ export function AdminChatTranscripts() {
   const [searchQuery, setSearchQuery] = useState('');
   const [messageSearchQuery, setMessageSearchQuery] = useState('');
   const [filterBookingStatus, setFilterBookingStatus] = useState<'all' | 'with_booking' | 'no_booking'>('all');
+  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
   const [stats, setStats] = useState<ConversationStats>({
     total: 0,
     withBooking: 0,
@@ -138,7 +139,29 @@ export function AdminChatTranscripts() {
   function handleSelectConversation(conversation: ChatConversation) {
     setSelectedConversation(conversation);
     setMessageSearchQuery('');
+    setExpandedMessages(new Set());
     loadMessages(conversation.id);
+  }
+
+  function toggleMessageExpansion(messageId: string) {
+    setExpandedMessages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(messageId)) {
+        newSet.delete(messageId);
+      } else {
+        newSet.add(messageId);
+      }
+      return newSet;
+    });
+  }
+
+  function expandAllMessages() {
+    const allMessageIds = messages.map(m => m.id);
+    setExpandedMessages(new Set(allMessageIds));
+  }
+
+  function collapseAllMessages() {
+    setExpandedMessages(new Set());
   }
 
   async function deleteConversation(conversationId: string) {
@@ -334,7 +357,7 @@ export function AdminChatTranscripts() {
                 </div>
               </div>
 
-              <div className="overflow-y-auto max-h-[calc(100vh-400px)]">
+              <div className="overflow-y-auto min-h-[300px] max-h-[calc(100vh-350px)]">
                 {loading ? (
                   <div className="p-8 text-center">
                     <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
@@ -400,6 +423,25 @@ export function AdminChatTranscripts() {
                       Conversation Details
                     </h2>
                     <div className="flex items-center gap-2">
+                      {expandedMessages.size === messages.length && messages.length > 0 ? (
+                        <button
+                          onClick={collapseAllMessages}
+                          className="flex items-center gap-1 px-3 py-1.5 text-xs bg-slate-500/20 hover:bg-slate-500/30 border border-slate-500/30 text-slate-700 dark:text-slate-300 rounded-lg transition-all"
+                          title="Collapse All Messages"
+                        >
+                          <Minimize2 className="w-3 h-3" />
+                          Collapse All
+                        </button>
+                      ) : (
+                        <button
+                          onClick={expandAllMessages}
+                          className="flex items-center gap-1 px-3 py-1.5 text-xs bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-700 dark:text-blue-300 rounded-lg transition-all"
+                          title="Expand All Messages"
+                        >
+                          <Maximize2 className="w-3 h-3" />
+                          Expand All
+                        </button>
+                      )}
                       {selectedConversation.booking_id && (
                         <a
                           href={`#booking-${selectedConversation.booking_id}`}
@@ -504,7 +546,7 @@ export function AdminChatTranscripts() {
                 </div>
 
                 {/* Messages */}
-                <div className="p-4 overflow-y-auto max-h-[calc(100vh-550px)] space-y-4">
+                <div className="p-4 overflow-y-auto min-h-[600px] max-h-[calc(100vh-400px)] space-y-4">
                   {filteredMessages.map((msg) => {
                     const hasSpecialData = msg.metadata && (
                       msg.metadata.bookingTriggered ||
@@ -512,14 +554,19 @@ export function AdminChatTranscripts() {
                       msg.metadata.priceCalculated ||
                       msg.metadata.suggestions
                     );
+                    const isLongMessage = msg.content.length > 500;
+                    const isExpanded = expandedMessages.has(msg.id);
+                    const displayContent = isLongMessage && !isExpanded
+                      ? msg.content.substring(0, 500) + '...'
+                      : msg.content;
 
                     return (
                       <div
                         key={msg.id}
                         className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                       >
-                        <div className={`max-w-[85%] ${msg.role === 'user' ? 'order-2' : 'order-1'}`}>
-                          <div className="flex items-center gap-2 mb-1">
+                        <div className={`w-full max-w-[90%] ${msg.role === 'user' ? 'order-2' : 'order-1'}`}>
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
                             {msg.role === 'user' ? (
                               <User className="w-4 h-4 text-blue-500" />
                             ) : (
@@ -539,17 +586,33 @@ export function AdminChatTranscripts() {
                             {hasSpecialData && (
                               <AlertCircle className="w-4 h-4 text-orange-500" title="Contains booking data" />
                             )}
+                            {isLongMessage && (
+                              <span className="ml-auto text-xs text-slate-500 dark:text-slate-400">
+                                {msg.content.length} characters
+                              </span>
+                            )}
                           </div>
                           <div
-                            className={`p-3 rounded-lg ${
+                            className={`p-4 rounded-lg ${
                               msg.role === 'user'
                                 ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
                                 : 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-600'
                             }`}
                           >
-                            <p className="text-sm whitespace-pre-wrap break-words font-medium">
-                              {msg.content}
-                            </p>
+                            <div className="text-sm whitespace-pre-wrap break-words font-medium leading-relaxed">
+                              {displayContent}
+                            </div>
+
+                            {isLongMessage && (
+                              <button
+                                onClick={() => toggleMessageExpansion(msg.id)}
+                                className={`mt-2 text-xs font-semibold underline opacity-80 hover:opacity-100 transition-opacity ${
+                                  msg.role === 'user' ? 'text-white' : 'text-blue-600 dark:text-blue-400'
+                                }`}
+                              >
+                                {isExpanded ? '← Show Less' : 'Read More →'}
+                              </button>
+                            )}
 
                             {/* Show booking triggers prominently */}
                             {msg.metadata?.bookingTriggered && (

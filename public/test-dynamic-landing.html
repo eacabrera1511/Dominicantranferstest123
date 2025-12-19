@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Ads Dynamic Landing - Test Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+
+        .test-section {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .test-section h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .test-section p {
+            color: #4a5568;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .url {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #667eea;
+            margin-bottom: 15px;
+            word-break: break-all;
+            border: 1px solid #e2e8f0;
+        }
+
+        .expected {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .expected-label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .expected-message {
+            color: #4a5568;
+            margin-bottom: 10px;
+            white-space: pre-line;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .suggestion-chip {
+            background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .test-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .info-box {
+            background: #ebf4ff;
+            border-left: 4px solid #4299e1;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+
+        .info-box h3 {
+            color: #2c5282;
+            margin-bottom: 10px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            color: #2d3748;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Google Ads Dynamic Landing Page Tester</h1>
+        <p class="subtitle">Test how different URL parameters create personalized welcome messages</p>
+
+        <!-- Test Case 1 -->
+        <div class="test-section">
+            <h2>Test 1: Specific Hotel (Best Quality Score)</h2>
+            <p>When a user searches for a specific hotel, they see a personalized message with that hotel name.</p>
+
+            <div class="url">
+                https://dominicantransfers.com/?arrival=puj&destination=hard+rock+hotel
+            </div>
+
+            <div class="expected">
+                <div class="expected-label">Expected Welcome Message:</div>
+                <div class="expected-message">Welcome 👋
+Private airport transfer from Punta Cana Airport to hard rock hotel.</div>
+
+                <div class="expected-label">Suggestions:</div>
+                <div class="suggestions">
+                    <span class="suggestion-chip">PUJ → hard rock hotel</span>
+                    <span class="suggestion-chip">One-Way Transfer</span>
+                    <span class="suggestion-chip">Roundtrip Transfer</span>
+                    <span class="suggestion-chip">See vehicle options</span>
+                    <span class="suggestion-chip">Get instant quote</span>
+                </div>
+            </div>
+
+            <a href="/?arrival=puj&destination=hard+rock+hotel" class="test-button" target="_blank">Test This URL</a>
+        </div>
+
+        <!-- Test Case 2 -->
+        <div class="test-section">
+            <h2>Test 2: Different Resort</h2>
+            <p>Test with a different destination to see dynamic personalization.</p>
+
+            <div class="url">
+                https://dominicantransfers.com/?arrival=puj&destination=bavaro+princess+resort
+            </div>
+
+            <div class="expected">
+                <div class="expected-label">Expected Welcome Message:</div>
+                <div class="expected-message">Welcome 👋
+Private airport transfer from Punta Cana Airport to bavaro princess resort.</div>
+
+                <div class="expected-label">Suggestions:</div>
+                <div class="suggestions">
+                    <span class="suggestion-chip">PUJ → bavaro princess resort</span>
+                    <span class="suggestion-chip">One-Way Transfer</span>
+                    <span class="suggestion-chip">Roundtrip Transfer</span>
+                    <span class="suggestion-chip">See vehicle options</span>
+                    <span class="suggestion-chip">Get instant quote</span>
+                </div>
+            </div>
+
+            <a href="/?arrival=puj&destination=bavaro+princess+resort" class="test-button" target="_blank">Test This URL</a>
+        </div>
+
+        <!-- Test Case 3 -->
+        <div class="test-section">
+            <h2>Test 3: Airport Only (No Destination)</h2>
+            <p>When only the airport is specified, show generic transfer message.</p>
+
+            <div class="url">
+                https://dominicantransfers.com/?arrival=puj
+            </div>
+
+            <div class="expected">
+                <div class="expected-label">Expected Welcome Message:</div>
+                <div class="expected-message">Welcome 👋
+Private airport transfers from Punta Cana Airport.</div>
+
+                <div class="expected-label">Suggestions:</div>
+                <div class="suggestions">
+                    <span class="suggestion-chip">PUJ → Hotel / Resort</span>
+                    <span class="suggestion-chip">One-Way Transfer</span>
+                    <span class="suggestion-chip">Roundtrip Transfer</span>
+                    <span class="suggestion-chip">See prices</span>
+                    <span class="suggestion-chip">View all vehicles</span>
+                </div>
+            </div>
+
+            <a href="/?arrival=puj" class="test-button" target="_blank">Test This URL</a>
+        </div>
+
+        <!-- Test Case 4 -->
+        <div class="test-section">
+            <h2>Test 4: No Parameters (Fallback)</h2>
+            <p>Default landing page when no parameters are provided.</p>
+
+            <div class="url">
+                https://dominicantransfers.com/
+            </div>
+
+            <div class="expected">
+                <div class="expected-label">Expected Welcome Message:</div>
+                <div class="expected-message">Welcome 👋
+Private airport transfers in the Dominican Republic.</div>
+
+                <div class="expected-label">Suggestions:</div>
+                <div class="suggestions">
+                    <span class="suggestion-chip">PUJ → Punta Cana Hotel</span>
+                    <span class="suggestion-chip">Airport Transfer Quote</span>
+                    <span class="suggestion-chip">See prices</span>
+                    <span class="suggestion-chip">View vehicles</span>
+                    <span class="suggestion-chip">Ask a question</span>
+                </div>
+            </div>
+
+            <a href="/" class="test-button" target="_blank">Test This URL</a>
+        </div>
+
+        <!-- Test Case 5 -->
+        <div class="test-section">
+            <h2>Test 5: Multiple Word Destination</h2>
+            <p>Test with a longer, multi-word destination name.</p>
+
+            <div class="url">
+                https://dominicantransfers.com/?arrival=puj&destination=excellence+punta+cana+resort
+            </div>
+
+            <div class="expected">
+                <div class="expected-label">Expected Welcome Message:</div>
+                <div class="expected-message">Welcome 👋
+Private airport transfer from Punta Cana Airport to excellence punta cana resort.</div>
+
+                <div class="expected-label">Suggestions:</div>
+                <div class="suggestions">
+                    <span class="suggestion-chip">PUJ → excellence punta cana resort</span>
+                    <span class="suggestion-chip">One-Way Transfer</span>
+                    <span class="suggestion-chip">Roundtrip Transfer</span>
+                    <span class="suggestion-chip">See vehicle options</span>
+                    <span class="suggestion-chip">Get instant quote</span>
+                </div>
+            </div>
+
+            <a href="/?arrival=puj&destination=excellence+punta+cana+resort" class="test-button" target="_blank">Test This URL</a>
+        </div>
+
+        <div class="info-box">
+            <h3>How This Works with Google Ads</h3>
+            <ul>
+                <li>Use <code>{keyword}</code> placeholder in your Google Ads Final URL</li>
+                <li>Google automatically replaces it with the user's search term</li>
+                <li>Your landing page dynamically personalizes based on that keyword</li>
+                <li>This creates perfect ad-to-page relevance for maximum Quality Score</li>
+                <li>All chat functionality remains unchanged - AI handles conversations normally</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

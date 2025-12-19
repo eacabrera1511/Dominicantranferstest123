@@ -126,6 +126,48 @@ function App() {
   useEffect(() => {
     let mounted = true;
 
+    const generateDynamicWelcome = (arrival?: string | null, destination?: string | null): { message: string; suggestions: string[] } => {
+      const cleanDestination = destination
+        ? destination.replace(/\+/g, ' ').replace(/-/g, ' ').trim()
+        : null;
+
+      let welcomeMsg = '';
+      let suggestions: string[] = [];
+
+      if (arrival && cleanDestination) {
+        const arrivalName = arrival.toLowerCase() === 'puj' ? 'Punta Cana Airport' : arrival.toUpperCase();
+        welcomeMsg = `Welcome 👋\nPrivate airport transfer from ${arrivalName} to ${cleanDestination}.`;
+        suggestions = [
+          `PUJ → ${cleanDestination}`,
+          'One-Way Transfer',
+          'Roundtrip Transfer',
+          'See vehicle options',
+          'Get instant quote'
+        ];
+      } else if (arrival) {
+        const arrivalName = arrival.toLowerCase() === 'puj' ? 'Punta Cana Airport' : arrival.toUpperCase();
+        welcomeMsg = `Welcome 👋\nPrivate airport transfers from ${arrivalName}.`;
+        suggestions = [
+          'PUJ → Hotel / Resort',
+          'One-Way Transfer',
+          'Roundtrip Transfer',
+          'See prices',
+          'View all vehicles'
+        ];
+      } else {
+        welcomeMsg = `Welcome 👋\nPrivate airport transfers in the Dominican Republic.`;
+        suggestions = [
+          'PUJ → Punta Cana Hotel',
+          'Airport Transfer Quote',
+          'See prices',
+          'View vehicles',
+          'Ask a question'
+        ];
+      }
+
+      return { message: welcomeMsg, suggestions };
+    };
+
     const initialize = async () => {
       if (!mounted) return;
 
@@ -133,20 +175,21 @@ function App() {
       agent.setLanguage(language);
       if (!mounted) return;
 
-      const greeting = await agent.processQuery('hello');
-      if (!mounted) return;
+      const urlParams = new URLSearchParams(window.location.search);
+      const arrival = urlParams.get('arrival');
+      const destination = urlParams.get('destination');
+
+      const dynamicWelcome = generateDynamicWelcome(arrival, destination);
 
       const welcomeMessage: Message = {
         id: crypto.randomUUID(),
         conversation_id: '',
         role: 'assistant',
-        content: greeting.message,
+        content: dynamicWelcome.message,
         created_at: new Date().toISOString(),
       };
       setMessages([welcomeMessage]);
-      if (greeting.suggestions) {
-        setCurrentSuggestions(greeting.suggestions);
-      }
+      setCurrentSuggestions(dynamicWelcome.suggestions);
 
       try {
         const { data, error } = await supabase

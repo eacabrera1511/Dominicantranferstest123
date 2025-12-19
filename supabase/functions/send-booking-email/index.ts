@@ -451,11 +451,8 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    // TEMPORARY FIX: Use correct verified API key for dominicantransfers.com
-    // TODO: Update RESEND_API_KEY secret in Supabase dashboard to this value, then remove this hardcoded fallback
-    // Dashboard location: https://supabase.com/dashboard/project/gwlaxeonvfywhecwtupv/settings/functions
-    const VERIFIED_RESEND_KEY = 're_f7z8m4Ea_Ap88RBv1vQGdU8z3Wjp5MxpL';
-    const resendApiKey = VERIFIED_RESEND_KEY; // Using verified key directly until dashboard is updated
+    // Read from NEW_RESEND_API2 environment variable (verified dominicantransfers.com key)
+    const resendApiKey = Deno.env.get('NEW_RESEND_API2');
     const resendFromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'Dominican Transfers <Booking@dominicantransfers.com>';
 
     console.log('Email function invoked with:', {

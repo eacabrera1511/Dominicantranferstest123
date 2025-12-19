@@ -22,18 +22,37 @@ export interface ChatMessage {
 }
 
 let currentChatConversationId: string | null = null;
+let pendingDeviceId: string | null = null;
+let pendingLanguage: string = 'en';
+let pendingMessages: Array<{ role: 'user' | 'assistant' | 'system'; content: string; messageType: string; metadata: Record<string, any> }> = [];
+let hasUserMessage: boolean = false;
 
 export async function initializeChatConversation(deviceId: string, language: string = 'en'): Promise<string | null> {
   if (currentChatConversationId) {
     return currentChatConversationId;
   }
 
+  pendingDeviceId = deviceId;
+  pendingLanguage = language;
+
+  return 'pending';
+}
+
+async function createConversationIfNeeded(): Promise<string | null> {
+  if (currentChatConversationId) {
+    return currentChatConversationId;
+  }
+
+  if (!pendingDeviceId || !hasUserMessage) {
+    return null;
+  }
+
   try {
     const { data, error } = await supabase
       .from('chat_conversations')
       .insert({
-        device_id: deviceId,
-        language: language,
+        device_id: pendingDeviceId,
+        language: pendingLanguage,
         session_metadata: {
           user_agent: navigator.userAgent,
           screen_width: window.innerWidth,
@@ -50,6 +69,21 @@ export async function initializeChatConversation(deviceId: string, language: str
 
     if (data) {
       currentChatConversationId = data.id;
+
+      for (const msg of pendingMessages) {
+        await supabase
+          .from('chat_messages')
+          .insert({
+            conversation_id: data.id,
+            role: msg.role,
+            content: msg.content,
+            message_type: msg.messageType,
+            metadata: msg.metadata
+          });
+      }
+
+      pendingMessages = [];
+
       return data.id;
     }
 
@@ -68,6 +102,24 @@ export async function saveChatMessage(
   metadata: Record<string, any> = {}
 ): Promise<boolean> {
   try {
+    if (role === 'user') {
+      hasUserMessage = true;
+    }
+
+    if (conversationId === 'pending') {
+      pendingMessages.push({ role, content, messageType, metadata });
+
+      if (role === 'user') {
+        const actualConversationId = await createConversationIfNeeded();
+        if (!actualConversationId) {
+          console.error('Failed to create conversation after user message');
+          return false;
+        }
+      }
+
+      return true;
+    }
+
     const { error } = await supabase
       .from('chat_messages')
       .insert({
@@ -111,6 +163,10 @@ export async function linkConversationToBooking(conversationId: string, bookingI
 
 export function resetChatConversation(): void {
   currentChatConversationId = null;
+  pendingDeviceId = null;
+  pendingLanguage = 'en';
+  pendingMessages = [];
+  hasUserMessage = false;
 }
 
 export function getCurrentChatConversationId(): string | null {

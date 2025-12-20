@@ -1107,6 +1107,21 @@ function App() {
                             <div className="text-xs text-slate-500 dark:text-slate-400">See our photos & stories</div>
                           </div>
                         </button>
+                        <button
+                          onClick={() => {
+                            setShowVoiceWidget(true);
+                            setShowAgentMenu(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-3 text-left rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                            <Mic className="w-4 h-4 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-sm text-slate-900 dark:text-white">Voice Booking</div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400">Book by voice with AI</div>
+                          </div>
+                        </button>
                       </div>
                     </div>
                   )}

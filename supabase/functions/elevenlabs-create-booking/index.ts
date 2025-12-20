@@ -120,6 +120,68 @@ Deno.serve(async (req: Request) => {
       customer = newCustomer;
     }
 
+    const stripeApiKey = Deno.env.get('STRIPE_SECRET_KEY');
+    const websiteUrl = Deno.env.get('WEBSITE_URL') || 'https://dominicantransfers.com';
+
+    let checkoutUrl = null;
+
+    if (stripeApiKey) {
+      try {
+        const stripeResponse = await fetch(`${supabaseUrl}/functions/v1/stripe-checkout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseKey}`
+          },
+          body: JSON.stringify({
+            bookingId: booking.id,
+            amount: total_price || 50,
+            currency: 'usd',
+            customerEmail: customer_email,
+            customerName: customer_name || 'Voice Booking Customer'
+          })
+        });
+
+        if (stripeResponse.ok) {
+          const stripeData = await stripeResponse.json();
+          checkoutUrl = stripeData.url;
+
+          await supabase
+            .from('bookings')
+            .update({
+              stripe_session_id: stripeData.sessionId,
+              payment_url: stripeData.url
+            })
+            .eq('id', booking.id);
+        }
+      } catch (stripeError) {
+        console.error('Error creating Stripe checkout:', stripeError);
+      }
+    }
+
+    try {
+      await fetch(`${supabaseUrl}/functions/v1/send-booking-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`
+        },
+        body: JSON.stringify({
+          booking_id: booking.id,
+          customer_email,
+          booking_reference: booking.reference,
+          pickup_location,
+          dropoff_location,
+          pickup_datetime,
+          vehicle_type: vehicle_name || 'Sedan',
+          total_price: total_price || 0,
+          payment_url: checkoutUrl
+        })
+      });
+    } catch (emailError) {
+      console.error('Error sending booking email:', emailError);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -135,9 +197,10 @@ Deno.serve(async (req: Request) => {
           status: booking.status,
           payment_status: booking.payment_status
         },
-        message: `Booking created successfully! Reference: ${booking.reference}`,
+        message: `Booking ${booking.reference} created successfully! A confirmation email with payment link has been sent to ${customer_email}`,
         payment_required: true,
-        payment_url: `${supabaseUrl.replace('.supabase.co', '')}/booking/${booking.id}`
+        payment_url: checkoutUrl || `${websiteUrl}/booking/${booking.id}`,
+        checkout_url: checkoutUrl
       }),
       {
         headers: {

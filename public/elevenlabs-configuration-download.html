@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElevenLabs Configuration Guide - Download</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .agent-id {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+
+        .agent-id strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .agent-id code {
+            background: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            color: #2d3748;
+        }
+
+        .steps {
+            margin: 30px 0;
+        }
+
+        .step {
+            display: flex;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-right: 15px;
+        }
+
+        .step-content h3 {
+            color: #2d3748;
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+
+        .step-content p {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .download-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .download-btn svg {
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        .info-box {
+            background: #edf2f7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .info-box h3 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-box li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #4a5568;
+        }
+
+        .info-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #48bb78;
+            font-weight: bold;
+        }
+
+        .warning-box {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .warning-box strong {
+            color: #c53030;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .footer {
+            background: #f7fafc;
+            padding: 20px;
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎙️ ElevenLabs Voice Booking Configuration</h1>
+            <p>Complete Setup Guide for Your Voice Agent</p>
+        </div>
+
+        <div class="content">
+            <div class="agent-id">
+                <strong>Your Agent ID:</strong>
+                <code>agent_9201kcymyrn0er6v2a20wfr3by49</code>
+            </div>
+
+            <h2 style="color: #2d3748; margin-bottom: 20px;">Quick Start</h2>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Download the Configuration Guide</h3>
+                        <p>Click the download button below to get the complete step-by-step configuration guide.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Open Your ElevenLabs Dashboard</h3>
+                        <p>Go to <strong>elevenlabs.io/app/conversational-ai</strong> and select your agent.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Configure 3 Custom Tools</h3>
+                        <p>Follow the guide to add: <strong>get_vehicles</strong>, <strong>calculate_quote</strong>, and <strong>create_booking</strong></p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Update System Prompt</h3>
+                        <p>Copy the provided system prompt from the guide into your agent settings.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h3>Test Your Agent</h3>
+                        <p>Try a test booking and verify everything works in your Admin Dashboard.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="download-section">
+                <a href="../ELEVENLABS_AGENT_CONFIGURATION_GUIDE.md" download="ELEVENLABS_AGENT_CONFIGURATION_GUIDE.md" class="download-btn">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                    Download Configuration Guide
+                </a>
+            </div>
+
+            <div class="info-box">
+                <h3>📋 What's Included in the Guide:</h3>
+                <ul>
+                    <li>Exact field values for all 3 custom tools</li>
+                    <li>Complete parameter configurations with data types</li>
+                    <li>Copy-paste ready system prompt</li>
+                    <li>Step-by-step screenshots reference</li>
+                    <li>Troubleshooting common issues</li>
+                    <li>Testing checklist</li>
+                </ul>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ Important:</strong>
+                Remember to replace <code>YOUR_PROJECT_URL_HERE.supabase.co</code> with your actual Supabase project URL in all three tool configurations!
+            </div>
+
+            <div class="info-box">
+                <h3>🔗 What Your Voice Agent Will Do:</h3>
+                <ul>
+                    <li>Use your database pricing and vehicle information</li>
+                    <li>Calculate accurate quotes with real-time discounts</li>
+                    <li>Create bookings in your system automatically</li>
+                    <li>Generate Stripe payment links for customers</li>
+                    <li>Send confirmation emails via your Resend integration</li>
+                    <li>Handle the complete booking flow conversationally</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Dominican Transfers Voice Booking System</p>
+            <p style="margin-top: 5px;">Setup Date: December 20, 2024</p>
+        </div>
+    </div>
+</body>
+</html>

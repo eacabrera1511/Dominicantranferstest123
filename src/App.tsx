@@ -1070,34 +1070,7 @@ function App() {
           </div>
         </header>
 
-        {voiceMode ? (
-          <div className="flex-1 overflow-hidden pt-24 xs:pt-28 sm:pt-32 md:pt-36">
-            <VoiceBooking
-              conversationId={conversationId || undefined}
-              conversationHistory={messages.map(m => ({
-                role: m.role,
-                content: m.content
-              }))}
-              isInBookingFlow={!!chatBookingData || !!pendingBookingData}
-              onModeSwitch={() => setVoiceMode(false)}
-              onTranscriptUpdate={(text, isUser) => {
-                const newMessage: Message = {
-                  id: crypto.randomUUID(),
-                  conversation_id: conversationId || '',
-                  role: isUser ? 'user' : 'assistant',
-                  content: text,
-                  created_at: new Date().toISOString(),
-                };
-                setMessages(prev => [...prev, newMessage]);
-
-                if (conversationId) {
-                  saveChatMessage(conversationId, isUser ? 'user' : 'assistant', text);
-                }
-              }}
-            />
-          </div>
-        ) : (
-          <>
+        <>
             <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-2 xs:px-3 sm:px-4 pt-24 xs:pt-28 sm:pt-32 md:pt-36 pb-2 xs:pb-3 sm:pb-4" style={{ WebkitOverflowScrolling: 'touch' }}>
               <div className="space-y-3 xs:space-y-4">
                 {messages.map((message, index) => {
@@ -1230,7 +1203,6 @@ function App() {
               )}
             </div>
           </>
-        )}
       </div>
 
       {showAgentMenu && (

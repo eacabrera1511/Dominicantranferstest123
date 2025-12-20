@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, DollarSign, LogOut,
   Menu, X, ChevronRight, Shield, Users, Car, UserCog, Calendar,
-  UsersIcon, MapPin, Navigation, Instagram, MessageSquare, AlertTriangle, Settings
+  UsersIcon, MapPin, Navigation, Instagram, MessageSquare, AlertTriangle, Settings, Database
 } from 'lucide-react';
 import { AdminLogin } from './AdminLogin';
 import { AdminOverview } from './AdminOverview';
@@ -17,6 +17,7 @@ import { AdminGallery } from './AdminGallery';
 import { AdminChatTranscripts } from './AdminChatTranscripts';
 import AdminTroubleshooting from './AdminTroubleshooting';
 import AdminCompanySettings from './AdminCompanySettings';
+import { AdminRAGKnowledgeBase } from './AdminRAGKnowledgeBase';
 
 interface AdminUser {
   id: string;
@@ -29,7 +30,7 @@ interface AdminDashboardProps {
   onExit: () => void;
 }
 
-type TabType = 'overview' | 'bookings' | 'dispatch' | 'fleet' | 'drivers' | 'customers' | 'pricing' | 'financials' | 'reels' | 'chat' | 'troubleshooting' | 'settings';
+type TabType = 'overview' | 'bookings' | 'dispatch' | 'fleet' | 'drivers' | 'customers' | 'pricing' | 'financials' | 'reels' | 'chat' | 'troubleshooting' | 'settings' | 'rag';
 
 export function AdminDashboard({ onExit }: AdminDashboardProps) {
   const [admin, setAdmin] = useState<AdminUser | null>(null);
@@ -63,6 +64,7 @@ export function AdminDashboard({ onExit }: AdminDashboardProps) {
     { id: 'drivers' as TabType, label: 'Drivers', icon: UserCog },
     { id: 'customers' as TabType, label: 'Customers', icon: UsersIcon },
     { id: 'chat' as TabType, label: 'Chat Transcripts', icon: MessageSquare },
+    { id: 'rag' as TabType, label: 'RAG Knowledge Base', icon: Database },
     { id: 'pricing' as TabType, label: 'Pricing', icon: MapPin },
     { id: 'financials' as TabType, label: 'Financials', icon: DollarSign },
     { id: 'reels' as TabType, label: 'Gallery', icon: Instagram },
@@ -220,6 +222,7 @@ export function AdminDashboard({ onExit }: AdminDashboardProps) {
           {activeTab === 'drivers' && <AdminDrivers />}
           {activeTab === 'customers' && <AdminCustomers />}
           {activeTab === 'chat' && <AdminChatTranscripts />}
+          {activeTab === 'rag' && <AdminRAGKnowledgeBase />}
           {activeTab === 'pricing' && <AdminPricing />}
           {activeTab === 'financials' && <AdminFinancials />}
           {activeTab === 'reels' && <AdminGallery />}
@@ -236,6 +239,7 @@ export function AdminDashboard({ onExit }: AdminDashboardProps) {
         {activeTab === 'drivers' && <AdminDrivers />}
         {activeTab === 'customers' && <AdminCustomers />}
         {activeTab === 'chat' && <AdminChatTranscripts />}
+        {activeTab === 'rag' && <AdminRAGKnowledgeBase />}
         {activeTab === 'pricing' && <AdminPricing />}
         {activeTab === 'financials' && <AdminFinancials />}
         {activeTab === 'reels' && <AdminGallery />}

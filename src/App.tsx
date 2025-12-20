@@ -507,6 +507,72 @@ function App() {
       return;
     }
 
+    if (textToSend.toLowerCase().includes('knowledge') || textToSend.toLowerCase().includes('knowledge base')) {
+      setInput('');
+      const userMessage: Message = {
+        id: crypto.randomUUID(),
+        conversation_id: conversationId || '',
+        role: 'user',
+        content: textToSend,
+        created_at: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, userMessage]);
+
+      setTimeout(() => {
+        const knowledgeMessage: Message = {
+          id: crypto.randomUUID(),
+          conversation_id: conversationId || '',
+          role: 'assistant',
+          content: `📚 Dominican Transfers Knowledge Base\n\nThis comprehensive document includes:\n\n✓ Complete pricing for all routes\n✓ All vehicle types and capacities\n✓ 58+ hotels across 5 zones\n✓ Booking procedures & workflows\n✓ 20+ FAQs\n✓ Agent conversation guidelines\n\nPerfect for uploading to ElevenLabs voice agent or training materials!\n\nClick below to download or view online:`,
+          created_at: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, knowledgeMessage]);
+        setCurrentSuggestions([
+          '📥 Download Text Version',
+          '🌐 View Knowledge Base Online',
+          'Ask a question'
+        ]);
+        scrollToResponse();
+      }, 500);
+      return;
+    }
+
+    if (textToSend.toLowerCase().includes('📥 download text version')) {
+      setInput('');
+      const link = document.createElement('a');
+      link.href = '/elevenlabs-knowledge-base.html';
+      link.download = 'dominican-transfers-knowledge-base.html';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      const confirmMessage: Message = {
+        id: crypto.randomUUID(),
+        conversation_id: conversationId || '',
+        role: 'assistant',
+        content: '✅ Knowledge base download started! Open the HTML file in your browser, then click the "Download as Text File" button to get the .txt version for uploading to ElevenLabs.',
+        created_at: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, confirmMessage]);
+      setCurrentSuggestions(['🌐 View Online Instead', 'Ask a question']);
+      return;
+    }
+
+    if (textToSend.toLowerCase().includes('🌐 view knowledge base online') || textToSend.toLowerCase().includes('🌐 view online instead')) {
+      setInput('');
+      window.open('/elevenlabs-knowledge-base.html', '_blank');
+      const confirmMessage: Message = {
+        id: crypto.randomUUID(),
+        conversation_id: conversationId || '',
+        role: 'assistant',
+        content: '✅ Knowledge base opened in a new tab! Use the download button on that page to get the text version.',
+        created_at: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, confirmMessage]);
+      setCurrentSuggestions(['Ask a question']);
+      return;
+    }
+
     if (textToSend.toLowerCase().includes('jo5 lelystad')) {
       setInput('');
       const userMessage: Message = {

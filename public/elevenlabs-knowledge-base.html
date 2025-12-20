@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dominican Transfers - Complete Knowledge Base</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.2em;
+        }
+        h2 {
+            color: #764ba2;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        h3 {
+            color: #667eea;
+            margin-top: 25px;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+        .pricing-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .pricing-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .pricing-table tr:hover {
+            background: #f8f9ff;
+        }
+        .vehicle-card {
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        .vehicle-card h4 {
+            color: #764ba2;
+            margin-top: 0;
+            font-size: 1.3em;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .faq-item {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .faq-question {
+            font-weight: 600;
+            color: #764ba2;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        .faq-answer {
+            color: #555;
+            line-height: 1.6;
+        }
+        .zone-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        .hotel-list {
+            column-count: 2;
+            column-gap: 30px;
+            margin: 15px 0;
+        }
+        .hotel-item {
+            break-inside: avoid;
+            padding: 5px 0;
+        }
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            display: block;
+            margin: 30px auto;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        .important-note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        @media print {
+            body {
+                background: white;
+            }
+            .download-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Dominican Transfers</h1>
+        <p class="subtitle">Complete Knowledge Base for ElevenLabs Voice Agent</p>
+
+        <button class="download-btn" onclick="downloadAsText()">📥 Download as Text File</button>
+
+        <div class="important-note">
+            <strong>📌 Important:</strong> This knowledge base contains complete pricing, routes, vehicle information, booking procedures, and FAQs. Upload this to your ElevenLabs agent's knowledge base for accurate customer support.
+        </div>
+
+        <!-- COMPANY INFO -->
+        <div class="section">
+            <h2>🏢 Company Information</h2>
+            <p><strong>Company Name:</strong> Dominican Transfers</p>
+            <p><strong>Website:</strong> dominicantransfers.com</p>
+            <p><strong>Support Phone:</strong> +31625584645</p>
+            <p><strong>Support Email:</strong> support@dominicantransfers.com</p>
+            <p><strong>Booking Email:</strong> Booking@dominicantransfers.com</p>
+            <p><strong>Location:</strong> Dominican Republic</p>
+            <p><strong>Services:</strong> Premium airport transfers, private transportation, group transfers</p>
+        </div>
+
+        <!-- VEHICLE TYPES -->
+        <div class="section">
+            <h2>🚙 Vehicle Fleet</h2>
+
+            <div class="vehicle-card">
+                <h4>Sedan - Standard Private Transfer</h4>
+                <p><strong>Perfect for:</strong> Couples and solo travelers</p>
+                <ul class="feature-list">
+                    <li>Capacity: 2 passengers</li>
+                    <li>Luggage: 3 pieces</li>
+                    <li>Category: Economy</li>
+                    <li>Base Price: $25.00</li>
+                    <li>Ideal for airport pickups and short transfers</li>
+                </ul>
+            </div>
+
+            <div class="vehicle-card">
+                <h4>Minivan - Family Transfer</h4>
+                <p><strong>Perfect for:</strong> Families and small groups with luggage</p>
+                <ul class="feature-list">
+                    <li>Capacity: 6 passengers</li>
+                    <li>Luggage: 8 pieces</li>
+                    <li>Category: Comfort</li>
+                    <li>Base Price: $45.00</li>
+                    <li>Spacious and comfortable for families</li>
+                </ul>
+            </div>
+
+            <div class="vehicle-card">
+                <h4>Suburban - Luxury SUV (VIP)</h4>
+                <p><strong>Perfect for:</strong> Executive travelers seeking premium comfort</p>
+                <ul class="feature-list">
+                    <li>Capacity: 4 passengers</li>
+                    <li>Luggage: 4 pieces</li>
+                    <li>Category: Luxury</li>
+                    <li>Base Price: $65.00</li>
+                    <li>Black car service with premium amenities</li>
+                    <li>Currently Limited Availability</li>
+                </ul>
+            </div>
+
+            <div class="vehicle-card">
+                <h4>Sprinter - Large Van</h4>
+                <p><strong>Perfect for:</strong> Medium to large groups</p>
+                <ul class="feature-list">
+                    <li>Capacity: 12 passengers</li>
+                    <li>Luggage: 14 pieces</li>
+                    <li>Category: Business</li>
+                    <li>Base Price: $110.00</li>
+                    <li>Premium group transport with ample luggage space</li>
+                </ul>
+            </div>
+
+            <div class="vehicle-card">
+                <h4>Mini Bus</h4>
+                <p><strong>Perfect for:</strong> Large groups and events</p>
+                <ul class="feature-list">
+                    <li>Capacity: 20 passengers</li>
+                    <li>Luggage: 25 pieces</li>
+                    <li>Category: Group</li>
+                    <li>Base Price: $180.00</li>
+                    <li>Maximum capacity for large group transportation</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- AIRPORTS -->
+        <div class="section">
+            <h2>✈️ Airports We Service</h2>
+            <h3>PUJ - Punta Cana International Airport</h3>
+            <p>Main airport serving Punta Cana and eastern Dominican Republic. Most popular destination for tourists.</p>
+
+            <h3>SDQ - Las Américas International Airport (Santo Domingo)</h3>
+            <p>Serves the capital city Santo Domingo and surrounding areas.</p>
+
+            <h3>LRM - La Romana International Airport</h3>
+            <p>Serves La Romana and Bayahibe regions.</p>
+
+            <h3>POP - Puerto Plata International Airport</h3>
+            <p>Serves northern coast including Puerto Plata, Sosua, and Cabarete.</p>
+        </div>
+
+        <!-- HOTEL ZONES -->
+        <div class="section">
+            <h2>🏨 Hotel Zones & Popular Destinations</h2>
+
+            <h3><span class="zone-badge">Zone A</span> Bavaro / Punta Cana</h3>
+            <p><strong>Distance from PUJ Airport:</strong> 20-30 minutes</p>
+            <div class="hotel-list">
+                <div class="hotel-item">• Hard Rock Hotel Punta Cana</div>
+                <div class="hotel-item">• Royalton Bavaro</div>
+                <div class="hotel-item">• Royalton Punta Cana</div>
+                <div class="hotel-item">• Majestic Mirage</div>
+                <div class="hotel-item">• Majestic Colonial</div>
+                <div class="hotel-item">• Majestic Elegance</div>
+                <div class="hotel-item">• Barceló Bávaro Palace</div>
+                <div class="hotel-item">• Barceló Bávaro Beach</div>
+                <div class="hotel-item">• RIU Palace Bavaro</div>
+                <div class="hotel-item">• RIU Palace Punta Cana</div>
+                <div class="hotel-item">• RIU Republica</div>
+                <div class="hotel-item">• Paradisus Palma Real</div>
+                <div class="hotel-item">• Paradisus Grand Cana</div>
+                <div class="hotel-item">• Melia Caribe Beach</div>
+                <div class="hotel-item">• Melia Punta Cana</div>
+                <div class="hotel-item">• Lopesan Costa Bávaro</div>
+                <div class="hotel-item">• Secrets Royal Beach</div>
+                <div class="hotel-item">• Dreams Royal Beach</div>
+                <div class="hotel-item">• Occidental Punta Cana</div>
+                <div class="hotel-item">• Iberostar Selection Bavaro</div>
+                <div class="hotel-item">• Bahia Principe Fantasia</div>
+                <div class="hotel-item">• TRS Turquesa</div>
+                <div class="hotel-item">• Grand Palladium Bavaro</div>
+                <div class="hotel-item">• Ocean Blue & Sand</div>
+                <div class="hotel-item">• Vista Sol Punta Cana</div>
+                <div class="hotel-item">• Impressive Punta Cana</div>
+                <div class="hotel-item">• Los Corales</div>
+                <div class="hotel-item">• Ducassi Suites</div>
+            </div>
+
+            <h3><span class="zone-badge">Zone B</span> Cap Cana</h3>
+            <p><strong>Distance from PUJ Airport:</strong> 15-20 minutes</p>
+            <div class="hotel-list">
+                <div class="hotel-item">• Sanctuary Cap Cana</div>
+                <div class="hotel-item">• Hyatt Zilara Cap Cana</div>
+                <div class="hotel-item">• Hyatt Ziva Cap Cana</div>
+                <div class="hotel-item">• Eden Roc Cap Cana</div>
+                <div class="hotel-item">• TRS Cap Cana</div>
+                <div class="hotel-item">• Secrets Cap Cana</div>
+                <div class="hotel-item">• Dreams Cap Cana</div>
+            </div>
+
+            <h3><span class="zone-badge">Zone C</span> Uvero Alto</h3>
+            <p><strong>Distance from PUJ Airport:</strong> 45-60 minutes</p>
+            <div class="hotel-list">
+                <div class="hotel-item">• Dreams Macao Beach</div>
+                <div class="hotel-item">• Royalton Splash</div>
+                <div class="hotel-item">• Nickelodeon Resort</div>
+                <div class="hotel-item">• Finest Punta Cana</div>
+                <div class="hotel-item">• Excellence Punta Cana</div>
+                <div class="hotel-item">• Breathless Punta Cana</div>
+                <div class="hotel-item">• Zoëtry Agua</div>
+                <div class="hotel-item">• Live Aqua Punta Cana</div>
+            </div>
+
+            <h3><span class="zone-badge">Zone D</span> Bayahibe / La Romana</h3>
+            <p><strong>Distance from PUJ Airport:</strong> 75-90 minutes</p>
+            <div class="hotel-list">
+                <div class="hotel-item">• Dreams Dominicus</div>
+                <div class="hotel-item">• Sunscape Dominicus</div>
+                <div class="hotel-item">• Hilton La Romana</div>
+                <div class="hotel-item">• Iberostar Hacienda Dominicus</div>
+                <div class="hotel-item">• Catalonia Royal La Romana</div>
+                <div class="hotel-item">• Casa de Campo</div>
+                <div class="hotel-item">• Viva Wyndham Dominicus</div>
+            </div>
+
+            <h3><span class="zone-badge">Zone E</span> Santo Domingo</h3>
+            <p><strong>Distance from PUJ Airport:</strong> 2.5-3 hours</p>
+            <div class="hotel-list">
+                <div class="hotel-item">• JW Marriott Santo Domingo</div>
+                <div class="hotel-item">• Intercontinental Real</div>
+                <div class="hotel-item">• Barceló Santo Domingo</div>
+                <div class="hotel-item">• Sheraton Santo Domingo</div>
+                <div class="hotel-item">• El Embajador Royal Hideaway</div>
+                <div class="hotel-item">• Hodelpa Nicolas de Ovando</div>
+                <div class="hotel-item">• Billini Hotel</div>
+                <div class="hotel-item">• Aloft Santo Domingo</div>
+            </div>
+        </div>
+
+        <!-- PRICING -->
+        <div class="section">
+            <h2>💰 Pricing Guide</h2>
+
+            <h3>PUJ Airport → Bavaro / Punta Cana (Zone A)</h3>
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>Vehicle Type</th>
+                        <th>Passengers</th>
+                        <th>Luggage</th>
+                        <th>One-Way Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Sedan</td>
+                        <td>2</td>
+                        <td>3</td>
+                        <td>$25</td>
+                    </tr>
+                    <tr>
+                        <td>Minivan</td>
+                        <td>6</td>
+                        <td>8</td>
+                        <td>$45</td>
+                    </tr>
+                    <tr>
+                        <td>Suburban (VIP)</td>
+                        <td>4</td>
+                        <td>4</td>
+                        <td>$65</td>
+                    </tr>
+                    <tr>
+                        <td>Sprinter</td>
+                        <td>12</td>
+                        <td>14</td>
+                        <td>$110</td>
+                    </tr>
+                    <tr>
+                        <td>Mini Bus</td>
+                        <td>20</td>
+                        <td>25</td>
+                        <td>$180</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>PUJ Airport → Cap Cana (Zone B)</h3>
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>Vehicle Type</th>
+                        <th>Passengers</th>
+                        <th>Luggage</th>
+                        <th>One-Way Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Sedan</td>
+                        <td>2</td>
+                        <td>3</td>
+                        <td>$28</td>
+                    </tr>
+                    <tr>
+                        <td>Minivan</td>
+                        <td>6</td>
+                        <td>8</td>
+                        <td>$50</td>
+                    </tr>
+                    <tr>
+                        <td>Suburban (VIP)</td>
+                        <td>4</td>
+                        <td>4</td>
+                        <td>$75</td>
+                    </tr>
+                    <tr>
+                        <td>Sprinter</td>
+                        <td>12</td>
+                        <td>14</td>
+                        <td>$120</td>
+                    </tr>
+                    <tr>
+                        <td>Mini Bus</td>
+                        <td>20</td>
+                        <td>25</td>
+                        <td>$190</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>PUJ Airport → Uvero Alto (Zone C)</h3>
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>Vehicle Type</th>
+                        <th>Passengers</th>
+                        <th>Luggage</th>
+                        <th>One-Way Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Sedan</td>
+                        <td>2</td>
+                        <td>3</td>
+                        <td>$52</td>
+                    </tr>
+                    <tr>
+                        <td>Minivan</td>
+                        <td>6</td>
+                        <td>8</td>
+                        <td>$95</td>
+                    </tr>
+                    <tr>
+                        <td>Suburban (VIP)</td>
+                        <td>4</td>
+                        <td>4</td>
+                        <td>$120</td>
+                    </tr>
+                    <tr>
+                        <td>Sprinter</td>
+                        <td>12</td>
+                        <td>14</td>
+                        <td>$150</td>
+                    </tr>
+                    <tr>
+                        <td>Mini Bus</td>
+                        <td>20</td>
+                        <td>25</td>
+                        <td>$205</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>PUJ Airport → Bayahibe (Zone D)</h3>
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>Vehicle Type</th>
+                        <th>Passengers</th>
+                        <th>Luggage</th>
+                        <th>One-Way Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Sedan</td>
+                        <td>2</td>
+                        <td>3</td>
+                        <td>$44</td>
+                    </tr>
+                    <tr>
+                        <td>Minivan</td>
+                        <td>6</td>
+                        <td>8</td>
+                        <td>$80</td>
+                    </tr>
+                    <tr>
+                        <td>Suburban (VIP)</td>
+                        <td>4</td>
+                        <td>4</td>
+                        <td>$110</td>
+                    </tr>
+                    <tr>
+                        <td>Sprinter</td>
+                        <td>12</td>
+                        <td>14</td>
+                        <td>$160</td>
+                    </tr>
+                    <tr>
+                        <td>Mini Bus</td>
+                        <td>20</td>
+                        <td>25</td>
+                        <td>$240</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>PUJ Airport → Santo Domingo (Zone E)</h3>
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>Vehicle Type</th>
+                        <th>Passengers</th>
+                        <th>Luggage</th>
+                        <th>One-Way Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Sedan</td>
+                        <td>2</td>
+                        <td>3</td>
+                        <td>$120</td>
+                    </tr>
+                    <tr>
+                        <td>Minivan</td>
+                        <td>6</td>
+                        <td>8</td>
+                        <td>$195</td>
+                    </tr>
+                    <tr>
+                        <td>Suburban (VIP)</td>
+                        <td>4</td>
+                        <td>4</td>
+                        <td>$240</td>
+                    </tr>
+                    <tr>
+                        <td>Sprinter</td>
+                        <td>12</td>
+                        <td>14</td>
+                        <td>$290</td>
+                    </tr>
+                    <tr>
+                        <td>Mini Bus</td>
+                        <td>20</td>
+                        <td>25</td>
+                        <td>$380</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="important-note">
+                <strong>💡 Pricing Notes:</strong>
+                <ul>
+                    <li>Round-trip discounts available (typically 10-15% off)</li>
+                    <li>Prices are per vehicle, not per person</li>
+                    <li>All vehicles are private (not shared)</li>
+                    <li>Meet & greet service included</li>
+                    <li>All taxes and fees included</li>
+                    <li>Child seats available upon request (may incur additional fee)</li>
+                    <li>Beverages can be added to bookings</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- BOOKING PROCESS -->
+        <div class="section">
+            <h2>📋 Booking Process</h2>
+
+            <h3>Step 1: Gather Information</h3>
+            <p>Collect the following details from the customer:</p>
+            <ul class="feature-list">
+                <li>Pickup location (airport code or hotel name)</li>
+                <li>Drop-off location (hotel name or address)</li>
+                <li>Date and time of pickup</li>
+                <li>Number of passengers</li>
+                <li>Number of luggage pieces</li>
+                <li>Trip type (one-way or round-trip)</li>
+            </ul>
+
+            <h3>Step 2: Calculate Quote</h3>
+            <p>Use the calculate_quote tool to get accurate pricing based on:</p>
+            <ul class="feature-list">
+                <li>Origin and destination</li>
+                <li>Number of passengers and luggage</li>
+                <li>Trip type</li>
+                <li>Available vehicles that meet requirements</li>
+            </ul>
+
+            <h3>Step 3: Present Options</h3>
+            <p>Present available vehicles sorted by price:</p>
+            <ul class="feature-list">
+                <li>Vehicle type and capacity</li>
+                <li>Price (with any applicable discounts)</li>
+                <li>Features and amenities</li>
+                <li>Estimated travel time</li>
+            </ul>
+
+            <h3>Step 4: Collect Customer Details</h3>
+            <p>Once customer selects a vehicle, collect:</p>
+            <ul class="feature-list">
+                <li>Full name (confirm spelling)</li>
+                <li>Email address (confirm spelling)</li>
+                <li>Phone number with country code</li>
+                <li>Flight number (if airport pickup)</li>
+                <li>Special requests (child seats, beverages, etc.)</li>
+            </ul>
+
+            <h3>Step 5: Confirm Booking</h3>
+            <p>Review all details with customer before finalizing:</p>
+            <ul class="feature-list">
+                <li>Pickup location and time</li>
+                <li>Drop-off location</li>
+                <li>Vehicle type</li>
+                <li>Total price</li>
+                <li>Contact information</li>
+            </ul>
+
+            <h3>Step 6: Create Booking</h3>
+            <p>Use the create_booking tool to finalize the reservation. The system will:</p>
+            <ul class="feature-list">
+                <li>Generate a unique booking reference</li>
+                <li>Send confirmation email to customer</li>
+                <li>Update CRM system</li>
+                <li>Notify dispatch team</li>
+            </ul>
+
+            <h3>Step 7: Provide Confirmation</h3>
+            <p>Confirm with customer and provide:</p>
+            <ul class="feature-list">
+                <li>Booking reference number</li>
+                <li>Confirmation email will be sent</li>
+                <li>Driver contact info (sent closer to pickup time)</li>
+                <li>Cancellation policy information</li>
+            </ul>
+        </div>
+
+        <!-- SERVICES & FEATURES -->
+        <div class="section">
+            <h2>✨ Services & Features</h2>
+
+            <h3>Included in All Transfers</h3>
+            <ul class="feature-list">
+                <li>Professional, English-speaking drivers</li>
+                <li>Meet & greet service at airport arrivals</li>
+                <li>Flight monitoring (no extra charge for delays)</li>
+                <li>All taxes and fees included</li>
+                <li>24/7 customer support</li>
+                <li>Clean, air-conditioned vehicles</li>
+                <li>Safe and insured transportation</li>
+                <li>No hidden fees</li>
+            </ul>
+
+            <h3>Optional Add-Ons</h3>
+            <ul class="feature-list">
+                <li>Child seats (infant, toddler, booster)</li>
+                <li>Beverages (water, soft drinks, beer)</li>
+                <li>Grocery stops</li>
+                <li>Additional stops along route</li>
+                <li>VIP fast-track airport service</li>
+            </ul>
+
+            <h3>Payment Options</h3>
+            <ul class="feature-list">
+                <li>Credit/Debit cards (Visa, Mastercard, Amex)</li>
+                <li>Secure online payment</li>
+                <li>Pay now or pay later options</li>
+                <li>Cash payment to driver (USD accepted)</li>
+            </ul>
+        </div>
+
+        <!-- FAQs -->
+        <div class="section">
+            <h2>❓ Frequently Asked Questions</h2>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How far in advance should I book?</div>
+                <div class="faq-answer">A: We recommend booking at least 24-48 hours in advance to ensure vehicle availability. However, we can often accommodate last-minute bookings within a few hours of your pickup time.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What if my flight is delayed?</div>
+                <div class="faq-answer">A: Don't worry! We monitor all flight arrivals automatically. Your driver will adjust pickup time based on your actual landing time at no extra charge. This is included in all airport pickups.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How will I find my driver at the airport?</div>
+                <div class="faq-answer">A: Your driver will be waiting in the arrivals area holding a sign with your name on it. You'll receive their contact information and photo via email before your pickup time. They will also have your contact details.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What is your cancellation policy?</div>
+                <div class="faq-answer">A: Free cancellation up to 24 hours before pickup time for a full refund. Cancellations within 24 hours may incur a fee. No-shows are non-refundable. Contact us immediately if you need to cancel or modify your booking.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: Are the prices per person or per vehicle?</div>
+                <div class="faq-answer">A: All prices are per vehicle, not per person. This makes group travel very economical. The entire vehicle is private for you and your party.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: Can we make stops along the way?</div>
+                <div class="faq-answer">A: Yes! We can accommodate grocery stops, ATM stops, or other brief stops along your route. Just let us know when booking. Extended stops or major detours may incur additional fees.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: Do you provide child seats?</div>
+                <div class="faq-answer">A: Yes, we provide child seats upon request. We have infant seats, toddler seats, and booster seats available. Please specify the age/weight of children when booking so we can provide the appropriate seat. There may be a small additional fee.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What if I have more luggage than the vehicle capacity?</div>
+                <div class="faq-answer">A: No problem! We'll recommend a larger vehicle that can accommodate your luggage. It's better to be safe than sorry. If you're unsure, let us know your exact luggage count and we'll help you choose the right vehicle.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: Do you accept tips?</div>
+                <div class="faq-answer">A: Tipping is not required but greatly appreciated if you're satisfied with the service. Most customers tip 10-15% for excellent service. Tips can be given in USD or Dominican Pesos directly to your driver.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What is the difference between Sedan, Minivan, and Suburban?</div>
+                <div class="faq-answer">A: Sedan is perfect for 1-2 passengers with standard luggage (economy option). Minivan comfortably fits up to 6 passengers with more luggage space (family option). Suburban is a luxury SUV for up to 4 passengers who want VIP treatment with premium comfort (luxury option). Sprinter and Mini Bus are for larger groups.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: Is the driver English-speaking?</div>
+                <div class="faq-answer">A: Yes, all our drivers speak English. Many also speak Spanish and other languages. Communication will not be a problem.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: Are the vehicles air-conditioned?</div>
+                <div class="faq-answer">A: Yes, all vehicles are fully air-conditioned for your comfort in the Dominican Republic's tropical climate.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: Can I book a round-trip transfer?</div>
+                <div class="faq-answer">A: Absolutely! Round-trip bookings often receive a discount. Just provide both your arrival and departure details when booking. We'll schedule both transfers and you'll save money.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What happens if I can't find my driver?</div>
+                <div class="faq-answer">A: Call the driver directly using the contact information sent to you via email. You can also contact our 24/7 support line at +31625584645. We're always here to help coordinate meetups.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: Do you provide transfers between hotels?</div>
+                <div class="faq-answer">A: Yes! We provide transfers anywhere in the Dominican Republic - hotel to hotel, hotel to attraction, hotel to restaurant, etc. Just specify your pickup and drop-off locations when booking.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How long is the drive from PUJ airport to Bavaro hotels?</div>
+                <div class="faq-answer">A: Typically 20-30 minutes depending on traffic and exact hotel location. Cap Cana is 15-20 minutes, Uvero Alto is 45-60 minutes, and Bayahibe is 75-90 minutes from PUJ airport.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What currency should I use for payment?</div>
+                <div class="faq-answer">A: Online payments are processed in USD. If paying the driver in cash, both USD and Dominican Pesos are accepted. Credit cards are also accepted.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: Is WiFi available in the vehicles?</div>
+                <div class="faq-answer">A: WiFi availability varies by vehicle. Please request WiFi when booking if it's important to you, and we'll do our best to accommodate.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: Can I modify my booking after it's confirmed?</div>
+                <div class="faq-answer">A: Yes, you can modify your booking by contacting us via email at booking@dominicantransfers.com or calling +31625584645. Modifications made more than 24 hours before pickup are usually free. Changes within 24 hours may incur fees depending on the modification.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: Do you offer wheelchair-accessible vehicles?</div>
+                <div class="faq-answer">A: We have limited wheelchair-accessible vehicles available. Please contact us directly at booking@dominicantransfers.com with your specific requirements so we can arrange appropriate transportation.</div>
+            </div>
+        </div>
+
+        <!-- CONVERSATION GUIDELINES -->
+        <div class="section">
+            <h2>💬 Agent Conversation Guidelines</h2>
+
+            <h3>Tone & Style</h3>
+            <ul class="feature-list">
+                <li>Be friendly, warm, and professional</li>
+                <li>Use conversational language, not robotic</li>
+                <li>Show enthusiasm about helping customers</li>
+                <li>Be patient and understanding</li>
+                <li>Speak clearly and at a moderate pace</li>
+            </ul>
+
+            <h3>Best Practices</h3>
+            <ul class="feature-list">
+                <li>Always confirm spelling of names and emails</li>
+                <li>Repeat important details back to customer</li>
+                <li>Ask clarifying questions if unsure</li>
+                <li>Never guess prices - always use calculate_quote</li>
+                <li>Never create booking without customer confirmation</li>
+                <li>Use get_vehicle_info at the start of conversation</li>
+                <li>Provide booking reference after successful booking</li>
+                <li>Thank customer for choosing Dominican Transfers</li>
+            </ul>
+
+            <h3>Required Information Checklist</h3>
+            <p>Before creating a booking, ensure you have:</p>
+            <ul class="feature-list">
+                <li>✓ Pickup location (exact hotel or airport)</li>
+                <li>✓ Drop-off location (exact hotel or address)</li>
+                <li>✓ Pickup date and time</li>
+                <li>✓ Number of passengers</li>
+                <li>✓ Number of luggage pieces</li>
+                <li>✓ Vehicle selection confirmed</li>
+                <li>✓ Customer name</li>
+                <li>✓ Customer email</li>
+                <li>✓ Customer phone number</li>
+                <li>✓ Flight number (if airport pickup)</li>
+                <li>✓ Total price confirmed</li>
+            </ul>
+
+            <h3>Sample Greeting</h3>
+            <p><em>"Hello! Welcome to Dominican Transfers. I'm here to help you book your private airport transfer or transportation in the Dominican Republic. Whether you need a ride from the airport to your hotel, or anywhere else, I can help you find the perfect vehicle at a great price. Where would you like to go today?"</em></p>
+
+            <h3>Handling Common Scenarios</h3>
+            <p><strong>Customer is unsure about vehicle size:</strong></p>
+            <p><em>"Let me help you choose! For 2 people with standard luggage, a Sedan works great and it's our most economical option at $25. If you have more luggage or want extra space, I'd recommend our Minivan for $45 which fits up to 6 people and 8 bags comfortably."</em></p>
+
+            <p><strong>Customer asks about cheapest option:</strong></p>
+            <p><em>"Our most economical option for your route is the Sedan at $[price]. It comfortably seats 2 passengers with up to 3 pieces of luggage. Would that work for you?"</em></p>
+
+            <p><strong>Customer mentions competitor prices:</strong></p>
+            <p><em>"We pride ourselves on offering competitive rates with premium service. Our prices include meet & greet, flight monitoring, and 24/7 support with no hidden fees. Plus, you'll have a professional English-speaking driver in a clean, air-conditioned private vehicle."</em></p>
+        </div>
+
+        <!-- TECHNICAL DETAILS -->
+        <div class="section">
+            <h2>🔧 Technical Information for Agent Setup</h2>
+
+            <h3>Agent ID</h3>
+            <p><code>agent_4201kcxcxbege73tvy22a28rt04n</code></p>
+
+            <h3>API Endpoints</h3>
+            <p><strong>Base URL:</strong> <code>https://gwlaxeonvfywhecwtupv.supabase.co/functions/v1/</code></p>
+
+            <ul class="feature-list">
+                <li><strong>get_vehicle_info:</strong> elevenlabs-get-vehicles (GET)</li>
+                <li><strong>calculate_quote:</strong> elevenlabs-calculate-quote (POST)</li>
+                <li><strong>create_booking:</strong> elevenlabs-create-booking (POST)</li>
+            </ul>
+
+            <h3>Tool Usage Order</h3>
+            <ol>
+                <li>Start conversation: Use <code>get_vehicle_info</code></li>
+                <li>After collecting route details: Use <code>calculate_quote</code></li>
+                <li>After customer confirmation: Use <code>create_booking</code></li>
+            </ol>
+        </div>
+
+        <div class="important-note" style="margin-top: 40px;">
+            <strong>📚 Knowledge Base Complete</strong>
+            <p>This document contains all essential information for the Dominican Transfers voice agent. Upload this to your ElevenLabs agent's knowledge base for comprehensive customer support capabilities.</p>
+            <p><strong>Last Updated:</strong> December 20, 2024</p>
+        </div>
+
+        <button class="download-btn" onclick="downloadAsText()">📥 Download as Text File for Upload</button>
+    </div>
+
+    <script>
+        function downloadAsText() {
+            const content = document.querySelector('.container').innerText;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'dominican-transfers-knowledge-base.txt';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+    </script>
+</body>
+</html>

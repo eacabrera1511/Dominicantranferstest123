@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, Loader2, Phone, ChevronDown, Star, Sun, Moon, History } from 'lucide-react';
+import { Send, Loader2, Phone, ChevronDown, Star, Sun, Moon, History, Mic } from 'lucide-react';
 import { supabase, Message } from './lib/supabase';
 import { TravelAgent, BookingAction } from './lib/travelAgent';
 import { ChatMessage } from './components/ChatMessage';
@@ -1215,6 +1215,15 @@ function App() {
                     disabled={loading}
                     className="flex-1 min-w-0 bg-slate-100/80 dark:bg-slate-700/80 border-0 rounded-lg xs:rounded-xl px-3 xs:px-3.5 sm:px-4 py-2.5 xs:py-3 text-slate-900 dark:text-white text-xs xs:text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 disabled:opacity-50 transition-all"
                   />
+                  <a
+                    href="https://elevenlabs.io/app/talk-to?agent_id=agent_9201kcymyrn0er6v2a20wfr3by49&branch_id=agtbrch_1101kcymysb0eazb9gjx87fm5jj2"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 xs:w-11 xs:h-11 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-lg xs:rounded-xl flex items-center justify-center text-white transition-all hover:shadow-lg hover:shadow-purple-500/30 flex-shrink-0 active:scale-95"
+                    title="Voice Booking"
+                  >
+                    <Mic className="w-4 h-4 xs:w-5 xs:h-5" />
+                  </a>
                   <button
                     onClick={() => handleSend()}
                     disabled={loading || !input.trim()}

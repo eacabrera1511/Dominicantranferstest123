@@ -52,7 +52,6 @@ function App() {
   const [showCancellationPage, setShowCancellationPage] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
-  const [showVoiceWidget, setShowVoiceWidget] = useState(false);
   const [paymentBookingRef, setPaymentBookingRef] = useState<string>('');
   const [darkMode, setDarkMode] = useState(() => {
     const stored = localStorage.getItem('theme');
@@ -1216,13 +1215,9 @@ function App() {
                     disabled={loading}
                     className="flex-1 min-w-0 bg-slate-100/80 dark:bg-slate-700/80 border-0 rounded-lg xs:rounded-xl px-3 xs:px-3.5 sm:px-4 py-2.5 xs:py-3 text-slate-900 dark:text-white text-xs xs:text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 disabled:opacity-50 transition-all"
                   />
-                  <button
-                    onClick={() => setShowVoiceWidget(!showVoiceWidget)}
-                    className="w-10 h-10 xs:w-11 xs:h-11 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 rounded-lg xs:rounded-xl flex items-center justify-center text-white transition-all hover:shadow-lg hover:shadow-teal-500/30 flex-shrink-0 active:scale-95"
-                    title="Voice Booking"
-                  >
-                    <Mic className="w-4 h-4 xs:w-5 xs:h-5" />
-                  </button>
+                  <div className="flex-shrink-0">
+                    <elevenlabs-convai agent-id="agent_9201kcymyrn0er6v2a20wfr3by49"></elevenlabs-convai>
+                  </div>
                   <button
                     onClick={() => handleSend()}
                     disabled={loading || !input.trim()}
@@ -1286,25 +1281,6 @@ function App() {
         onClose={() => setShowHistory(false)}
         deviceId={deviceId}
       />
-
-      {showVoiceWidget && (
-        <>
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={() => setShowVoiceWidget(false)} />
-          <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center p-4">
-            <div className="pointer-events-auto relative">
-              <button
-                onClick={() => setShowVoiceWidget(false)}
-                className="absolute -top-2 -right-2 w-8 h-8 bg-white dark:bg-slate-800 rounded-full shadow-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors z-10"
-              >
-                <svg className="w-5 h-5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <elevenlabs-convai agent-id="agent_9201kcymyrn0er6v2a20wfr3by49"></elevenlabs-convai>
-            </div>
-          </div>
-        </>
-      )}
 
       {showPaymentSuccess && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">

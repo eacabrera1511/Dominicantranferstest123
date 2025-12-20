@@ -7,6 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+const ELEVENLABS_AGENT_ID = "agent_4201kcxcxbege73tvy22a28rt04n";
+
 interface VoiceRequest {
   text?: string;
   conversationId?: string;
@@ -219,45 +221,55 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+    const { data: vehicleTypes } = await supabase
+      .from("vehicle_types")
+      .select("*")
+      .order("passenger_capacity");
 
-    if (!openaiApiKey) {
-      return new Response(
-        JSON.stringify({ error: "OpenAI API not configured" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
+    const { data: pricingRules } = await supabase
+      .from("pricing_rules")
+      .select("*")
+      .eq("is_active", true);
+
+    const vehicleContext = vehicleTypes ?
+      `\n\nAVAILABLE VEHICLES:\n${vehicleTypes.map(v =>
+        `${v.name} - Passengers: ${v.passenger_capacity}, Luggage: ${v.luggage_capacity}, Base Price: $${v.base_price_usd}`
+      ).join('\n')}` : '';
+
+    const pricingContext = pricingRules ?
+      `\n\nPRICING RULES:\n${pricingRules.map(p =>
+        `${p.route_name}: ${p.vehicle_type} - $${p.price_usd} (${p.trip_type})`
+      ).join('\n')}` : '';
 
     const bookingFlowContext = isInBookingFlow
       ? `\n\nIMPORTANT: The user is currently in the middle of booking a transfer. After answering their question, gently remind them they can say "continue booking" to resume their booking whenever they're ready.`
       : "";
 
-    const messages = [
-      { role: "system", content: SYSTEM_PROMPT + bookingFlowContext },
-      ...conversationHistory.slice(-6),
-      { role: "user", content: text }
-    ];
+    const fullContext = SYSTEM_PROMPT + vehicleContext + pricingContext + bookingFlowContext;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const conversationSessionId = conversationId || `voice_${Date.now()}`;
+
+    const elevenLabsResponse = await fetch(`https://api.elevenlabs.io/v1/convai/conversation`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${openaiApiKey}`,
+        "xi-api-key": credentials.api_key,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o",
-        messages: messages,
-        max_tokens: 300,
-        temperature: 0.7,
+        agent_id: ELEVENLABS_AGENT_ID,
+        text: text,
+        conversation_id: conversationSessionId,
+        override_agent: {
+          prompt: {
+            prompt: fullContext
+          }
+        }
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("OpenAI API error:", response.status, errorText);
+    if (!elevenLabsResponse.ok) {
+      const errorText = await elevenLabsResponse.text();
+      console.error("ElevenLabs API error:", elevenLabsResponse.status, errorText);
 
       return new Response(
         JSON.stringify({
@@ -271,52 +283,29 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const data = await response.json();
-    const aiResponse = data.choices[0]?.message?.content || "I'm here to help! What can I do for you?";
+    const data = await elevenLabsResponse.json();
+    const aiResponse = data.text || data.message || "I'm here to help! What can I do for you?";
+    const audioData = data.audio;
 
-    const elevenLabsResponse = await fetch("https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM", {
-      method: "POST",
-      headers: {
-        "xi-api-key": credentials.api_key,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        text: aiResponse,
-        model_id: "eleven_turbo_v2",
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-          style: 0.0,
-          use_speaker_boost: true
-        }
-      }),
-    });
-
-    if (!elevenLabsResponse.ok) {
-      const errorText = await elevenLabsResponse.text();
-      console.error("ElevenLabs API error:", elevenLabsResponse.status, errorText);
-
-      return new Response(
-        JSON.stringify({
-          text: aiResponse,
-          success: true,
-          audioAvailable: false
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    let base64Audio = null;
+    if (audioData) {
+      if (typeof audioData === 'string') {
+        base64Audio = audioData;
+      } else if (audioData instanceof ArrayBuffer || audioData instanceof Uint8Array) {
+        base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioData)));
+      }
     }
-
-    const audioBuffer = await elevenLabsResponse.arrayBuffer();
-    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
 
     if (conversationId) {
       await supabase
         .from("voice_sessions")
         .upsert({
           conversation_id: conversationId,
-          session_data: { lastMessage: text, lastResponse: aiResponse },
+          session_data: {
+            lastMessage: text,
+            lastResponse: aiResponse,
+            elevenLabsSessionId: conversationSessionId
+          },
           mode: "voice",
           updated_at: new Date().toISOString()
         }, { onConflict: "conversation_id" });
@@ -327,7 +316,8 @@ Deno.serve(async (req: Request) => {
         text: aiResponse,
         audio: base64Audio,
         success: true,
-        audioAvailable: true
+        audioAvailable: !!base64Audio,
+        conversationSessionId
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -1048,16 +1048,6 @@ function App() {
                 </div>
 
                 <button
-                  onClick={() => setVoiceMode(!voiceMode)}
-                  className={`rounded-full ${voiceMode ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'} hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white flex items-center justify-center transition-all active:scale-95 ${
-                    scrolled ? 'w-7 h-7 xs:w-8 xs:h-8' : 'w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10'
-                  }`}
-                  title="Toggle Voice Mode"
-                >
-                  <Mic className={`${scrolled ? 'w-3 h-3 xs:w-3.5 xs:h-3.5' : 'w-3.5 h-3.5 xs:w-4 xs:h-4'}`} />
-                </button>
-
-                <button
                   onClick={() => setDarkMode(!darkMode)}
                   className={`rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-all active:scale-95 ${
                     scrolled ? 'w-7 h-7 xs:w-8 xs:h-8' : 'w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10'
@@ -1184,6 +1174,13 @@ function App() {
                       disabled={loading}
                       className="flex-1 min-w-0 bg-slate-100/80 dark:bg-slate-700/80 border-0 rounded-lg xs:rounded-xl px-3 xs:px-3.5 sm:px-4 py-2.5 xs:py-3 text-slate-900 dark:text-white text-xs xs:text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 disabled:opacity-50 transition-all"
                     />
+                    <button
+                      onClick={() => setVoiceMode(true)}
+                      className="w-10 h-10 xs:w-11 xs:h-11 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 rounded-lg xs:rounded-xl flex items-center justify-center text-white transition-all hover:shadow-lg hover:shadow-blue-500/30 flex-shrink-0 active:scale-95"
+                      title="Voice Booking"
+                    >
+                      <Mic className="w-4 h-4 xs:w-5 xs:h-5" />
+                    </button>
                     <button
                       onClick={() => handleSend()}
                       disabled={loading || !input.trim()}

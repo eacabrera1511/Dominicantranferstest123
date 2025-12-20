@@ -204,6 +204,10 @@ export class TravelAgent {
     this.currentLanguage = lang;
   }
 
+  isInBookingFlow(): boolean {
+    return this.context.step !== 'IDLE';
+  }
+
   async processQuery(userMessage: string): Promise<AgentResponse> {
     return this.processMessage(userMessage);
   }

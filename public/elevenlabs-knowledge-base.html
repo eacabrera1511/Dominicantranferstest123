@@ -172,6 +172,121 @@
             <strong>📌 Important:</strong> This knowledge base contains complete pricing, routes, vehicle information, booking procedures, and FAQs. Upload this to your ElevenLabs agent's knowledge base for accurate customer support.
         </div>
 
+        <!-- RAG INDEXES & METADATA -->
+        <div class="section">
+            <h2>🔍 RAG Indexes & Quick Reference</h2>
+
+            <div class="important-note">
+                <strong>📊 Document Metadata:</strong>
+                <ul class="feature-list">
+                    <li>Document Type: Transportation Service Knowledge Base</li>
+                    <li>Industry: Travel & Tourism, Ground Transportation</li>
+                    <li>Geography: Dominican Republic</li>
+                    <li>Service Type: Airport Transfers, Private Transportation</li>
+                    <li>Primary Airport: PUJ (Punta Cana International)</li>
+                    <li>Coverage Areas: 5 Zones (A-E), 58+ Hotels, 4 Airports</li>
+                    <li>Last Updated: December 2024</li>
+                </ul>
+            </div>
+
+            <h3>📋 Topic Index & Keywords</h3>
+            <div class="vehicle-card">
+                <h4>PRICING QUERIES</h4>
+                <p><strong>Keywords:</strong> price, cost, how much, quote, rate, fare, pricing, expense, budget</p>
+                <p><strong>Related Entities:</strong> Vehicle types (Sedan, Minivan, Suburban, Sprinter, Mini Bus), Zones (A-E), Routes, One-way, Round-trip</p>
+                <p><strong>Section Reference:</strong> See "Pricing Guide" section for all routes and vehicle pricing</p>
+            </div>
+
+            <div class="vehicle-card">
+                <h4>VEHICLE INFORMATION</h4>
+                <p><strong>Keywords:</strong> vehicle, car, van, bus, capacity, passengers, luggage, seats, SUV, sedan, luxury</p>
+                <p><strong>Available Vehicles:</strong> Sedan (2 pax), Minivan (6 pax), Suburban VIP (4 pax), Sprinter (12 pax), Mini Bus (20 pax)</p>
+                <p><strong>Section Reference:</strong> See "Vehicle Fleet" section for detailed specifications</p>
+            </div>
+
+            <div class="vehicle-card">
+                <h4>HOTEL & DESTINATION QUERIES</h4>
+                <p><strong>Keywords:</strong> hotel, resort, destination, location, where, zone, area, Hard Rock, Royalton, Barceló, RIU, Secrets</p>
+                <p><strong>Zones:</strong> Zone A (Bavaro/Punta Cana), Zone B (Cap Cana), Zone C (Uvero Alto), Zone D (Bayahibe), Zone E (Santo Domingo)</p>
+                <p><strong>Section Reference:</strong> See "Hotel Zones & Popular Destinations" section for complete hotel list</p>
+            </div>
+
+            <div class="vehicle-card">
+                <h4>AIRPORT INFORMATION</h4>
+                <p><strong>Keywords:</strong> airport, PUJ, SDQ, LRM, POP, pickup, arrival, departure, terminal, flight</p>
+                <p><strong>Airports:</strong> PUJ (Punta Cana), SDQ (Santo Domingo), LRM (La Romana), POP (Puerto Plata)</p>
+                <p><strong>Section Reference:</strong> See "Airports We Service" section</p>
+            </div>
+
+            <div class="vehicle-card">
+                <h4>BOOKING PROCESS</h4>
+                <p><strong>Keywords:</strong> book, reserve, reservation, payment, confirm, checkout, stripe, credit card, online booking</p>
+                <p><strong>Process:</strong> Route selection → Vehicle choice → Customer info → Payment → Confirmation</p>
+                <p><strong>Section Reference:</strong> See "Booking Process" section</p>
+            </div>
+
+            <div class="vehicle-card">
+                <h4>FAQS & POLICIES</h4>
+                <p><strong>Keywords:</strong> policy, cancellation, refund, child seat, meet and greet, waiting time, flight delay, luggage, extra stop</p>
+                <p><strong>Topics Covered:</strong> Cancellations, flight delays, child seats, luggage, meeting point, waiting time, extra stops</p>
+                <p><strong>Section Reference:</strong> See "Frequently Asked Questions" section</p>
+            </div>
+
+            <h3>🎯 Common Query Patterns & Answers</h3>
+            <div class="faq-item">
+                <strong>Q: "How much from PUJ to [Hotel Name]?"</strong>
+                <p>→ Identify hotel zone (A-E) → Check pricing table for that zone → Provide price based on vehicle type</p>
+            </div>
+
+            <div class="faq-item">
+                <strong>Q: "What vehicle for [X] passengers with [Y] luggage?"</strong>
+                <p>→ Sedan: 2 pax/3 bags | Minivan: 6 pax/8 bags | Suburban: 4 pax/4 bags | Sprinter: 12 pax/14 bags | Mini Bus: 20 pax/25 bags</p>
+            </div>
+
+            <div class="faq-item">
+                <strong>Q: "Where is [Hotel Name]?"</strong>
+                <p>→ Search hotel list in Zone sections → Provide zone letter and distance from airport</p>
+            </div>
+
+            <div class="faq-item">
+                <strong>Q: "Round trip pricing?"</strong>
+                <p>→ One-way price × 1.9 = Round trip price (e.g., $45 one-way = $85.50 round trip)</p>
+            </div>
+
+            <div class="faq-item">
+                <strong>Q: "Do you have child seats?"</strong>
+                <p>→ Yes, complimentary upon request during booking</p>
+            </div>
+
+            <h3>🔗 Entity Relationships</h3>
+            <div class="vehicle-card">
+                <p><strong>Zone A Hotels → PUJ Airport:</strong> 20-30 min, Sedan $25, Minivan $45, Suburban $65, Sprinter $110, Mini Bus $180</p>
+                <p><strong>Zone B Hotels → PUJ Airport:</strong> 15-20 min, Sedan $28, Minivan $50, Suburban $75, Sprinter $120, Mini Bus $190</p>
+                <p><strong>Zone C Hotels → PUJ Airport:</strong> 45-60 min, Sedan $52, Minivan $95, Suburban $120, Sprinter $150, Mini Bus $205</p>
+                <p><strong>Zone D Hotels → PUJ Airport:</strong> 75-90 min, Sedan $55, Minivan $100, Suburban $140, Sprinter $160, Mini Bus $220</p>
+                <p><strong>Zone E Hotels → PUJ Airport:</strong> 2.5-3 hrs, Sedan $235, Minivan $425, Suburban $580, Sprinter $660, Mini Bus $950</p>
+            </div>
+
+            <h3>⚡ Quick Answer Reference</h3>
+            <div class="vehicle-card">
+                <ul class="feature-list">
+                    <li><strong>Minimum Price:</strong> $25 (Sedan to Zone A)</li>
+                    <li><strong>Most Popular Route:</strong> PUJ → Bavaro/Punta Cana (Zone A)</li>
+                    <li><strong>Round Trip Formula:</strong> One-way × 1.9</li>
+                    <li><strong>Cancellation:</strong> Free up to 24 hours before pickup</li>
+                    <li><strong>Flight Tracking:</strong> Included free, no waiting fee if flight delayed</li>
+                    <li><strong>Meet & Greet:</strong> Included at all airport pickups</li>
+                    <li><strong>Child Seats:</strong> Free upon request (infant, toddler, booster)</li>
+                    <li><strong>Extra Stops:</strong> $10 per stop</li>
+                    <li><strong>Waiting Time:</strong> 60 min free at airport, 15 min at hotel</li>
+                    <li><strong>Payment:</strong> Credit/debit cards via Stripe (Visa, Mastercard, Amex, Discover)</li>
+                    <li><strong>Currency:</strong> USD</li>
+                    <li><strong>Support Phone:</strong> +31625584645</li>
+                    <li><strong>Support Email:</strong> support@dominicantransfers.com</li>
+                </ul>
+            </div>
+        </div>
+
         <!-- COMPANY INFO -->
         <div class="section">
             <h2>🏢 Company Information</h2>

@@ -161,13 +161,13 @@ function App() {
           'Roundtrip airport transfer'
         ];
       } else {
-        welcomeMsg = `Welcome! 👋\n\nPrivate airport transfers in the Dominican Republic.\n\nWhere are you headed?`;
+        welcomeMsg = `Welcome to Dominican Transfers!\n\nI'll help you book a comfortable ride to your destination.\n\nWhat's included:\n\n✓ Private airport pickups\n✓ Meet & greet at arrivals\n✓ Free flight tracking\n✓ English-speaking drivers\n✓ 24/7 support\n\nJust tell me your route (like "PUJ to Hard Rock Hotel") or ask me anything!`;
         suggestions = [
-          'Punta Cana Airport to hotel',
-          'Santo Domingo transfers',
-          'Get instant quote',
-          'See our vehicles',
-          'Compare our prices'
+          'PUJ to Hard Rock Hotel',
+          'Show me vehicle options',
+          'How does airport pickup work?',
+          'Get a price quote',
+          'What are your rates?'
         ];
       }
 
@@ -1176,27 +1176,58 @@ function App() {
         </div>
 
             <div className="p-2 xs:p-2.5 sm:p-3 md:p-4" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
-              <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-xl xs:rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-xl p-2 xs:p-2.5 sm:p-3">
-                <div className="flex gap-2 xs:gap-2.5 sm:gap-3 items-center">
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder={getTranslations(language).chat.placeholder}
-                    disabled={loading}
-                    className="flex-1 min-w-0 bg-slate-100/80 dark:bg-slate-700/80 border-0 rounded-lg xs:rounded-xl px-3 xs:px-3.5 sm:px-4 py-2.5 xs:py-3 text-slate-900 dark:text-white text-xs xs:text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 disabled:opacity-50 transition-all"
-                  />
-                  <button
-                    onClick={() => handleSend()}
-                    disabled={loading || !input.trim()}
-                    className="w-10 h-10 xs:w-11 xs:h-11 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 disabled:from-slate-300 disabled:to-slate-400 dark:disabled:from-slate-600 dark:disabled:to-slate-700 rounded-lg xs:rounded-xl flex items-center justify-center text-white transition-all hover:shadow-lg hover:shadow-teal-500/30 disabled:cursor-not-allowed disabled:hover:shadow-none flex-shrink-0 active:scale-95"
-                  >
-                    <Send className="w-4 h-4 xs:w-5 xs:h-5" />
-                  </button>
+              {voiceMode ? (
+                <VoiceBooking
+                  conversationId={conversationId || undefined}
+                  conversationHistory={messages.map(m => ({ role: m.role, content: m.content }))}
+                  isInBookingFlow={agent.isInBookingFlow()}
+                  onModeSwitch={() => setVoiceMode(false)}
+                  onTranscriptUpdate={(text, isUser) => {
+                    const newMessage: Message = {
+                      id: crypto.randomUUID(),
+                      conversation_id: conversationId || '',
+                      role: isUser ? 'user' : 'assistant',
+                      content: text,
+                      created_at: new Date().toISOString(),
+                    };
+                    setMessages((prev) => [...prev, newMessage]);
+
+                    const chatConvId = getCurrentChatConversationId();
+                    if (chatConvId) {
+                      saveChatMessage(chatConvId, isUser ? 'user' : 'assistant', text, isUser ? 'user_message' : 'assistant_response');
+                    }
+                  }}
+                />
+              ) : (
+                <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-xl xs:rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-xl p-2 xs:p-2.5 sm:p-3">
+                  <div className="flex gap-2 xs:gap-2.5 sm:gap-3 items-center">
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder={getTranslations(language).chat.placeholder}
+                      disabled={loading}
+                      className="flex-1 min-w-0 bg-slate-100/80 dark:bg-slate-700/80 border-0 rounded-lg xs:rounded-xl px-3 xs:px-3.5 sm:px-4 py-2.5 xs:py-3 text-slate-900 dark:text-white text-xs xs:text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 disabled:opacity-50 transition-all"
+                    />
+                    <button
+                      onClick={() => setVoiceMode(true)}
+                      className="w-10 h-10 xs:w-11 xs:h-11 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 rounded-lg xs:rounded-xl flex items-center justify-center text-white transition-all hover:shadow-lg hover:shadow-blue-500/30 flex-shrink-0 active:scale-95"
+                      title="Voice Booking"
+                    >
+                      <Mic className="w-4 h-4 xs:w-5 xs:h-5" />
+                    </button>
+                    <button
+                      onClick={() => handleSend()}
+                      disabled={loading || !input.trim()}
+                      className="w-10 h-10 xs:w-11 xs:h-11 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 disabled:from-slate-300 disabled:to-slate-400 dark:disabled:from-slate-600 dark:disabled:to-slate-700 rounded-lg xs:rounded-xl flex items-center justify-center text-white transition-all hover:shadow-lg hover:shadow-teal-500/30 disabled:cursor-not-allowed disabled:hover:shadow-none flex-shrink-0 active:scale-95"
+                    >
+                      <Send className="w-4 h-4 xs:w-5 xs:h-5" />
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </>
         )}

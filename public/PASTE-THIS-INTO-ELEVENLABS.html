@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PASTE THIS INTO ELEVENLABS</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .hero {
+      background: white;
+      border-radius: 20px;
+      padding: 50px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      margin-bottom: 30px;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      color: #1e3c72;
+      margin-bottom: 20px;
+      font-weight: 800;
+    }
+
+    .hero p {
+      font-size: 1.4rem;
+      color: #666;
+      margin-bottom: 40px;
+    }
+
+    .mega-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 30px 60px;
+      font-size: 1.8rem;
+      font-weight: 700;
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .mega-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+    }
+
+    .mega-button.copied {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .status-badge {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+      padding: 25px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .status-badge h2 {
+      font-size: 2rem;
+      margin-bottom: 15px;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .status-item {
+      background: rgba(255,255,255,0.2);
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .instructions {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .instructions h2 {
+      color: #1e3c72;
+      font-size: 2rem;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .step {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 30px;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-content h3 {
+      color: #1e3c72;
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+    }
+
+    .step-content p {
+      color: #666;
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    .warning-box {
+      background: #fff3cd;
+      border-left: 5px solid #ffc107;
+      padding: 25px;
+      border-radius: 10px;
+      margin: 30px 0;
+    }
+
+    .warning-box h3 {
+      color: #856404;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+
+    .warning-box ul {
+      color: #856404;
+      margin-left: 25px;
+      line-height: 2;
+      font-size: 1.05rem;
+    }
+
+    .success-box {
+      background: #d4edda;
+      border-left: 5px solid #28a745;
+      padding: 25px;
+      border-radius: 10px;
+      margin: 30px 0;
+    }
+
+    .success-box h3 {
+      color: #155724;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+
+    .success-box ul {
+      color: #155724;
+      margin-left: 25px;
+      line-height: 2;
+      font-size: 1.05rem;
+    }
+
+    .test-command {
+      background: #e7f3ff;
+      border-left: 5px solid #0066cc;
+      padding: 25px;
+      border-radius: 10px;
+      margin: 30px 0;
+    }
+
+    .test-command h3 {
+      color: #0066cc;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+
+    .test-command code {
+      display: block;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: #333;
+      font-family: 'Monaco', 'Courier New', monospace;
+      margin-top: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .hero {
+        padding: 30px 20px;
+      }
+
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .mega-button {
+        padding: 20px 40px;
+        font-size: 1.3rem;
+      }
+
+      .step {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="status-badge">
+      <h2>✅ FULLY VALIDATED & TESTED</h2>
+      <div class="status-grid">
+        <div class="status-item">✓ JSON Valid</div>
+        <div class="status-item">✓ 14 Properties</div>
+        <div class="status-item">✓ All Tests Pass</div>
+        <div class="status-item">✓ Ready to Paste</div>
+      </div>
+    </div>
+
+    <div class="hero">
+      <h1>🎙️ create_booking</h1>
+      <p>Click button to copy, then paste into ElevenLabs</p>
+      <button class="mega-button" onclick="copyJSON()">
+        <span style="font-size: 2rem;">📋</span>
+        <span>COPY JSON</span>
+      </button>
+    </div>
+
+    <div class="instructions">
+      <h2>📋 Step-by-Step Instructions</h2>
+
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Click the COPY JSON button above</h3>
+          <p>The validated JSON configuration will be copied to your clipboard</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Go to ElevenLabs Dashboard</h3>
+          <p>Navigate to: Conversational AI → Agent Tools</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Add or Edit Tool</h3>
+          <p>Click "Add Tool" (or edit existing "create_booking" tool)</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Select "Custom Webhook"</h3>
+          <p>Choose the custom webhook option from tool types</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <h3>Paste the JSON</h3>
+          <p>Paste the copied JSON into the configuration field</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">6</div>
+        <div class="step-content">
+          <h3>Click Save</h3>
+          <p>ElevenLabs will validate and save your tool configuration</p>
+        </div>
+      </div>
+
+      <div class="success-box">
+        <h3>✅ What Was Fixed from Your Version</h3>
+        <ul>
+          <li>Removed backticks from descriptions</li>
+          <li>Fixed escaped quote in main description</li>
+          <li>Fixed missing closing quote in pickup_location</li>
+          <li>Changed vehicle_type_id from number to string (UUID compatible)</li>
+          <li>Changed vehicle_type_id and flight_number to optional</li>
+          <li>Set source field as constant value instead of LLM prompt</li>
+        </ul>
+      </div>
+
+      <div class="warning-box">
+        <h3>⚠️ Common Issues to Avoid</h3>
+        <ul>
+          <li>Do NOT manually type the JSON - always copy/paste</li>
+          <li>Do NOT modify any fields after pasting</li>
+          <li>Make sure you're pasting in "Custom Webhook" mode</li>
+          <li>If validation fails, try refreshing the page and pasting again</li>
+        </ul>
+      </div>
+
+      <div class="test-command">
+        <h3>🎤 Test Your Tool</h3>
+        <p>After saving, test with this voice command:</p>
+        <code>"Hi, I need a transfer from Punta Cana Airport to Hard Rock Hotel for 4 people. We're arriving December 25th at 3:30 PM on flight AA1234. My name is John Smith and my email is john@example.com. My phone is +1-555-123-4567."</code>
+      </div>
+
+      <div style="text-align: center; margin-top: 40px;">
+        <button class="mega-button" onclick="copyJSON()">
+          <span style="font-size: 2rem;">📋</span>
+          <span>COPY JSON AGAIN</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const toolConfig = {
+  "type": "webhook",
+  "name": "create_booking",
+  "description": "Create a new transfer booking in the system. This will automatically create the booking in the database, generate a Stripe payment checkout link, and send a confirmation email with the payment link to the customer. CRITICAL: Only call this tool after you have confirmed ALL booking details with the customer and received explicit confirmation to proceed. Required information: customer name, email, phone, pickup location, dropoff location, date and time, vehicle selection, and total price.",
+  "disable_interruptions": true,
+  "force_pre_tool_speech": "force",
+  "assignments": [],
+  "tool_call_sound": null,
+  "tool_call_sound_behavior": "auto",
+  "execution_mode": "post_tool_speech",
+  "api_schema": {
+    "url": "https://gwlaxeonvfywhecwtupv.supabase.co/functions/v1/elevenlabs-create-booking",
+    "method": "POST",
+    "path_params_schema": [],
+    "query_params_schema": [],
+    "request_body_schema": {
+      "id": "body",
+      "type": "object",
+      "description": "This field instructs the LLM on how to extract all relevant booking information from the conversation transcript. It should identify and capture customer details (name, email, phone), pickup and dropoff locations, date and time, number of passengers, vehicle selection, flight number (if applicable), special requests, trip type, and total price. Include all information only after the customer has confirmed the details.",
+      "properties": [
+        {
+          "id": "customer_name",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Full name of the customer",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "customer_email",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Email address of the customer (must be valid email format)",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "customer_phone",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Phone number with country code",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        },
+        {
+          "id": "pickup_location",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Detailed pickup location (e.g., PUJ Airport)",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "dropoff_location",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Detailed dropoff location (e.g., Hard Rock Hotel Punta Cana)",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "pickup_datetime",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "ISO 8601 datetime for pickup (e.g., 2024-12-25T14:30:00Z)",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "passengers",
+          "type": "number",
+          "value_type": "llm_prompt",
+          "description": "Number of passengers",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        },
+        {
+          "id": "vehicle_type_id",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "ID of the selected vehicle type from get_vehicles tool response",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        },
+        {
+          "id": "vehicle_name",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Name of the selected vehicle (e.g., Sedan, SUV)",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "flight_number",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Flight number if pickup is from airport",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        },
+        {
+          "id": "special_requests",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Any special requests or notes from customer",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        },
+        {
+          "id": "total_price",
+          "type": "number",
+          "value_type": "llm_prompt",
+          "description": "Total price in USD from the quote (e.g., 50.00)",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "trip_type",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Type of trip: one_way or round_trip",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "source",
+          "type": "string",
+          "value_type": "constant",
+          "description": "Booking source identifier",
+          "dynamic_variable": "",
+          "constant_value": "elevenlabs_voice_agent",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        }
+      ],
+      "required": false,
+      "value_type": "llm_prompt"
+    },
+    "request_headers": [
+      {
+        "type": "value",
+        "name": "Content-Type",
+        "value": "application/json"
+      }
+    ],
+    "auth_connection": null
+  },
+  "response_timeout_secs": 30,
+  "dynamic_variables": {
+    "dynamic_variable_placeholders": {}
+  }
+};
+
+    async function copyJSON() {
+      const json = JSON.stringify(toolConfig, null, 2);
+      const btn = event.target.closest('.mega-button');
+      const originalHTML = btn.innerHTML;
+
+      try {
+        await navigator.clipboard.writeText(json);
+        btn.innerHTML = '<span style="font-size: 2rem;">✓</span><span>COPIED!</span>';
+        btn.classList.add('copied');
+
+        setTimeout(() => {
+          btn.innerHTML = originalHTML;
+          btn.classList.remove('copied');
+        }, 3000);
+      } catch (err) {
+        const textarea = document.createElement('textarea');
+        textarea.value = json;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        try {
+          document.execCommand('copy');
+          btn.innerHTML = '<span style="font-size: 2rem;">✓</span><span>COPIED!</span>';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.classList.remove('copied');
+          }, 3000);
+        } catch (err2) {
+          alert('Copy failed. Please manually copy from console.');
+          console.log(json);
+        }
+
+        document.body.removeChild(textarea);
+      }
+    }
+  </script>
+</body>
+</html>

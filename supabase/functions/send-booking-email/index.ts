@@ -232,6 +232,8 @@ const getEmailSubject = (emailType: string, reference: string): string => {
   switch (emailType) {
     case 'confirmation':
       return `Your Booking is Confirmed! - ${reference}`;
+    case 'payment_link':
+      return `Complete Your Payment - ${reference}`;
     case 'reminder':
       return `Reminder: Your Transfer is Tomorrow - ${reference}`;
     case 'completion':

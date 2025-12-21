@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.57.4';
+import Stripe from 'npm:stripe@17.7.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -120,54 +121,94 @@ Deno.serve(async (req: Request) => {
       customer = newCustomer;
     }
 
+    const { data: companySettings } = await supabase
+      .from('company_settings')
+      .select('website_url')
+      .single();
+
+    const websiteUrl = companySettings?.website_url || 'https://dominicantransfers.com';
     const stripeApiKey = Deno.env.get('STRIPE_SECRET_KEY');
-    const websiteUrl = Deno.env.get('WEBSITE_URL') || 'https://dominicantransfers.com';
 
     let checkoutUrl = null;
+    let stripeSessionId = null;
+    let stripeErrorMessage = null;
 
-    if (stripeApiKey && total_price && total_price > 0) {
+    if (!stripeApiKey) {
+      console.error('❌ STRIPE_SECRET_KEY not configured');
+      stripeErrorMessage = 'Payment system not configured';
+    } else if (!total_price || total_price <= 0) {
+      console.error('❌ Invalid total_price:', total_price);
+      stripeErrorMessage = 'Invalid booking amount';
+    } else {
       try {
-        const stripeResponse = await fetch(`${supabaseUrl}/functions/v1/create-booking-checkout`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabaseKey}`
+        console.log('💳 Creating Stripe checkout session inline...');
+        console.log('💰 Amount:', total_price, 'USD');
+
+        const stripe = new Stripe(stripeApiKey, {
+          appInfo: {
+            name: 'Dominican Transfers Voice Booking',
+            version: '1.0.0',
           },
-          body: JSON.stringify({
-            bookingId: booking.id,
-            amount: total_price,
-            currency: 'usd',
-            productName: `Transfer - ${vehicle_name}`,
-            productDescription: `${pickup_location} → ${dropoff_location}`,
-            customerEmail: customer_email,
-            customerName: customer_name || 'Voice Booking Customer',
-            successUrl: `${websiteUrl}/booking-success?session_id={CHECKOUT_SESSION_ID}&booking_id=${booking.id}`,
-            cancelUrl: `${websiteUrl}/booking/${booking.id}`,
-            metadata: {
-              source: 'elevenlabs_voice_agent',
-              booking_reference: booking.reference,
-              trip_type: trip_type || 'one_way'
-            }
-          })
         });
 
-        if (stripeResponse.ok) {
-          const stripeData = await stripeResponse.json();
-          checkoutUrl = stripeData.url;
+        const unitAmount = Math.round(total_price * 100);
 
-          await supabase
-            .from('bookings')
-            .update({
-              stripe_session_id: stripeData.sessionId,
-              payment_url: stripeData.url
-            })
-            .eq('id', booking.id);
-        } else {
-          const errorData = await stripeResponse.json();
-          console.error('Stripe checkout failed:', errorData);
+        if (unitAmount < 50) {
+          throw new Error('Minimum charge amount is $0.50 USD');
         }
-      } catch (stripeError) {
-        console.error('Error creating Stripe checkout:', stripeError);
+
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          line_items: [{
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: `Transfer - ${vehicle_name}`,
+                description: `${pickup_location} → ${dropoff_location}`,
+              },
+              unit_amount: unitAmount,
+            },
+            quantity: 1,
+          }],
+          mode: 'payment',
+          success_url: `${websiteUrl}/booking-success?session_id={CHECKOUT_SESSION_ID}&booking_id=${booking.id}`,
+          cancel_url: `${websiteUrl}/booking/${booking.id}`,
+          customer_email: customer_email,
+          metadata: {
+            booking_id: booking.id,
+            booking_reference: booking.reference,
+            customer_email: customer_email,
+            customer_name: customer_name || 'Voice Customer',
+            amount: total_price.toString(),
+            currency: 'usd',
+            source: 'elevenlabs_voice_agent',
+            trip_type: trip_type || 'one_way'
+          },
+        });
+
+        checkoutUrl = session.url;
+        stripeSessionId = session.id;
+
+        console.log('✅ Stripe session created:', stripeSessionId);
+        console.log('💳 Payment URL:', checkoutUrl);
+
+        const { error: updateError } = await supabase
+          .from('bookings')
+          .update({
+            stripe_session_id: stripeSessionId,
+            payment_url: checkoutUrl,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', booking.id);
+
+        if (updateError) {
+          console.error('❌ Failed to update booking with Stripe session:', updateError);
+        } else {
+          console.log('✅ Booking updated with payment URL');
+        }
+      } catch (stripeError: any) {
+        console.error('❌ Stripe checkout error:', stripeError);
+        stripeErrorMessage = stripeError.message || 'Payment system error';
       }
     }
 
@@ -194,6 +235,10 @@ Deno.serve(async (req: Request) => {
       console.error('Error sending booking email:', emailError);
     }
 
+    const responseMessage = checkoutUrl
+      ? `Booking ${booking.reference} created successfully! A confirmation email with payment link has been sent to ${customer_email}`
+      : `Booking ${booking.reference} created! ${stripeErrorMessage ? 'Payment link will be sent separately. Error: ' + stripeErrorMessage : 'Payment link will be sent via email.'}`;
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -209,10 +254,12 @@ Deno.serve(async (req: Request) => {
           status: booking.status,
           payment_status: booking.payment_status
         },
-        message: `Booking ${booking.reference} created successfully! A confirmation email with payment link has been sent to ${customer_email}`,
+        message: responseMessage,
         payment_required: true,
-        payment_url: checkoutUrl || `${websiteUrl}/booking/${booking.id}`,
-        checkout_url: checkoutUrl
+        payment_url: checkoutUrl || null,
+        stripe_session_id: stripeSessionId || null,
+        payment_link_generated: !!checkoutUrl,
+        stripe_error: stripeErrorMessage
       }),
       {
         headers: {

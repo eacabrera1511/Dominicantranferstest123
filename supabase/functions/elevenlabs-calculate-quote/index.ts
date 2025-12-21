@@ -22,11 +22,13 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const body = await req.json();
-    const { origin, destination, passengers, luggage, trip_type } = body;
+    const origin = body.origin || body.pickup_location;
+    const destination = body.destination || body.dropoff_location;
+    const { passengers, luggage, trip_type } = body;
 
     if (!origin || !destination) {
       return new Response(
-        JSON.stringify({ error: 'Origin and destination are required' }),
+        JSON.stringify({ error: 'Origin/pickup_location and destination/dropoff_location are required' }),
         {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

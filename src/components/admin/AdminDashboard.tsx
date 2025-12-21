@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, DollarSign, LogOut,
   Menu, X, ChevronRight, Shield, Users, Car, UserCog, Calendar,
-  UsersIcon, MapPin, Navigation, Instagram, MessageSquare, AlertTriangle, Settings, Database
+  UsersIcon, MapPin, Navigation, Instagram, MessageSquare, AlertTriangle, Settings, Database, Search, Eye
 } from 'lucide-react';
 import { AdminLogin } from './AdminLogin';
 import { AdminOverview } from './AdminOverview';
+import AdminConversionAudit from './AdminConversionAudit';
+import LiveVisitors from './LiveVisitors';
 import { AdminFinancials } from './AdminFinancials';
 import { AdminFleet } from './AdminFleet';
 import { AdminDrivers } from './AdminDrivers';
@@ -30,7 +32,7 @@ interface AdminDashboardProps {
   onExit: () => void;
 }
 
-type TabType = 'overview' | 'bookings' | 'dispatch' | 'fleet' | 'drivers' | 'customers' | 'pricing' | 'financials' | 'reels' | 'chat' | 'troubleshooting' | 'settings' | 'rag';
+type TabType = 'overview' | 'live' | 'conversions' | 'bookings' | 'dispatch' | 'fleet' | 'drivers' | 'customers' | 'pricing' | 'financials' | 'reels' | 'chat' | 'troubleshooting' | 'settings' | 'rag';
 
 export function AdminDashboard({ onExit }: AdminDashboardProps) {
   const [admin, setAdmin] = useState<AdminUser | null>(null);
@@ -58,6 +60,8 @@ export function AdminDashboard({ onExit }: AdminDashboardProps) {
 
   const navItems = [
     { id: 'overview' as TabType, label: 'Overview', icon: LayoutDashboard },
+    { id: 'live' as TabType, label: 'Live Visitors', icon: Eye },
+    { id: 'conversions' as TabType, label: 'Conversion Audit', icon: Search },
     { id: 'bookings' as TabType, label: 'Bookings', icon: Calendar },
     { id: 'dispatch' as TabType, label: 'Live Dispatch', icon: Navigation },
     { id: 'fleet' as TabType, label: 'Fleet', icon: Car },
@@ -216,6 +220,8 @@ export function AdminDashboard({ onExit }: AdminDashboardProps) {
 
         <main className="flex-1 ml-64 p-6">
           {activeTab === 'overview' && <AdminOverview />}
+          {activeTab === 'live' && <LiveVisitors />}
+          {activeTab === 'conversions' && <AdminConversionAudit />}
           {activeTab === 'bookings' && <AdminBookings />}
           {activeTab === 'dispatch' && <AdminDispatch />}
           {activeTab === 'fleet' && <AdminFleet />}
@@ -233,6 +239,8 @@ export function AdminDashboard({ onExit }: AdminDashboardProps) {
 
       <div className="lg:hidden pt-16 p-4">
         {activeTab === 'overview' && <AdminOverview />}
+        {activeTab === 'live' && <LiveVisitors />}
+        {activeTab === 'conversions' && <AdminConversionAudit />}
         {activeTab === 'bookings' && <AdminBookings />}
         {activeTab === 'dispatch' && <AdminDispatch />}
         {activeTab === 'fleet' && <AdminFleet />}

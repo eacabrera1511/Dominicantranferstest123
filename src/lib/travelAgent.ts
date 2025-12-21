@@ -1760,19 +1760,33 @@ export class TravelAgent {
 
             for (const property of matchingProperties) {
               const propertyNameLower = property.hotel_name.toLowerCase();
-              const propertyParts = propertyNameLower.split(' ');
 
-              const hasAllPropertyParts = propertyParts.every(part =>
-                part.length > 2 && lowerQuery.includes(part)
-              );
-
-              if (hasAllPropertyParts || lowerQuery.includes(propertyNameLower)) {
+              if (lowerQuery.includes(propertyNameLower)) {
                 hasExactPropertyMatch = true;
                 break;
               }
 
+              const propertyParts = propertyNameLower.split(' ').filter(part =>
+                part.length > 2 && !keywords.some(k => k.toLowerCase() === part)
+              );
+
+              if (propertyParts.length > 0) {
+                const hasAllNonBrandParts = propertyParts.every(part =>
+                  lowerQuery.includes(part)
+                );
+
+                if (hasAllNonBrandParts) {
+                  hasExactPropertyMatch = true;
+                  break;
+                }
+              }
+
               for (const searchTerm of property.search_terms) {
-                if (lowerQuery.includes(searchTerm.toLowerCase())) {
+                const searchTermLower = searchTerm.toLowerCase();
+
+                const isGenericBrandTerm = keywords.some(k => searchTermLower === k.toLowerCase());
+
+                if (!isGenericBrandTerm && lowerQuery.includes(searchTermLower)) {
                   hasExactPropertyMatch = true;
                   break;
                 }

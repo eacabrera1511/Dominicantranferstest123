@@ -1,12 +1,21 @@
 # Multi-Property Brand Disambiguation System - Complete Implementation
 
-## Date: December 21, 2024
+## Date: December 21, 2024 - FINAL FIX
 
 ---
 
 ## ✅ System Overview
 
 The booking system now **automatically detects multi-property brands** and prompts users to select which specific property they want when the brand name is ambiguous.
+
+### 🔧 Critical Bug Fix Applied
+**Issue:** Generic brand keywords (like "dreams", "riu", "secrets") in search_terms caused false matches
+**Fix:**
+1. Removed generic brand keywords from all search_terms in database
+2. Enhanced brand detection logic to ignore generic brand terms when matching
+3. Only specific property identifiers remain in search_terms
+
+**Result:** Saying just "Dreams" now correctly asks which Dreams property, instead of defaulting to one.
 
 ---
 
@@ -551,8 +560,68 @@ System: [Proceeds with $25 pricing]
 
 ## Files Modified
 
-1. `src/lib/travelAgent.ts` - Enhanced brand detection logic
+1. `src/lib/travelAgent.ts` - Enhanced brand detection logic to ignore generic brand keywords
 2. `supabase/migrations/add_comprehensive_zone_and_sdq_pricing.sql` - Added all zone pricing
+3. `supabase/migrations/fix_generic_brand_search_terms.sql` - Cleaned up generic keywords from search_terms
+
+---
+
+## 🔧 Bug Fix Details - Final Implementation
+
+### The Problem
+When users said "I'm going to Dreams" or "Transfer to RIU", the system was incorrectly matching to a specific property instead of asking for disambiguation. This was because:
+1. Each property had the generic brand keyword in its search_terms (e.g., "dreams", "riu")
+2. The matching logic didn't distinguish between generic brand keywords and specific property identifiers
+
+### The Solution - Two-Part Fix
+
+#### Part 1: Database Cleanup
+**Migration:** `fix_generic_brand_search_terms.sql`
+
+Removed generic brand keywords from search_terms for all multi-property brands:
+
+**Before:**
+- Dreams Cap Cana: `["dreams cap cana", "dreams", "dreams"]`
+- Dreams Royal Beach: `["dreams royal beach", "dreams royal", "dreams"]`
+
+**After:**
+- Dreams Cap Cana: `["dreams cap cana"]`
+- Dreams Royal Beach: `["dreams royal beach", "dreams royal"]`
+
+#### Part 2: Code Enhancement
+**File:** `src/lib/travelAgent.ts` → `checkBrandResolution()`
+
+**Enhanced Logic:**
+1. Filter out brand keywords when checking property parts
+2. Only match search terms that are MORE SPECIFIC than the brand keyword
+3. Ignore generic brand terms like "dreams", "riu", "secrets" when they appear alone
+
+**Code Example:**
+```typescript
+// Filter out brand keywords from property name parts
+const propertyParts = propertyNameLower.split(' ').filter(part =>
+  part.length > 2 && !keywords.some(k => k.toLowerCase() === part)
+);
+
+// Ignore generic brand terms in search_terms
+const isGenericBrandTerm = keywords.some(k => searchTermLower === k.toLowerCase());
+if (!isGenericBrandTerm && lowerQuery.includes(searchTermLower)) {
+  hasExactPropertyMatch = true;
+}
+```
+
+### Test Results - All Fixed ✅
+
+| User Input | Expected Behavior | Status |
+|------------|-------------------|--------|
+| "Dreams" | Ask which Dreams property | ✅ FIXED |
+| "Dreams 4 adults" | Ask which Dreams property | ✅ FIXED |
+| "Dreams Punta Cana" | Ask which Dreams property | ✅ FIXED |
+| "Dreams Cap Cana" | Proceed with Dreams Cap Cana | ✅ WORKING |
+| "Dreams Royal Beach" | Proceed with Dreams Royal Beach | ✅ WORKING |
+| "RIU" | Ask which RIU property | ✅ FIXED |
+| "Secrets" | Ask which Secrets property | ✅ FIXED |
+| "Bahia Principe" | Ask which Bahia property | ✅ FIXED |
 
 ---
 
@@ -561,7 +630,8 @@ System: [Proceeds with $25 pricing]
 - **70/70 hotels** have pricing ✅
 - **15/15 multi-property brands** have disambiguation ✅
 - **5/5 zones** have complete pricing coverage ✅
+- **Generic brand keyword bug:** FIXED ✅
 - **Build status:** SUCCESSFUL ✅
 - **TypeScript errors:** NONE ✅
 
-**The system is now production-ready for all multi-property hotels with accurate pricing!** 🎉
+**The system is now production-ready for all multi-property hotels with accurate pricing AND correct disambiguation!** 🎉

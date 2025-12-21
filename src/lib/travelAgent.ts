@@ -63,6 +63,7 @@ type BookingStep =
   | 'IDLE'
   | 'AWAITING_AIRPORT'
   | 'AWAITING_HOTEL'
+  | 'AWAITING_PROPERTY_RESOLUTION'
   | 'AWAITING_PASSENGERS'
   | 'AWAITING_LUGGAGE'
   | 'AWAITING_VEHICLE_SELECTION'
@@ -74,6 +75,10 @@ interface BookingContext {
   airport?: string;
   hotel?: string;
   region?: string;
+  resort_property_id?: string;
+  property_resolved?: boolean;
+  pending_brand?: string;
+  pending_properties?: HotelZone[];
   vehicle?: string;
   passengers?: number;
   suitcases?: number;
@@ -163,6 +168,8 @@ interface HotelZone {
   zone_name: string;
   search_terms: string[];
   is_active: boolean;
+  brand_name?: string;
+  requires_resolution?: boolean;
 }
 
 export class TravelAgent {
@@ -359,7 +366,10 @@ export class TravelAgent {
           response = this.handleAirportInput(query);
           break;
         case 'AWAITING_HOTEL':
-          response = this.handleHotelInput(query);
+          response = await this.handleHotelInput(query);
+          break;
+        case 'AWAITING_PROPERTY_RESOLUTION':
+          response = this.handlePropertyResolution(query);
           break;
         case 'AWAITING_PASSENGERS':
           response = this.handlePassengersInput(query);
@@ -641,6 +651,8 @@ export class TravelAgent {
         return ['PUJ - Punta Cana', 'SDQ - Santo Domingo', 'LRM - La Romana', 'Ask a question'];
       case 'AWAITING_HOTEL':
         return ['Hard Rock Hotel', 'Iberostar Bavaro', 'Dreams Macao', 'Ask a question'];
+      case 'AWAITING_PROPERTY_RESOLUTION':
+        return this.context.pending_properties?.slice(0, 4).map(p => p.hotel_name) || ['Ask a question'];
       case 'AWAITING_PASSENGERS':
         return ['1 passenger', '2 passengers', '3-4 passengers', 'Ask a question'];
       case 'AWAITING_LUGGAGE':
@@ -668,6 +680,8 @@ export class TravelAgent {
     if (hotelMatch) {
       region = hotelMatch.zone_name;
       hotelName = hotelMatch.hotel_name;
+      this.context.resort_property_id = hotelMatch.id;
+      this.context.property_resolved = true;
     } else {
       region = this.detectRegionFromQuery(query);
       if (region) {
@@ -1239,12 +1253,29 @@ export class TravelAgent {
     };
   }
 
-  private handleHotelInput(query: string): AgentResponse {
+  private async handleHotelInput(query: string): Promise<AgentResponse> {
+    const brandCheck = await this.checkBrandResolution(query);
+
+    if (brandCheck.requiresResolution && brandCheck.properties) {
+      this.context.step = 'AWAITING_PROPERTY_RESOLUTION';
+      this.context.pending_brand = brandCheck.brand;
+      this.context.pending_properties = brandCheck.properties;
+
+      const propertyNames = brandCheck.properties.map(p => `${p.hotel_name} (${p.zone_name})`).join('\n• ');
+
+      return {
+        message: `I found multiple ${brandCheck.brand?.toUpperCase()} properties in the Dominican Republic. Which one are you going to?\n\n• ${propertyNames}\n\nPlease select one of the properties above.`,
+        suggestions: brandCheck.properties.slice(0, 4).map(p => p.hotel_name)
+      };
+    }
+
     const hotelMatch = this.findHotelInDatabase(query);
 
     if (hotelMatch) {
       this.context.hotel = hotelMatch.hotel_name;
       this.context.region = hotelMatch.zone_name;
+      this.context.resort_property_id = hotelMatch.id;
+      this.context.property_resolved = true;
       this.context.step = 'AWAITING_PASSENGERS';
       return this.askForPassengers();
     }
@@ -1284,6 +1315,38 @@ export class TravelAgent {
     return {
       message: "Where will you be staying? You can tell me your hotel name, address, or the general area.",
       suggestions: ['Hard Rock Hotel', 'Iberostar Bavaro', 'Dreams Macao', 'My hotel is not listed']
+    };
+  }
+
+  private handlePropertyResolution(query: string): AgentResponse {
+    if (!this.context.pending_properties) {
+      return {
+        message: "I'm sorry, there was an error. Please tell me your hotel name again.",
+        suggestions: ['Hard Rock Hotel', 'Dreams Macao', 'RIU Palace Bavaro']
+      };
+    }
+
+    const lowerQuery = query.toLowerCase();
+
+    for (const property of this.context.pending_properties) {
+      if (lowerQuery.includes(property.hotel_name.toLowerCase()) ||
+          property.search_terms.some(term => lowerQuery.includes(term.toLowerCase()))) {
+        this.context.hotel = property.hotel_name;
+        this.context.region = property.zone_name;
+        this.context.resort_property_id = property.id;
+        this.context.property_resolved = true;
+        this.context.step = 'AWAITING_PASSENGERS';
+        this.context.pending_brand = undefined;
+        this.context.pending_properties = undefined;
+
+        return this.askForPassengers();
+      }
+    }
+
+    const propertyNames = this.context.pending_properties.map(p => `${p.hotel_name} (${p.zone_name})`).join('\n• ');
+    return {
+      message: `I didn't recognize that property. Please select one of these ${this.context.pending_brand?.toUpperCase()} properties:\n\n• ${propertyNames}`,
+      suggestions: this.context.pending_properties.slice(0, 4).map(p => p.hotel_name)
     };
   }
 
@@ -1667,14 +1730,50 @@ export class TravelAgent {
     this.context.price = calculatedPrice;
   }
 
+  private async checkBrandResolution(query: string): Promise<{ requiresResolution: boolean; brand?: string; properties?: HotelZone[] }> {
+    const multiBrandKeywords = [
+      'bahia principe', 'bahia', 'riu', 'barcelo', 'barceló', 'iberostar',
+      'palladium', 'grand palladium', 'trs', 'dreams', 'secrets',
+      'excellence', 'melia', 'meliá', 'paradisus', 'occidental',
+      'catalonia', 'royalton', 'lopesan', 'majestic', 'viva wyndham', 'nickelodeon'
+    ];
+
+    const lowerQuery = query.toLowerCase();
+
+    for (const keyword of multiBrandKeywords) {
+      if (lowerQuery.includes(keyword)) {
+        const matchingProperties = this.hotelZones.filter(h =>
+          h.brand_name?.toLowerCase().includes(keyword) ||
+          h.search_terms.some(term => term.toLowerCase() === keyword)
+        );
+
+        if (matchingProperties.length > 1) {
+          const hasSpecificProperty = matchingProperties.some(h =>
+            lowerQuery.includes(h.hotel_name.toLowerCase())
+          );
+
+          if (!hasSpecificProperty) {
+            return {
+              requiresResolution: true,
+              brand: keyword,
+              properties: matchingProperties
+            };
+          }
+        }
+      }
+    }
+
+    return { requiresResolution: false };
+  }
+
   private findHotelInDatabase(query: string): HotelZone | null {
     const lowerQuery = query.toLowerCase();
 
     for (const hotel of this.hotelZones) {
-      if (hotel.search_terms.some(term => lowerQuery.includes(term.toLowerCase()))) {
+      if (lowerQuery.includes(hotel.hotel_name.toLowerCase())) {
         return hotel;
       }
-      if (lowerQuery.includes(hotel.hotel_name.toLowerCase())) {
+      if (hotel.search_terms.some(term => lowerQuery.includes(term.toLowerCase()))) {
         return hotel;
       }
     }

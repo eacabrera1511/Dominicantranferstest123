@@ -125,9 +125,9 @@ Deno.serve(async (req: Request) => {
 
     let checkoutUrl = null;
 
-    if (stripeApiKey) {
+    if (stripeApiKey && total_price && total_price > 0) {
       try {
-        const stripeResponse = await fetch(`${supabaseUrl}/functions/v1/stripe-checkout`, {
+        const stripeResponse = await fetch(`${supabaseUrl}/functions/v1/create-booking-checkout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -135,10 +135,19 @@ Deno.serve(async (req: Request) => {
           },
           body: JSON.stringify({
             bookingId: booking.id,
-            amount: total_price || 50,
+            amount: total_price,
             currency: 'usd',
+            productName: `Transfer - ${vehicle_name}`,
+            productDescription: `${pickup_location} → ${dropoff_location}`,
             customerEmail: customer_email,
-            customerName: customer_name || 'Voice Booking Customer'
+            customerName: customer_name || 'Voice Booking Customer',
+            successUrl: `${websiteUrl}/booking-success?session_id={CHECKOUT_SESSION_ID}&booking_id=${booking.id}`,
+            cancelUrl: `${websiteUrl}/booking/${booking.id}`,
+            metadata: {
+              source: 'elevenlabs_voice_agent',
+              booking_reference: booking.reference,
+              trip_type: trip_type || 'one_way'
+            }
           })
         });
 
@@ -153,6 +162,9 @@ Deno.serve(async (req: Request) => {
               payment_url: stripeData.url
             })
             .eq('id', booking.id);
+        } else {
+          const errorData = await stripeResponse.json();
+          console.error('Stripe checkout failed:', errorData);
         }
       } catch (stripeError) {
         console.error('Error creating Stripe checkout:', stripeError);
@@ -160,24 +172,24 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
-      await fetch(`${supabaseUrl}/functions/v1/send-booking-email`, {
+      const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-booking-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${supabaseKey}`
         },
         body: JSON.stringify({
-          booking_id: booking.id,
-          customer_email,
-          booking_reference: booking.reference,
-          pickup_location,
-          dropoff_location,
-          pickup_datetime,
-          vehicle_type: vehicle_name || 'Sedan',
-          total_price: total_price || 0,
-          payment_url: checkoutUrl
+          bookingId: booking.id,
+          emailType: 'confirmation'
         })
       });
+
+      if (!emailResponse.ok) {
+        const emailErrorData = await emailResponse.json();
+        console.error('Email sending failed:', emailErrorData);
+      } else {
+        console.log('Confirmation email sent successfully');
+      }
     } catch (emailError) {
       console.error('Error sending booking email:', emailError);
     }

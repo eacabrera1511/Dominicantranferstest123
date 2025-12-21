@@ -1,0 +1,192 @@
+{
+  "type": "webhook",
+  "name": "create_booking",
+  "description": "Create a new transfer booking in the system. This will automatically create the booking in the database, generate a Stripe payment checkout link, and send a confirmation email with the payment link to the customer. CRITICAL: Only call this tool after you have confirmed ALL booking details with the customer and received explicit confirmation to proceed. Required information: customer name, email, phone, pickup location, dropoff location, date and time, vehicle selection, and total price.",
+  "disable_interruptions": true,
+  "force_pre_tool_speech": "force",
+  "assignments": [],
+  "tool_call_sound": null,
+  "tool_call_sound_behavior": "auto",
+  "execution_mode": "post_tool_speech",
+  "api_schema": {
+    "url": "https://gwlaxeonvfywhecwtupv.supabase.co/functions/v1/elevenlabs-create-booking",
+    "method": "POST",
+    "path_params_schema": [],
+    "query_params_schema": [],
+    "request_body_schema": {
+      "id": "body",
+      "type": "object",
+      "description": "This field instructs the LLM on how to extract all relevant booking information from the conversation transcript. It should identify and capture customer details (name, email, phone), pickup and dropoff locations, date and time, number of passengers, vehicle selection, flight number (if applicable), special requests, trip type, and total price. Include all information only after the customer has confirmed the details.",
+      "properties": [
+        {
+          "id": "customer_name",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Full name of the customer",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "customer_email",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Email address of the customer (must be valid email format)",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "customer_phone",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Phone number with country code",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        },
+        {
+          "id": "pickup_location",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Detailed pickup location (e.g., PUJ Airport)",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "dropoff_location",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Detailed dropoff location (e.g., Hard Rock Hotel Punta Cana)",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "pickup_datetime",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "ISO 8601 datetime for pickup (e.g., 2024-12-25T14:30:00Z)",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "passengers",
+          "type": "number",
+          "value_type": "llm_prompt",
+          "description": "Number of passengers",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        },
+        {
+          "id": "vehicle_type_id",
+          "type": "number",
+          "value_type": "llm_prompt",
+          "description": "ID of the selected vehicle type from get_vehicles tool response",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "vehicle_name",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Name of the selected vehicle (e.g., Sedan, SUV)",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "flight_number",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Flight number if pickup is from airport",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "special_requests",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Any special requests or notes from customer",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": false
+        },
+        {
+          "id": "total_price",
+          "type": "number",
+          "value_type": "llm_prompt",
+          "description": "Total price in USD from the quote (e.g., 50.00)",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "trip_type",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Type of trip: one_way or round_trip",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        },
+        {
+          "id": "source",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Booking source identifier",
+          "dynamic_variable": "",
+          "constant_value": "",
+          "enum": null,
+          "is_system_provided": false,
+          "required": true
+        }
+      ],
+      "required": false,
+      "value_type": "llm_prompt"
+    },
+    "request_headers": [
+      {
+        "type": "value",
+        "name": "Content-Type",
+        "value": "application/json"
+      }
+    ],
+    "auth_connection": null
+  },
+  "response_timeout_secs": 30,
+  "dynamic_variables": {
+    "dynamic_variable_placeholders": {}
+  }
+}

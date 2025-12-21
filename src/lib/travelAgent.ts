@@ -320,13 +320,11 @@ export class TravelAgent {
       }
 
       if (this.isFAQQuery(query)) {
-        const response = this.handleFAQ(query);
-        return this.addBookingContextToResponse(response);
+        return this.handleFAQ(query);
       }
 
       if (this.isGeneralQuestion(query)) {
-        const response = await this.handleGeneralQuestion(originalMessage);
-        return this.addBookingContextToResponse(response);
+        return await this.handleGeneralQuestion(originalMessage);
       }
 
       if (query.includes('continue') || query.includes('resume') || query.includes('back to booking') || query.includes('proceed')) {
@@ -392,15 +390,13 @@ export class TravelAgent {
       }
 
       if (!response || !response.message || response.message === 'undefined' || response.message.includes('undefined')) {
-        const gptResponse = await this.handleGeneralQuestion(originalMessage);
-        return this.addBookingContextToResponse(gptResponse);
+        return await this.handleGeneralQuestion(originalMessage);
       }
 
       return response;
     } catch (error) {
       console.error('Error in handleBookingFlow:', error);
-      const gptResponse = await this.handleGeneralQuestion(originalMessage);
-      return this.addBookingContextToResponse(gptResponse);
+      return await this.handleGeneralQuestion(originalMessage);
     }
   }
 

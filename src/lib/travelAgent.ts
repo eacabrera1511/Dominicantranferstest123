@@ -1727,33 +1727,67 @@ export class TravelAgent {
   }
 
   private async checkBrandResolution(query: string): Promise<{ requiresResolution: boolean; brand?: string; properties?: HotelZone[] }> {
-    const multiBrandKeywords = [
-      'bahia principe', 'bahia', 'riu', 'barcelo', 'barceló', 'iberostar',
-      'palladium', 'grand palladium', 'trs', 'dreams', 'secrets',
-      'excellence', 'melia', 'meliá', 'paradisus', 'occidental',
-      'catalonia', 'royalton', 'lopesan', 'majestic', 'viva wyndham', 'nickelodeon'
-    ];
-
     const lowerQuery = query.toLowerCase();
 
-    for (const keyword of multiBrandKeywords) {
-      if (lowerQuery.includes(keyword)) {
-        const matchingProperties = this.hotelZones.filter(h =>
-          h.brand_name?.toLowerCase().includes(keyword) ||
-          h.search_terms.some(term => term.toLowerCase() === keyword)
-        );
+    const brandMappings: Record<string, string[]> = {
+      'Bahia Principe': ['bahia principe', 'bahia'],
+      'Dreams Resorts & Spa': ['dreams'],
+      'Secrets Resorts & Spas': ['secrets'],
+      'RIU Hotels & Resorts': ['riu'],
+      'Barceló Hotels & Resorts': ['barcelo', 'barceló'],
+      'Iberostar Hotels & Resorts': ['iberostar'],
+      'Palladium Hotel Group': ['palladium', 'grand palladium', 'trs'],
+      'Excellence Collection': ['excellence'],
+      'Meliá Hotels International': ['melia', 'meliá', 'paradisus'],
+      'Occidental Hotels & Resorts': ['occidental'],
+      'Catalonia Hotels & Resorts': ['catalonia'],
+      'Royalton': ['royalton'],
+      'Lopesan': ['lopesan'],
+      'Majestic Resorts': ['majestic'],
+      'Viva Wyndham': ['viva wyndham', 'viva'],
+      'Nickelodeon Hotels & Resorts': ['nickelodeon']
+    };
 
-        if (matchingProperties.length > 1) {
-          const hasSpecificProperty = matchingProperties.some(h =>
-            lowerQuery.includes(h.hotel_name.toLowerCase())
+    for (const [brandName, keywords] of Object.entries(brandMappings)) {
+      for (const keyword of keywords) {
+        if (lowerQuery.includes(keyword)) {
+          const matchingProperties = this.hotelZones.filter(h =>
+            h.brand_name === brandName && h.is_active
           );
 
-          if (!hasSpecificProperty) {
-            return {
-              requiresResolution: true,
-              brand: keyword,
-              properties: matchingProperties
-            };
+          if (matchingProperties.length > 1) {
+            let hasExactPropertyMatch = false;
+
+            for (const property of matchingProperties) {
+              const propertyNameLower = property.hotel_name.toLowerCase();
+              const propertyParts = propertyNameLower.split(' ');
+
+              const hasAllPropertyParts = propertyParts.every(part =>
+                part.length > 2 && lowerQuery.includes(part)
+              );
+
+              if (hasAllPropertyParts || lowerQuery.includes(propertyNameLower)) {
+                hasExactPropertyMatch = true;
+                break;
+              }
+
+              for (const searchTerm of property.search_terms) {
+                if (lowerQuery.includes(searchTerm.toLowerCase())) {
+                  hasExactPropertyMatch = true;
+                  break;
+                }
+              }
+
+              if (hasExactPropertyMatch) break;
+            }
+
+            if (!hasExactPropertyMatch) {
+              return {
+                requiresResolution: true,
+                brand: brandName,
+                properties: matchingProperties.sort((a, b) => a.hotel_name.localeCompare(b.hotel_name))
+              };
+            }
           }
         }
       }

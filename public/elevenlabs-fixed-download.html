@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fixed ElevenLabs Create Booking Tool</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      color: #667eea;
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 20px;
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .status-icon {
+      font-size: 32px;
+    }
+
+    .status-text h3 {
+      color: #155724;
+      margin-bottom: 5px;
+    }
+
+    .status-text p {
+      color: #155724;
+      font-size: 0.9rem;
+    }
+
+    .issue-box {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .issue-box h3 {
+      color: #856404;
+      margin-bottom: 15px;
+    }
+
+    .issue-box ul {
+      margin-left: 20px;
+      color: #856404;
+    }
+
+    .issue-box li {
+      margin-bottom: 8px;
+    }
+
+    .fix-box {
+      background: #d1ecf1;
+      border-left: 4px solid #17a2b8;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .fix-box h3 {
+      color: #0c5460;
+      margin-bottom: 15px;
+    }
+
+    .fix-box ul {
+      margin-left: 20px;
+      color: #0c5460;
+    }
+
+    .fix-box li {
+      margin-bottom: 8px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      flex: 1;
+      min-width: 200px;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #218838;
+      transform: translateY(-2px);
+    }
+
+    .btn-success.copied {
+      background: #17a2b8;
+    }
+
+    .json-preview {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 20px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .instructions {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 8px;
+    }
+
+    .instructions h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .instructions ol {
+      margin-left: 20px;
+      line-height: 1.8;
+    }
+
+    .instructions li {
+      margin-bottom: 10px;
+    }
+
+    .code {
+      background: #e9ecef;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9em;
+    }
+
+    @media (max-width: 768px) {
+      .card {
+        padding: 25px;
+      }
+
+      .buttons {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <h1>✅ Create Booking Tool - Fixed</h1>
+        <p>Ready to paste into ElevenLabs</p>
+      </div>
+
+      <div class="status">
+        <span class="status-icon">✅</span>
+        <div class="status-text">
+          <h3>JSON Schema Fixed</h3>
+          <p>Properties converted from array to object format</p>
+        </div>
+      </div>
+
+      <div class="issue-box">
+        <h3>🔧 What Was Wrong</h3>
+        <ul>
+          <li><strong>Properties as Array:</strong> ElevenLabs expects <code>properties</code> as an object, not an array</li>
+          <li><strong>Custom Fields:</strong> Fields like <code>id</code>, <code>value_type</code>, <code>required</code> inside properties are not standard JSON Schema</li>
+          <li><strong>Required Array:</strong> Required fields should be in a separate <code>required</code> array at the schema level</li>
+          <li><strong>Constant Values:</strong> Using <code>const</code> instead of custom <code>constant_value</code> field</li>
+        </ul>
+      </div>
+
+      <div class="fix-box">
+        <h3>✨ What Was Fixed</h3>
+        <ul>
+          <li>Converted <code>properties</code> from array to proper JSON Schema object format</li>
+          <li>Moved <code>required</code> fields to top-level <code>required</code> array</li>
+          <li>Changed <code>source</code> field to use standard <code>const</code> for constant value</li>
+          <li>Removed non-standard fields (<code>id</code>, <code>value_type</code>)</li>
+          <li>Kept all descriptions and field types intact</li>
+        </ul>
+      </div>
+
+      <div class="buttons">
+        <a href="elevenlabs-tool-3-create-booking-fixed.json" download class="btn btn-primary">
+          <span>📥</span> Download Fixed JSON
+        </a>
+        <button class="btn btn-success" onclick="copyJSON()">
+          <span>📋</span> Copy to Clipboard
+        </button>
+      </div>
+
+      <h3 style="margin-bottom: 15px; color: #667eea;">JSON Preview:</h3>
+      <div class="json-preview" id="jsonPreview"></div>
+
+      <div class="instructions">
+        <h3>📋 How to Use in ElevenLabs</h3>
+        <ol>
+          <li>Click <strong>"Copy to Clipboard"</strong> or download the JSON file</li>
+          <li>Go to your <strong>ElevenLabs Agent Dashboard</strong></li>
+          <li>Navigate to the <strong>Tools</strong> section</li>
+          <li>Click <strong>"Add Tool"</strong> or edit existing <span class="code">create_booking</span> tool</li>
+          <li><strong>Paste</strong> this JSON configuration</li>
+          <li>Click <strong>"Save"</strong></li>
+          <li>Test with: <em>"Book a transfer from PUJ to Hard Rock Hotel for 4 people"</em></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const fixedConfig = {
+  "type": "webhook",
+  "name": "create_booking",
+  "description": "Create a new transfer booking in the system. This will automatically: 1) Create the booking in the database, 2) Generate a Stripe payment checkout link, 3) Send a confirmation email with the payment link to the customer. CRITICAL: Only call this tool after you have confirmed ALL booking details with the customer and received explicit confirmation to proceed. Do not call this tool until the customer has agreed to the booking.",
+  "disable_interruptions": true,
+  "force_pre_tool_speech": "force",
+  "execution_mode": "post_tool_speech",
+  "api_schema": {
+    "url": "https://gwlaxeonvfywhecwtupv.supabase.co/functions/v1/elevenlabs-create-booking",
+    "method": "POST",
+    "request_body_schema": {
+      "type": "object",
+      "description": "Extract all booking information from the conversation after customer confirmation. Required: customer name, email, pickup location, dropoff location, pickup datetime, vehicle selection, total price, and trip type. Optional: phone, flight number, special requests.",
+      "properties": {
+        "customer_name": {
+          "type": "string",
+          "description": "Full name of the customer (first and last name)"
+        },
+        "customer_email": {
+          "type": "string",
+          "description": "Email address of the customer (must be valid email format). The payment link and booking confirmation will be sent to this email."
+        },
+        "customer_phone": {
+          "type": "string",
+          "description": "Phone number with country code (e.g., '+1 555-123-4567'). Optional but recommended."
+        },
+        "pickup_location": {
+          "type": "string",
+          "description": "Detailed pickup location (e.g., 'Punta Cana International Airport (PUJ)', 'Hard Rock Hotel Punta Cana')"
+        },
+        "dropoff_location": {
+          "type": "string",
+          "description": "Detailed dropoff location (e.g., 'Dreams Cap Cana Resort', 'Santo Domingo Airport (SDQ)')"
+        },
+        "pickup_datetime": {
+          "type": "string",
+          "description": "ISO 8601 datetime for pickup (e.g., '2024-12-25T14:30:00Z'). Include timezone. Ask the customer for their arrival date and time."
+        },
+        "passengers": {
+          "type": "number",
+          "description": "Number of passengers traveling (default: 1)"
+        },
+        "vehicle_type_id": {
+          "type": "string",
+          "description": "ID of the selected vehicle type from calculate_quote response (e.g., vehicle_id from the quote). This is required to track which vehicle was selected."
+        },
+        "vehicle_name": {
+          "type": "string",
+          "description": "Name of the selected vehicle from the quote (e.g., 'Sedan', 'SUV', 'Minivan', 'Suburban')"
+        },
+        "flight_number": {
+          "type": "string",
+          "description": "Flight number if pickup is from airport (e.g., 'AA1234', 'DL5678'). Optional - only ask if pickup is from an airport."
+        },
+        "special_requests": {
+          "type": "string",
+          "description": "Any special requests, notes, or requirements from the customer (e.g., 'Need child seat', 'Wheelchair accessible', 'Extra luggage space'). Optional."
+        },
+        "total_price": {
+          "type": "number",
+          "description": "Total price in USD from the calculate_quote response (e.g., 50.00). This exact amount will be charged via Stripe."
+        },
+        "trip_type": {
+          "type": "string",
+          "description": "Type of trip: 'one_way' or 'round_trip'. Must match what was used in the quote."
+        },
+        "source": {
+          "type": "string",
+          "description": "Source of the booking - always set to 'elevenlabs_voice_agent'",
+          "const": "elevenlabs_voice_agent"
+        }
+      },
+      "required": ["customer_name", "customer_email", "pickup_location", "dropoff_location", "pickup_datetime", "vehicle_type_id", "vehicle_name", "total_price", "trip_type", "source"]
+    },
+    "request_headers": [
+      {
+        "type": "value",
+        "name": "Content-Type",
+        "value": "application/json"
+      }
+    ]
+  },
+  "response_timeout_secs": 30
+};
+
+    document.getElementById('jsonPreview').textContent = JSON.stringify(fixedConfig, null, 2);
+
+    async function copyJSON() {
+      const json = JSON.stringify(fixedConfig, null, 2);
+      const btn = event.target.closest('.btn');
+
+      try {
+        await navigator.clipboard.writeText(json);
+        btn.innerHTML = '<span>✓</span> Copied!';
+        btn.classList.add('copied');
+
+        setTimeout(() => {
+          btn.innerHTML = '<span>📋</span> Copy to Clipboard';
+          btn.classList.remove('copied');
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+
+        const textarea = document.createElement('textarea');
+        textarea.value = json;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        try {
+          document.execCommand('copy');
+          btn.innerHTML = '<span>✓</span> Copied!';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.innerHTML = '<span>📋</span> Copy to Clipboard';
+            btn.classList.remove('copied');
+          }, 2000);
+        } catch (err2) {
+          alert('Failed to copy. Please download the file instead.');
+        }
+
+        document.body.removeChild(textarea);
+      }
+    }
+  </script>
+</body>
+</html>

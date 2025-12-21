@@ -8,9 +8,10 @@ const corsHeaders = {
 
 interface EmailRequest {
   bookingId: string;
-  emailType: 'confirmation' | 'reminder' | 'completion' | 'cancellation' | 'admin_notification';
+  emailType: 'confirmation' | 'reminder' | 'completion' | 'cancellation' | 'admin_notification' | 'payment_link';
   adminEmail?: string;
   refundAmount?: number;
+  paymentUrl?: string;
 }
 
 const formatDateTime = (dateStr: string): string => {
@@ -44,6 +45,180 @@ const formatTime = (dateStr: string): string => {
     minute: '2-digit',
     hour12: true,
   });
+};
+
+const generatePaymentLinkEmailHTML = (booking: any, paymentUrl: string): string => {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Your Booking Payment</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f1f5f9; line-height: 1.6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f1f5f9; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);">
+          <tr>
+            <td style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%); padding: 50px 40px; text-align: center;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 50%; text-align: center; line-height: 80px;">
+                      <span style="font-size: 40px; color: white;">💳</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding-top: 20px;">
+                    <h1 style="color: #ffffff; margin: 0 0 8px 0; font-size: 32px; font-weight: 700; letter-spacing: -0.5px;">Dominican Transfers</h1>
+                    <p style="color: rgba(255, 255, 255, 0.9); margin: 0; font-size: 16px; font-weight: 400;">Premium Transfer Services</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0;">
+              <div style="background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%); padding: 40px 40px 30px; text-align: center;">
+                <h2 style="color: #0f172a; margin: 0 0 12px 0; font-size: 28px; font-weight: 600;">Complete Your Payment</h2>
+                <p style="color: #64748b; margin: 0; font-size: 16px;">Your transfer booking is almost complete! Click below to finalize your reservation.</p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 30px;">
+              <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 16px; padding: 30px; text-align: center; position: relative; overflow: hidden;">
+                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 2px;">Booking Reference</p>
+                <p style="color: #ffffff; margin: 0; font-size: 36px; font-weight: 700; letter-spacing: 3px; font-family: 'Courier New', monospace;">${booking.reference}</p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 30px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <p style="color: #0f172a; margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">Trip Details</p>
+                  </td>
+                </tr>
+              </table>
+              <div style="background: #f8fafc; border-radius: 16px; padding: 24px; border: 1px solid #e2e8f0;">
+                <div style="text-align: center; padding-bottom: 20px; border-bottom: 2px dashed #e2e8f0; margin-bottom: 20px;">
+                  <p style="color: #0ea5e9; margin: 0 0 4px 0; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Pickup Date & Time</p>
+                  <p style="color: #0f172a; margin: 0; font-size: 22px; font-weight: 700;">${formatDate(booking.pickup_datetime)}</p>
+                  <p style="color: #0f172a; margin: 4px 0 0 0; font-size: 28px; font-weight: 800;">${formatTime(booking.pickup_datetime)}</p>
+                </div>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td width="40" valign="top" style="padding-top: 4px;">
+                      <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 50%; text-align: center; line-height: 32px;">
+                        <span style="color: white; font-size: 14px; font-weight: 700;">A</span>
+                      </div>
+                      <div style="width: 2px; height: 40px; background: linear-gradient(180deg, #22c55e 0%, #0ea5e9 100%); margin: 8px auto;"></div>
+                    </td>
+                    <td style="padding-left: 16px; padding-bottom: 16px;">
+                      <p style="color: #64748b; margin: 0 0 4px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Pickup Location</p>
+                      <p style="color: #0f172a; margin: 0; font-size: 16px; font-weight: 600;">${booking.pickup_location}</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td width="40" valign="top" style="padding-top: 4px;">
+                      <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 50%; text-align: center; line-height: 32px;">
+                        <span style="color: white; font-size: 14px; font-weight: 700;">B</span>
+                      </div>
+                    </td>
+                    <td style="padding-left: 16px;">
+                      <p style="color: #64748b; margin: 0 0 4px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Destination</p>
+                      <p style="color: #0f172a; margin: 0; font-size: 16px; font-weight: 600;">${booking.dropoff_location}</p>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 30px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background: #f8fafc; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
+                <tr>
+                  <td style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0;">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="color: #64748b; font-size: 14px;">Vehicle Type</td>
+                        <td align="right" style="color: #0f172a; font-size: 14px; font-weight: 600;">${booking.vehicle_type}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0;">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="color: #64748b; font-size: 14px;">Passengers</td>
+                        <td align="right" style="color: #0f172a; font-size: 14px; font-weight: 600;">${booking.passengers || 1}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 24px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="color: rgba(255,255,255,0.9); font-size: 18px; font-weight: 600;">Total Amount</td>
+                        <td align="right" style="color: #ffffff; font-size: 32px; font-weight: 800;">${formatCurrency(booking.total_price)}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 40px; text-align: center;">
+              <a href="${paymentUrl}" style="display: inline-block; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #ffffff; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; box-shadow: 0 10px 25px -5px rgba(34, 197, 94, 0.4); transition: all 0.3s;">
+                💳 PAY NOW - ${formatCurrency(booking.total_price)}
+              </a>
+              <p style="color: #64748b; margin: 16px 0 0 0; font-size: 13px;">Secure payment powered by Stripe</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 40px;">
+              <div style="background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 16px 20px;">
+                <p style="color: #92400e; margin: 0; font-size: 14px; font-weight: 500;">⚡ <strong>Important:</strong> Please complete your payment within 24 hours to secure your booking.</p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 40px 40px; border-top: 2px solid #e2e8f0;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="padding-top: 30px;">
+                <tr>
+                  <td align="center">
+                    <p style="color: #64748b; margin: 0 0 16px 0; font-size: 14px;">Need assistance?</p>
+                    <p style="color: #0f172a; margin: 0; font-size: 16px; font-weight: 600;">
+                      <a href="mailto:booking@dominicantransfers.com" style="color: #0ea5e9; text-decoration: none;">booking@dominicantransfers.com</a>
+                    </p>
+                    <p style="color: #0f172a; margin: 8px 0 0 0; font-size: 16px; font-weight: 600;">
+                      <a href="https://wa.me/18297606434" style="color: #0ea5e9; text-decoration: none;">WhatsApp: +1 (829) 760-6434</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+        <table width="600" cellpadding="0" cellspacing="0" style="margin-top: 30px;">
+          <tr>
+            <td align="center">
+              <p style="color: #94a3b8; margin: 0; font-size: 13px;">© 2024 Dominican Transfers. All rights reserved.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 };
 
 const formatCurrency = (amount: number): string => {
@@ -463,7 +638,7 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { bookingId, emailType, adminEmail, refundAmount }: EmailRequest = await req.json();
+    const { bookingId, emailType, adminEmail, refundAmount, paymentUrl }: EmailRequest = await req.json();
 
     if (!bookingId || !emailType) {
       return new Response(
@@ -507,9 +682,14 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    const emailHTML = isAdminEmail
-      ? generateAdminDispatchEmailHTML(booking)
-      : generateCustomerEmailHTML(booking, emailType, cancellationToken || undefined, refundAmount);
+    let emailHTML: string;
+    if (isAdminEmail) {
+      emailHTML = generateAdminDispatchEmailHTML(booking);
+    } else if (emailType === 'payment_link' && (paymentUrl || booking.payment_url)) {
+      emailHTML = generatePaymentLinkEmailHTML(booking, paymentUrl || booking.payment_url);
+    } else {
+      emailHTML = generateCustomerEmailHTML(booking, emailType, cancellationToken || undefined, refundAmount);
+    }
 
     let emailSent = false;
     let emailError: string | null = null;

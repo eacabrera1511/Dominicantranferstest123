@@ -1171,12 +1171,25 @@ export class TravelAgent {
         }
       }
 
-      vehicleOptions.sort((a, b) => a.oneWayPrice - b.oneWayPrice);
+      const uniqueVehicleOptions = vehicleOptions.reduce((acc: VehicleOption[], current) => {
+        const existing = acc.find(v => v.name === current.name);
+        if (!existing) {
+          acc.push(current);
+        } else if (current.oneWayPrice < existing.oneWayPrice) {
+          const index = acc.indexOf(existing);
+          acc[index] = current;
+        }
+        return acc;
+      }, []);
+
+      uniqueVehicleOptions.sort((a, b) => a.oneWayPrice - b.oneWayPrice);
 
       if (recommendedVehicle) {
-        const recOption = vehicleOptions.find(v => v.name === recommendedVehicle);
+        const recOption = uniqueVehicleOptions.find(v => v.name === recommendedVehicle);
         if (recOption) recOption.recommended = true;
       }
+
+      vehicleOptions = uniqueVehicleOptions;
 
       const airportName = AIRPORTS[airport]?.split(' (')[0] || airport;
       const routeDescription = `${airportName} → ${hotelName}`;
@@ -1513,12 +1526,25 @@ export class TravelAgent {
       }
     }
 
-    vehicleOptions.sort((a, b) => a.oneWayPrice - b.oneWayPrice);
+    const uniqueVehicleOptions = vehicleOptions.reduce((acc: VehicleOption[], current) => {
+      const existing = acc.find(v => v.name === current.name);
+      if (!existing) {
+        acc.push(current);
+      } else if (current.oneWayPrice < existing.oneWayPrice) {
+        const index = acc.indexOf(existing);
+        acc[index] = current;
+      }
+      return acc;
+    }, []);
+
+    uniqueVehicleOptions.sort((a, b) => a.oneWayPrice - b.oneWayPrice);
 
     if (recommendedVehicle) {
-      const recOption = vehicleOptions.find(v => v.name === recommendedVehicle);
+      const recOption = uniqueVehicleOptions.find(v => v.name === recommendedVehicle);
       if (recOption) recOption.recommended = true;
     }
+
+    vehicleOptions = uniqueVehicleOptions;
 
     const scanMessage = usingFallback
       ? `Calculating estimated rates for your transfer to ${hotelName}...`

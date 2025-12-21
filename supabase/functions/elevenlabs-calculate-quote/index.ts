@@ -143,16 +143,18 @@ Deno.serve(async (req: Request) => {
       let basePrice = matchingRule?.base_price ? Number(matchingRule.base_price) : vehicle.minimum_fare || 50;
       console.log(`${vehicle.name} base price:`, basePrice, matchingRule ? '(from rule)' : '(fallback)');
 
-      let price = basePrice;
-      const isRoundTrip = trip_type === 'round_trip' || trip_type === 'roundtrip';
-      if (isRoundTrip) {
-        price = Math.round(price * ROUNDTRIP_MULTIPLIER);
+      let oneWayPrice = basePrice;
+      if (discountPercentage > 0) {
+        oneWayPrice = Math.round(basePrice * (1 - discountPercentage / 100));
       }
 
-      const originalPrice = price;
-      if (discountPercentage > 0) {
-        price = Math.round(price * (1 - discountPercentage / 100));
-      }
+      const isRoundTrip = trip_type === 'round_trip' || trip_type === 'roundtrip';
+      const roundTripPrice = Math.round(oneWayPrice * ROUNDTRIP_MULTIPLIER);
+      const price = isRoundTrip ? roundTripPrice : oneWayPrice;
+
+      const originalPrice = isRoundTrip
+        ? Math.round(basePrice * ROUNDTRIP_MULTIPLIER)
+        : basePrice;
 
       quotes.push({
         vehicle_name: vehicle.name,

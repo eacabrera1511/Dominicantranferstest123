@@ -138,18 +138,20 @@ Deno.serve(async (req: Request) => {
     let basePrice = matchingRule?.base_price ? Number(matchingRule.base_price) : selectedVehicle?.minimum_fare || 50;
     console.log('Base price from rule:', basePrice);
 
-    let totalPrice = basePrice;
-    const isRoundTrip = trip_type === 'round_trip' || trip_type === 'roundtrip';
-    if (isRoundTrip) {
-      totalPrice = Math.round(basePrice * ROUNDTRIP_MULTIPLIER);
-    }
-    console.log('Price after trip type:', totalPrice, '(round trip:', isRoundTrip, ')');
-
-    const originalPrice = totalPrice;
+    let oneWayPrice = basePrice;
     if (discountPercentage > 0) {
-      totalPrice = Math.round(totalPrice * (1 - discountPercentage / 100));
+      oneWayPrice = Math.round(basePrice * (1 - discountPercentage / 100));
     }
-    console.log('Final price after discount:', totalPrice);
+    console.log('One-way price after discount:', oneWayPrice);
+
+    const isRoundTrip = trip_type === 'round_trip' || trip_type === 'roundtrip';
+    const roundTripPrice = Math.round(oneWayPrice * ROUNDTRIP_MULTIPLIER);
+    const totalPrice = isRoundTrip ? roundTripPrice : oneWayPrice;
+    console.log('Final price after trip type:', totalPrice, '(round trip:', isRoundTrip, ')');
+
+    const originalPrice = isRoundTrip
+      ? Math.round(basePrice * ROUNDTRIP_MULTIPLIER)
+      : basePrice;
 
     const bookingData = {
       customer_name: customer_name || 'Voice Booking',
@@ -300,7 +302,7 @@ Deno.serve(async (req: Request) => {
     let emailSent = false;
     let emailError = null;
     try {
-      console.log('Sending confirmation email...');
+      console.log('Sending payment link email...');
       const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-booking-email`, {
         method: 'POST',
         headers: {
@@ -310,7 +312,8 @@ Deno.serve(async (req: Request) => {
         },
         body: JSON.stringify({
           bookingId: booking.id,
-          emailType: 'confirmation'
+          emailType: 'payment_link',
+          paymentUrl: checkoutUrl
         })
       });
 

@@ -1,0 +1,212 @@
+{
+  "tools": [
+    {
+      "name": "get_vehicle_info",
+      "config": {
+        "type": "webhook",
+        "name": "get_vehicle_info",
+        "description": "Get available vehicles, pricing information, hotel zones, and airport codes for the Dominican Republic transfer service. Use this to provide customers with vehicle options and location information. Call this tool at the start of conversations to understand what vehicles and locations are available.",
+        "disable_interruptions": false,
+        "force_pre_tool_speech": "auto",
+        "execution_mode": "immediate",
+        "api_schema": {
+          "url": "https://gwlaxeonvfywhecwtupv.supabase.co/functions/v1/elevenlabs-get-vehicles",
+          "method": "GET"
+        },
+        "response_timeout_secs": 20
+      }
+    },
+    {
+      "name": "calculate_quote",
+      "config": {
+        "type": "webhook",
+        "name": "calculate_quote",
+        "description": "Calculate accurate price quotes for transfers based on origin, destination, number of passengers, luggage count, and trip type (one-way or round-trip). Returns all suitable vehicle options with real-time pricing from the database, including any active discounts. Always use this tool to get accurate pricing - never guess prices. The system will automatically identify hotel zones and match pricing rules.",
+        "disable_interruptions": false,
+        "force_pre_tool_speech": "auto",
+        "execution_mode": "immediate",
+        "api_schema": {
+          "url": "https://gwlaxeonvfywhecwtupv.supabase.co/functions/v1/elevenlabs-calculate-quote",
+          "method": "POST",
+          "request_body_schema": {
+            "type": "object",
+            "description": "Collect transfer booking details from the user. Extract the pickup location (origin), dropoff location (destination), number of passengers, number of luggage pieces, and trip type from the conversation. The system will automatically identify zones and pricing. Be specific with hotel names when possible.",
+            "properties": [
+              {
+                "id": "origin",
+                "type": "string",
+                "value_type": "llm_prompt",
+                "description": "Pickup location - be specific (e.g., 'PUJ Airport', 'Hard Rock Hotel Punta Cana', 'Dreams Cap Cana', 'Zone A Bavaro'). The system will identify the zone automatically.",
+                "required": true
+              },
+              {
+                "id": "destination",
+                "type": "string",
+                "value_type": "llm_prompt",
+                "description": "Dropoff location - be specific with hotel name (e.g., 'Hard Rock Hotel Punta Cana', 'Secrets Royal Beach', 'Dreams Macao Beach', 'Zone A Bavaro'). The system will identify the zone automatically.",
+                "required": true
+              },
+              {
+                "id": "passengers",
+                "type": "number",
+                "value_type": "llm_prompt",
+                "description": "Number of passengers (default: 1 if not mentioned)",
+                "required": false
+              },
+              {
+                "id": "luggage",
+                "type": "number",
+                "value_type": "llm_prompt",
+                "description": "Number of luggage pieces (default: 1 if not mentioned)",
+                "required": false
+              },
+              {
+                "id": "trip_type",
+                "type": "string",
+                "value_type": "llm_prompt",
+                "description": "Type of trip: 'one_way' or 'round_trip' (default: 'one_way' if not mentioned). Round trips are 1.9x the one-way price.",
+                "required": false
+              }
+            ]
+          },
+          "request_headers": [
+            {
+              "type": "value",
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "response_timeout_secs": 20
+      }
+    },
+    {
+      "name": "create_booking",
+      "config": {
+        "type": "webhook",
+        "name": "create_booking",
+        "description": "Create a new transfer booking in the system. This will automatically: 1) Create the booking in the database, 2) Generate a Stripe payment checkout link, 3) Send a confirmation email with the payment link to the customer. CRITICAL: Only call this tool after you have confirmed ALL booking details with the customer and received explicit confirmation to proceed. Do not call this tool until the customer has agreed to the booking.",
+        "disable_interruptions": true,
+        "force_pre_tool_speech": "force",
+        "execution_mode": "post_tool_speech",
+        "api_schema": {
+          "url": "https://gwlaxeonvfywhecwtupv.supabase.co/functions/v1/elevenlabs-create-booking",
+          "method": "POST",
+          "request_body_schema": {
+            "type": "object",
+            "description": "Extract all booking information from the conversation after customer confirmation. Required: customer name, email, pickup location, dropoff location, pickup datetime, vehicle selection, total price, and trip type. Optional: phone, flight number, special requests.",
+            "properties": [
+              {
+                "id": "customer_name",
+                "type": "string",
+                "value_type": "llm_prompt",
+                "description": "Full name of the customer (first and last name)",
+                "required": true
+              },
+              {
+                "id": "customer_email",
+                "type": "string",
+                "value_type": "llm_prompt",
+                "description": "Email address of the customer (must be valid email format). The payment link and booking confirmation will be sent to this email.",
+                "required": true
+              },
+              {
+                "id": "customer_phone",
+                "type": "string",
+                "value_type": "llm_prompt",
+                "description": "Phone number with country code (e.g., '+1 555-123-4567'). Optional but recommended.",
+                "required": false
+              },
+              {
+                "id": "pickup_location",
+                "type": "string",
+                "value_type": "llm_prompt",
+                "description": "Detailed pickup location (e.g., 'Punta Cana International Airport (PUJ)', 'Hard Rock Hotel Punta Cana')",
+                "required": true
+              },
+              {
+                "id": "dropoff_location",
+                "type": "string",
+                "value_type": "llm_prompt",
+                "description": "Detailed dropoff location (e.g., 'Dreams Cap Cana Resort', 'Santo Domingo Airport (SDQ)')",
+                "required": true
+              },
+              {
+                "id": "pickup_datetime",
+                "type": "string",
+                "value_type": "llm_prompt",
+                "description": "ISO 8601 datetime for pickup (e.g., '2024-12-25T14:30:00Z'). Include timezone. Ask the customer for their arrival date and time.",
+                "required": true
+              },
+              {
+                "id": "passengers",
+                "type": "number",
+                "value_type": "llm_prompt",
+                "description": "Number of passengers traveling (default: 1)",
+                "required": false
+              },
+              {
+                "id": "vehicle_type_id",
+                "type": "string",
+                "value_type": "llm_prompt",
+                "description": "ID of the selected vehicle type from calculate_quote response (e.g., vehicle_id from the quote). This is required to track which vehicle was selected.",
+                "required": true
+              },
+              {
+                "id": "vehicle_name",
+                "type": "string",
+                "value_type": "llm_prompt",
+                "description": "Name of the selected vehicle from the quote (e.g., 'Sedan', 'SUV', 'Minivan', 'Suburban')",
+                "required": true
+              },
+              {
+                "id": "flight_number",
+                "type": "string",
+                "value_type": "llm_prompt",
+                "description": "Flight number if pickup is from airport (e.g., 'AA1234', 'DL5678'). Optional - only ask if pickup is from an airport.",
+                "required": false
+              },
+              {
+                "id": "special_requests",
+                "type": "string",
+                "value_type": "llm_prompt",
+                "description": "Any special requests, notes, or requirements from the customer (e.g., 'Need child seat', 'Wheelchair accessible', 'Extra luggage space'). Optional.",
+                "required": false
+              },
+              {
+                "id": "total_price",
+                "type": "number",
+                "value_type": "llm_prompt",
+                "description": "Total price in USD from the calculate_quote response (e.g., 50.00). This exact amount will be charged via Stripe.",
+                "required": true
+              },
+              {
+                "id": "trip_type",
+                "type": "string",
+                "value_type": "llm_prompt",
+                "description": "Type of trip: 'one_way' or 'round_trip'. Must match what was used in the quote.",
+                "required": true
+              },
+              {
+                "id": "source",
+                "type": "string",
+                "value_type": "constant",
+                "constant_value": "elevenlabs_voice_agent",
+                "description": "Source of the booking - always set to 'elevenlabs_voice_agent'",
+                "required": true
+              }
+            ]
+          },
+          "request_headers": [
+            {
+              "type": "value",
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "response_timeout_secs": 30
+      }
+    }
+  ]
+}

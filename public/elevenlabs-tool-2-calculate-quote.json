@@ -1,0 +1,61 @@
+{
+  "type": "webhook",
+  "name": "calculate_quote",
+  "description": "Calculate accurate price quotes for transfers based on origin, destination, number of passengers, luggage count, and trip type (one-way or round-trip). Returns all suitable vehicle options with real-time pricing from the database, including any active discounts. Always use this tool to get accurate pricing - never guess prices. The system will automatically identify hotel zones and match pricing rules.",
+  "disable_interruptions": false,
+  "force_pre_tool_speech": "auto",
+  "execution_mode": "immediate",
+  "api_schema": {
+    "url": "https://gwlaxeonvfywhecwtupv.supabase.co/functions/v1/elevenlabs-calculate-quote",
+    "method": "POST",
+    "request_body_schema": {
+      "type": "object",
+      "description": "Collect transfer booking details from the user. Extract the pickup location (origin), dropoff location (destination), number of passengers, number of luggage pieces, and trip type from the conversation. The system will automatically identify zones and pricing. Be specific with hotel names when possible.",
+      "properties": [
+        {
+          "id": "origin",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Pickup location - be specific (e.g., 'PUJ Airport', 'Hard Rock Hotel Punta Cana', 'Dreams Cap Cana', 'Zone A Bavaro'). The system will identify the zone automatically.",
+          "required": true
+        },
+        {
+          "id": "destination",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Dropoff location - be specific with hotel name (e.g., 'Hard Rock Hotel Punta Cana', 'Secrets Royal Beach', 'Dreams Macao Beach', 'Zone A Bavaro'). The system will identify the zone automatically.",
+          "required": true
+        },
+        {
+          "id": "passengers",
+          "type": "number",
+          "value_type": "llm_prompt",
+          "description": "Number of passengers (default: 1 if not mentioned)",
+          "required": false
+        },
+        {
+          "id": "luggage",
+          "type": "number",
+          "value_type": "llm_prompt",
+          "description": "Number of luggage pieces (default: 1 if not mentioned)",
+          "required": false
+        },
+        {
+          "id": "trip_type",
+          "type": "string",
+          "value_type": "llm_prompt",
+          "description": "Type of trip: 'one_way' or 'round_trip' (default: 'one_way' if not mentioned). Round trips are 1.9x the one-way price.",
+          "required": false
+        }
+      ]
+    },
+    "request_headers": [
+      {
+        "type": "value",
+        "name": "Content-Type",
+        "value": "application/json"
+      }
+    ]
+  },
+  "response_timeout_secs": 20
+}

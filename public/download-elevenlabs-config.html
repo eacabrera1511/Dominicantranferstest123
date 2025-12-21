@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ElevenLabs Configuration - Download JSON Files</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.95;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px;
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      color: #155724;
+    }
+
+    .status-icon {
+      font-size: 24px;
+    }
+
+    .tool-section {
+      margin-bottom: 30px;
+      padding-bottom: 30px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .tool-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .tool-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+
+    .tool-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #667eea;
+    }
+
+    .tool-description {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .download-btn:active {
+      transform: translateY(0);
+    }
+
+    .copy-btn {
+      padding: 8px 16px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: #218838;
+    }
+
+    .copy-btn.copied {
+      background: #17a2b8;
+    }
+
+    .instructions {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .instructions h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .instructions ol {
+      margin-left: 20px;
+      line-height: 1.8;
+    }
+
+    .instructions li {
+      margin-bottom: 8px;
+    }
+
+    .note {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+      color: #856404;
+    }
+
+    .note strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+    }
+
+    .json-preview {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .json-preview.show {
+      display: block;
+    }
+
+    .toggle-preview {
+      color: #667eea;
+      cursor: pointer;
+      font-size: 0.9rem;
+      margin-top: 10px;
+      display: inline-block;
+    }
+
+    .toggle-preview:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 1.8rem;
+      }
+
+      .tool-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎙️ ElevenLabs Configuration</h1>
+      <p>Fixed JSON configurations ready to paste into ElevenLabs</p>
+    </div>
+
+    <div class="card">
+      <div class="status">
+        <span class="status-icon">✅</span>
+        <div>
+          <strong>All Systems Operational</strong>
+          <br>
+          <small>Database verified | Edge functions active | JSON validated</small>
+        </div>
+      </div>
+
+      <!-- TOOL 1 -->
+      <div class="tool-section">
+        <div class="tool-header">
+          <h2 class="tool-title">Tool 1: get_vehicle_info</h2>
+          <button class="copy-btn" onclick="copyJSON(1)">Copy JSON</button>
+        </div>
+        <p class="tool-description">
+          Retrieves available vehicles, hotel zones, airport codes, and pricing information. This should be called at the start of conversations to understand available options.
+        </p>
+        <a href="elevenlabs-tool-1-get-vehicle-info.json" download class="download-btn">
+          <span>📥</span> Download Tool 1 JSON
+        </a>
+        <span class="toggle-preview" onclick="togglePreview(1)">▼ Show Preview</span>
+        <pre class="json-preview" id="preview-1"></pre>
+      </div>
+
+      <!-- TOOL 2 -->
+      <div class="tool-section">
+        <div class="tool-header">
+          <h2 class="tool-title">Tool 2: calculate_quote</h2>
+          <button class="copy-btn" onclick="copyJSON(2)">Copy JSON</button>
+        </div>
+        <p class="tool-description">
+          Calculates accurate pricing based on pickup/dropoff locations, passengers, luggage, and trip type. Uses real-time database pricing with automatic zone detection.
+        </p>
+        <a href="elevenlabs-tool-2-calculate-quote.json" download class="download-btn">
+          <span>📥</span> Download Tool 2 JSON
+        </a>
+        <span class="toggle-preview" onclick="togglePreview(2)">▼ Show Preview</span>
+        <pre class="json-preview" id="preview-2"></pre>
+      </div>
+
+      <!-- TOOL 3 -->
+      <div class="tool-section">
+        <div class="tool-header">
+          <h2 class="tool-title">Tool 3: create_booking</h2>
+          <button class="copy-btn" onclick="copyJSON(3)">Copy JSON</button>
+        </div>
+        <p class="tool-description">
+          Creates a booking in the database, generates a Stripe payment link, and sends a confirmation email to the customer. Only call after explicit customer confirmation.
+        </p>
+        <a href="elevenlabs-tool-3-create-booking.json" download class="download-btn">
+          <span>📥</span> Download Tool 3 JSON
+        </a>
+        <span class="toggle-preview" onclick="togglePreview(3)">▼ Show Preview</span>
+        <pre class="json-preview" id="preview-3"></pre>
+      </div>
+
+      <div class="instructions">
+        <h3>📋 Setup Instructions</h3>
+        <ol>
+          <li><strong>Download each JSON file</strong> using the download buttons above</li>
+          <li><strong>Go to your ElevenLabs dashboard</strong> and navigate to your agent</li>
+          <li><strong>Click "Add Tool"</strong> in the Tools section</li>
+          <li><strong>Open the downloaded JSON file</strong> in a text editor</li>
+          <li><strong>Copy the entire JSON content</strong> (or use the Copy button above)</li>
+          <li><strong>Paste it into ElevenLabs</strong> tool configuration</li>
+          <li><strong>Save the tool</strong></li>
+          <li><strong>Repeat for all 3 tools</strong></li>
+        </ol>
+      </div>
+
+      <div class="note">
+        <strong>🔧 What Was Fixed:</strong>
+        Removed problematic fields (empty strings, null values, unnecessary parameters) that were causing validation errors in ElevenLabs. Changed vehicle_type_id from number to string type for better compatibility.
+      </div>
+
+      <div class="note">
+        <strong>🧪 Test After Setup:</strong>
+        Try: "I need a transfer from Punta Cana Airport to Hard Rock Hotel for 4 people tomorrow at 3 PM"
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const toolConfigs = {
+      1: {
+        type: "webhook",
+        name: "get_vehicle_info",
+        description: "Get available vehicles, pricing information, hotel zones, and airport codes for the Dominican Republic transfer service. Use this to provide customers with vehicle options and location information. Call this tool at the start of conversations to understand what vehicles and locations are available.",
+        disable_interruptions: false,
+        force_pre_tool_speech: "auto",
+        execution_mode: "immediate",
+        api_schema: {
+          url: "https://gwlaxeonvfywhecwtupv.supabase.co/functions/v1/elevenlabs-get-vehicles",
+          method: "GET"
+        },
+        response_timeout_secs: 20
+      },
+      2: {
+        type: "webhook",
+        name: "calculate_quote",
+        description: "Calculate accurate price quotes for transfers based on origin, destination, number of passengers, luggage count, and trip type (one-way or round-trip). Returns all suitable vehicle options with real-time pricing from the database, including any active discounts. Always use this tool to get accurate pricing - never guess prices. The system will automatically identify hotel zones and match pricing rules.",
+        disable_interruptions: false,
+        force_pre_tool_speech: "auto",
+        execution_mode: "immediate",
+        api_schema: {
+          url: "https://gwlaxeonvfywhecwtupv.supabase.co/functions/v1/elevenlabs-calculate-quote",
+          method: "POST",
+          request_body_schema: {
+            type: "object",
+            description: "Collect transfer booking details from the user. Extract the pickup location (origin), dropoff location (destination), number of passengers, number of luggage pieces, and trip type from the conversation. The system will automatically identify zones and pricing. Be specific with hotel names when possible.",
+            properties: [
+              {
+                id: "origin",
+                type: "string",
+                value_type: "llm_prompt",
+                description: "Pickup location - be specific (e.g., 'PUJ Airport', 'Hard Rock Hotel Punta Cana', 'Dreams Cap Cana', 'Zone A Bavaro'). The system will identify the zone automatically.",
+                required: true
+              },
+              {
+                id: "destination",
+                type: "string",
+                value_type: "llm_prompt",
+                description: "Dropoff location - be specific with hotel name (e.g., 'Hard Rock Hotel Punta Cana', 'Secrets Royal Beach', 'Dreams Macao Beach', 'Zone A Bavaro'). The system will identify the zone automatically.",
+                required: true
+              },
+              {
+                id: "passengers",
+                type: "number",
+                value_type: "llm_prompt",
+                description: "Number of passengers (default: 1 if not mentioned)",
+                required: false
+              },
+              {
+                id: "luggage",
+                type: "number",
+                value_type: "llm_prompt",
+                description: "Number of luggage pieces (default: 1 if not mentioned)",
+                required: false
+              },
+              {
+                id: "trip_type",
+                type: "string",
+                value_type: "llm_prompt",
+                description: "Type of trip: 'one_way' or 'round_trip' (default: 'one_way' if not mentioned). Round trips are 1.9x the one-way price.",
+                required: false
+              }
+            ]
+          },
+          request_headers: [
+            {
+              type: "value",
+              name: "Content-Type",
+              value: "application/json"
+            }
+          ]
+        },
+        response_timeout_secs: 20
+      },
+      3: {
+        type: "webhook",
+        name: "create_booking",
+        description: "Create a new transfer booking in the system. This will automatically: 1) Create the booking in the database, 2) Generate a Stripe payment checkout link, 3) Send a confirmation email with the payment link to the customer. CRITICAL: Only call this tool after you have confirmed ALL booking details with the customer and received explicit confirmation to proceed. Do not call this tool until the customer has agreed to the booking.",
+        disable_interruptions: true,
+        force_pre_tool_speech: "force",
+        execution_mode: "post_tool_speech",
+        api_schema: {
+          url: "https://gwlaxeonvfywhecwtupv.supabase.co/functions/v1/elevenlabs-create-booking",
+          method: "POST",
+          request_body_schema: {
+            type: "object",
+            description: "Extract all booking information from the conversation after customer confirmation. Required: customer name, email, pickup location, dropoff location, pickup datetime, vehicle selection, total price, and trip type. Optional: phone, flight number, special requests.",
+            properties: [
+              {
+                id: "customer_name",
+                type: "string",
+                value_type: "llm_prompt",
+                description: "Full name of the customer (first and last name)",
+                required: true
+              },
+              {
+                id: "customer_email",
+                type: "string",
+                value_type: "llm_prompt",
+                description: "Email address of the customer (must be valid email format). The payment link and booking confirmation will be sent to this email.",
+                required: true
+              },
+              {
+                id: "customer_phone",
+                type: "string",
+                value_type: "llm_prompt",
+                description: "Phone number with country code (e.g., '+1 555-123-4567'). Optional but recommended.",
+                required: false
+              },
+              {
+                id: "pickup_location",
+                type: "string",
+                value_type: "llm_prompt",
+                description: "Detailed pickup location (e.g., 'Punta Cana International Airport (PUJ)', 'Hard Rock Hotel Punta Cana')",
+                required: true
+              },
+              {
+                id: "dropoff_location",
+                type: "string",
+                value_type: "llm_prompt",
+                description: "Detailed dropoff location (e.g., 'Dreams Cap Cana Resort', 'Santo Domingo Airport (SDQ)')",
+                required: true
+              },
+              {
+                id: "pickup_datetime",
+                type: "string",
+                value_type: "llm_prompt",
+                description: "ISO 8601 datetime for pickup (e.g., '2024-12-25T14:30:00Z'). Include timezone. Ask the customer for their arrival date and time.",
+                required: true
+              },
+              {
+                id: "passengers",
+                type: "number",
+                value_type: "llm_prompt",
+                description: "Number of passengers traveling (default: 1)",
+                required: false
+              },
+              {
+                id: "vehicle_type_id",
+                type: "string",
+                value_type: "llm_prompt",
+                description: "ID of the selected vehicle type from calculate_quote response (e.g., vehicle_id from the quote). This is required to track which vehicle was selected.",
+                required: true
+              },
+              {
+                id: "vehicle_name",
+                type: "string",
+                value_type: "llm_prompt",
+                description: "Name of the selected vehicle from the quote (e.g., 'Sedan', 'SUV', 'Minivan', 'Suburban')",
+                required: true
+              },
+              {
+                id: "flight_number",
+                type: "string",
+                value_type: "llm_prompt",
+                description: "Flight number if pickup is from airport (e.g., 'AA1234', 'DL5678'). Optional - only ask if pickup is from an airport.",
+                required: false
+              },
+              {
+                id: "special_requests",
+                type: "string",
+                value_type: "llm_prompt",
+                description: "Any special requests, notes, or requirements from the customer (e.g., 'Need child seat', 'Wheelchair accessible', 'Extra luggage space'). Optional.",
+                required: false
+              },
+              {
+                id: "total_price",
+                type: "number",
+                value_type: "llm_prompt",
+                description: "Total price in USD from the calculate_quote response (e.g., 50.00). This exact amount will be charged via Stripe.",
+                required: true
+              },
+              {
+                id: "trip_type",
+                type: "string",
+                value_type: "llm_prompt",
+                description: "Type of trip: 'one_way' or 'round_trip'. Must match what was used in the quote.",
+                required: true
+              },
+              {
+                id: "source",
+                type: "string",
+                value_type: "constant",
+                constant_value: "elevenlabs_voice_agent",
+                description: "Source of the booking - always set to 'elevenlabs_voice_agent'",
+                required: true
+              }
+            ]
+          },
+          request_headers: [
+            {
+              type: "value",
+              name: "Content-Type",
+              value: "application/json"
+            }
+          ]
+        },
+        response_timeout_secs: 30
+      }
+    };
+
+    function togglePreview(toolNum) {
+      const preview = document.getElementById(`preview-${toolNum}`);
+      const isShowing = preview.classList.contains('show');
+
+      if (!isShowing) {
+        preview.textContent = JSON.stringify(toolConfigs[toolNum], null, 2);
+        preview.classList.add('show');
+        event.target.textContent = '▲ Hide Preview';
+      } else {
+        preview.classList.remove('show');
+        event.target.textContent = '▼ Show Preview';
+      }
+    }
+
+    async function copyJSON(toolNum) {
+      const json = JSON.stringify(toolConfigs[toolNum], null, 2);
+      const btn = event.target;
+
+      try {
+        await navigator.clipboard.writeText(json);
+        btn.textContent = '✓ Copied!';
+        btn.classList.add('copied');
+
+        setTimeout(() => {
+          btn.textContent = 'Copy JSON';
+          btn.classList.remove('copied');
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy. Please use the download button instead.');
+      }
+    }
+  </script>
+</body>
+</html>

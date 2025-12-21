@@ -451,15 +451,14 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    // Read from NEW_RESEND_API2 environment variable (verified dominicantransfers.com key)
-    const resendApiKey = Deno.env.get('NEW_RESEND_API2');
+    const resendApiKey = Deno.env.get('RESEND_API_KEY') || Deno.env.get('NEW_RESEND_API2') || Deno.env.get('NEW_RESEND_API');
     const resendFromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'Dominican Transfers <Booking@dominicantransfers.com>';
 
     console.log('Email function invoked with:', {
       hasResendKey: !!resendApiKey,
+      keySource: Deno.env.get('RESEND_API_KEY') ? 'RESEND_API_KEY' : (Deno.env.get('NEW_RESEND_API2') ? 'NEW_RESEND_API2' : 'NEW_RESEND_API'),
       fromEmail: resendFromEmail,
-      supabaseUrl,
-      usingVerifiedKey: true
+      supabaseUrl
     });
 
     const supabase = createClient(supabaseUrl, supabaseKey);

@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ElevenLabs Tools - Validation Fixed</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header p {
+      font-size: 1.2rem;
+      opacity: 0.95;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      border-left: 5px solid #28a745;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .alert-warning {
+      background: #fff3cd;
+      border-left: 5px solid #ffc107;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .alert-icon {
+      font-size: 40px;
+    }
+
+    .alert-content h3 {
+      color: #155724;
+      margin-bottom: 5px;
+    }
+
+    .alert-content p {
+      color: #155724;
+      font-size: 0.95rem;
+    }
+
+    .alert-warning h3 {
+      color: #856404;
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+    }
+
+    .alert-warning ul {
+      margin-left: 25px;
+      color: #856404;
+      line-height: 1.8;
+    }
+
+    .alert-warning li {
+      margin-bottom: 8px;
+    }
+
+    .tool-card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .tool-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .tool-title {
+      font-size: 1.6rem;
+      color: #667eea;
+      font-weight: 700;
+    }
+
+    .tool-badge {
+      background: #28a745;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .tool-description {
+      color: #666;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .validation-list {
+      background: #f8f9fa;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+    }
+
+    .validation-list h4 {
+      color: #28a745;
+      margin-bottom: 10px;
+    }
+
+    .validation-list ul {
+      margin-left: 20px;
+      color: #333;
+    }
+
+    .validation-list li {
+      margin-bottom: 5px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #218838;
+    }
+
+    .btn-success.copied {
+      background: #17a2b8;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .json-preview {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 15px;
+      display: none;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .json-preview.show {
+      display: block;
+    }
+
+    .instructions {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-top: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .instructions h2 {
+      color: #667eea;
+      margin-bottom: 20px;
+      font-size: 1.8rem;
+    }
+
+    .instructions ol {
+      margin-left: 25px;
+      line-height: 2;
+    }
+
+    .instructions li {
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .code {
+      background: #e9ecef;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 1.8rem;
+      }
+
+      .tool-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .buttons {
+        width: 100%;
+      }
+
+      .btn {
+        flex: 1;
+        min-width: 140px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎙️ ElevenLabs Voice Tools</h1>
+      <p>Validation Errors Fixed - Ready to Paste</p>
+    </div>
+
+    <div class="alert-success">
+      <span class="alert-icon">✅</span>
+      <div class="alert-content">
+        <h3>All Validation Errors Fixed</h3>
+        <p>Added required fields: path_params_schema, query_params_schema, request_body_schema.id. Fixed properties array format and required boolean values.</p>
+      </div>
+    </div>
+
+    <div class="alert-warning">
+      <h3>⚠️ What Was Wrong (Now Fixed)</h3>
+      <ul>
+        <li><strong>Missing path_params_schema:</strong> Added empty array <code>[]</code></li>
+        <li><strong>Missing query_params_schema:</strong> Added empty array <code>[]</code></li>
+        <li><strong>Missing request_body_schema.id:</strong> Added unique ID for each schema</li>
+        <li><strong>Wrong required format:</strong> Changed from array to boolean on each property</li>
+        <li><strong>Properties format confirmed:</strong> Using array format as ElevenLabs expects</li>
+      </ul>
+    </div>
+
+    <!-- TOOL 1 -->
+    <div class="tool-card">
+      <div class="tool-header">
+        <h2 class="tool-title">Tool 1: get_vehicle_info</h2>
+        <span class="tool-badge">✓ Validated</span>
+      </div>
+      <p class="tool-description">
+        Retrieves available vehicles, hotel zones, airport codes, and pricing information. Call this at the start of conversations.
+      </p>
+      <div class="validation-list">
+        <h4>✅ Validation Requirements Met:</h4>
+        <ul>
+          <li>path_params_schema: Empty array (GET request)</li>
+          <li>query_params_schema: Empty array (no query params)</li>
+          <li>No request body needed for GET</li>
+        </ul>
+      </div>
+      <div class="buttons">
+        <a href="elevenlabs-get-vehicles-correct.json" download class="btn btn-primary">
+          <span>📥</span> Download
+        </a>
+        <button class="btn btn-success" onclick="copyJSON(1)">
+          <span>📋</span> Copy JSON
+        </button>
+        <button class="btn btn-secondary" onclick="togglePreview(1)">
+          <span>👁️</span> Preview
+        </button>
+      </div>
+      <pre class="json-preview" id="preview-1"></pre>
+    </div>
+
+    <!-- TOOL 2 -->
+    <div class="tool-card">
+      <div class="tool-header">
+        <h2 class="tool-title">Tool 2: calculate_quote</h2>
+        <span class="tool-badge">✓ Validated</span>
+      </div>
+      <p class="tool-description">
+        Calculates accurate pricing with automatic zone detection. Returns vehicle options with real-time database pricing.
+      </p>
+      <div class="validation-list">
+        <h4>✅ Validation Requirements Met:</h4>
+        <ul>
+          <li>path_params_schema: Empty array</li>
+          <li>query_params_schema: Empty array</li>
+          <li>request_body_schema.id: "calculate_quote_request"</li>
+          <li>request_body_schema.required: false (boolean)</li>
+          <li>properties: Array with id and required on each</li>
+        </ul>
+      </div>
+      <div class="buttons">
+        <a href="elevenlabs-calculate-quote-correct.json" download class="btn btn-primary">
+          <span>📥</span> Download
+        </a>
+        <button class="btn btn-success" onclick="copyJSON(2)">
+          <span>📋</span> Copy JSON
+        </button>
+        <button class="btn btn-secondary" onclick="togglePreview(2)">
+          <span>👁️</span> Preview
+        </button>
+      </div>
+      <pre class="json-preview" id="preview-2"></pre>
+    </div>
+
+    <!-- TOOL 3 -->
+    <div class="tool-card">
+      <div class="tool-header">
+        <h2 class="tool-title">Tool 3: create_booking</h2>
+        <span class="tool-badge">✓ Validated</span>
+      </div>
+      <p class="tool-description">
+        Creates booking in database, generates Stripe payment link, and sends confirmation email. Only call after explicit customer confirmation.
+      </p>
+      <div class="validation-list">
+        <h4>✅ Validation Requirements Met:</h4>
+        <ul>
+          <li>path_params_schema: Empty array</li>
+          <li>query_params_schema: Empty array</li>
+          <li>request_body_schema.id: "create_booking_request"</li>
+          <li>request_body_schema.required: false (boolean)</li>
+          <li>properties: Array format with 14 fields</li>
+          <li>Each property has: id, type, required (boolean), description</li>
+        </ul>
+      </div>
+      <div class="buttons">
+        <a href="elevenlabs-create-booking-correct.json" download class="btn btn-primary">
+          <span>📥</span> Download
+        </a>
+        <button class="btn btn-success" onclick="copyJSON(3)">
+          <span>📋</span> Copy JSON
+        </button>
+        <button class="btn btn-secondary" onclick="togglePreview(3)">
+          <span>👁️</span> Preview
+        </button>
+      </div>
+      <pre class="json-preview" id="preview-3"></pre>
+    </div>
+
+    <div class="instructions">
+      <h2>📋 Paste Into ElevenLabs</h2>
+      <ol>
+        <li>Click <strong>"Copy JSON"</strong> above for each tool</li>
+        <li>Go to <strong>ElevenLabs Agent Dashboard</strong></li>
+        <li>Click <strong>Tools</strong> → <strong>Add Tool</strong></li>
+        <li>Select <strong>"Custom Webhook"</strong></li>
+        <li><strong>Paste</strong> the entire JSON</li>
+        <li>Click <strong>"Save"</strong></li>
+        <li>Validation should pass without errors</li>
+        <li><strong>Repeat for all 3 tools</strong></li>
+      </ol>
+
+      <h3 style="margin-top: 30px; color: #667eea;">Test Command:</h3>
+      <p style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 10px;">
+        "I need a transfer from Punta Cana Airport to Hard Rock Hotel for 4 people tomorrow at 3 PM"
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const toolConfigs = {
+      1: {
+        "type": "webhook",
+        "name": "get_vehicle_info",
+        "description": "Get available vehicles, pricing information, hotel zones, and airport codes for the Dominican Republic transfer service. Use this to provide customers with vehicle options and location information. Call this tool at the start of conversations to understand what vehicles and locations are available.",
+        "disable_interruptions": false,
+        "force_pre_tool_speech": "auto",
+        "execution_mode": "immediate",
+        "api_schema": {
+          "url": "https://gwlaxeonvfywhecwtupv.supabase.co/functions/v1/elevenlabs-get-vehicles",
+          "method": "GET",
+          "path_params_schema": [],
+          "query_params_schema": []
+        },
+        "response_timeout_secs": 20
+      },
+      2: {
+        "type": "webhook",
+        "name": "calculate_quote",
+        "description": "Calculate accurate price quotes for transfers based on origin, destination, number of passengers, luggage count, and trip type (one-way or round-trip). Returns all suitable vehicle options with real-time pricing from the database, including any active discounts. Always use this tool to get accurate pricing - never guess prices. The system will automatically identify hotel zones and match pricing rules.",
+        "disable_interruptions": false,
+        "force_pre_tool_speech": "auto",
+        "execution_mode": "immediate",
+        "api_schema": {
+          "url": "https://gwlaxeonvfywhecwtupv.supabase.co/functions/v1/elevenlabs-calculate-quote",
+          "method": "POST",
+          "path_params_schema": [],
+          "query_params_schema": [],
+          "request_body_schema": {
+            "id": "calculate_quote_request",
+            "type": "object",
+            "required": false,
+            "description": "Collect transfer booking details from the user. Extract the pickup location (origin), dropoff location (destination), number of passengers, number of luggage pieces, and trip type from the conversation. The system will automatically identify zones and pricing. Be specific with hotel names when possible.",
+            "properties": [
+              {
+                "id": "origin",
+                "type": "string",
+                "required": true,
+                "description": "Pickup location - be specific (e.g., 'PUJ Airport', 'Hard Rock Hotel Punta Cana', 'Dreams Cap Cana', 'Zone A Bavaro'). The system will identify the zone automatically."
+              },
+              {
+                "id": "destination",
+                "type": "string",
+                "required": true,
+                "description": "Dropoff location - be specific with hotel name (e.g., 'Hard Rock Hotel Punta Cana', 'Secrets Royal Beach', 'Dreams Macao Beach', 'Zone A Bavaro'). The system will identify the zone automatically."
+              },
+              {
+                "id": "passengers",
+                "type": "number",
+                "required": false,
+                "description": "Number of passengers (default: 1 if not mentioned)"
+              },
+              {
+                "id": "luggage",
+                "type": "number",
+                "required": false,
+                "description": "Number of luggage pieces (default: 1 if not mentioned)"
+              },
+              {
+                "id": "trip_type",
+                "type": "string",
+                "required": false,
+                "description": "Type of trip: 'one_way' or 'round_trip' (default: 'one_way' if not mentioned). Round trips are 1.9x the one-way price."
+              }
+            ]
+          },
+          "request_headers": [
+            {
+              "type": "value",
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "response_timeout_secs": 20
+      },
+      3: {
+        "type": "webhook",
+        "name": "create_booking",
+        "description": "Create a new transfer booking in the system. This will automatically: 1) Create the booking in the database, 2) Generate a Stripe payment checkout link, 3) Send a confirmation email with the payment link to the customer. CRITICAL: Only call this tool after you have confirmed ALL booking details with the customer and received explicit confirmation to proceed. Do not call this tool until the customer has agreed to the booking.",
+        "disable_interruptions": true,
+        "force_pre_tool_speech": "force",
+        "execution_mode": "post_tool_speech",
+        "api_schema": {
+          "url": "https://gwlaxeonvfywhecwtupv.supabase.co/functions/v1/elevenlabs-create-booking",
+          "method": "POST",
+          "path_params_schema": [],
+          "query_params_schema": [],
+          "request_body_schema": {
+            "id": "create_booking_request",
+            "type": "object",
+            "required": false,
+            "description": "Extract all booking information from the conversation after customer confirmation. Required: customer name, email, pickup location, dropoff location, pickup datetime, vehicle selection, total price, and trip type. Optional: phone, flight number, special requests.",
+            "properties": [
+              {
+                "id": "customer_name",
+                "type": "string",
+                "required": true,
+                "description": "Full name of the customer (first and last name)"
+              },
+              {
+                "id": "customer_email",
+                "type": "string",
+                "required": true,
+                "description": "Email address of the customer (must be valid email format). The payment link and booking confirmation will be sent to this email."
+              },
+              {
+                "id": "customer_phone",
+                "type": "string",
+                "required": false,
+                "description": "Phone number with country code (e.g., '+1 555-123-4567'). Optional but recommended."
+              },
+              {
+                "id": "pickup_location",
+                "type": "string",
+                "required": true,
+                "description": "Detailed pickup location (e.g., 'Punta Cana International Airport (PUJ)', 'Hard Rock Hotel Punta Cana')"
+              },
+              {
+                "id": "dropoff_location",
+                "type": "string",
+                "required": true,
+                "description": "Detailed dropoff location (e.g., 'Dreams Cap Cana Resort', 'Santo Domingo Airport (SDQ)')"
+              },
+              {
+                "id": "pickup_datetime",
+                "type": "string",
+                "required": true,
+                "description": "ISO 8601 datetime for pickup (e.g., '2024-12-25T14:30:00Z'). Include timezone. Ask the customer for their arrival date and time."
+              },
+              {
+                "id": "passengers",
+                "type": "number",
+                "required": false,
+                "description": "Number of passengers traveling (default: 1)"
+              },
+              {
+                "id": "vehicle_type_id",
+                "type": "string",
+                "required": true,
+                "description": "ID of the selected vehicle type from calculate_quote response (e.g., vehicle_id from the quote). This is required to track which vehicle was selected."
+              },
+              {
+                "id": "vehicle_name",
+                "type": "string",
+                "required": true,
+                "description": "Name of the selected vehicle from the quote (e.g., 'Sedan', 'SUV', 'Minivan', 'Suburban')"
+              },
+              {
+                "id": "flight_number",
+                "type": "string",
+                "required": false,
+                "description": "Flight number if pickup is from airport (e.g., 'AA1234', 'DL5678'). Optional - only ask if pickup is from an airport."
+              },
+              {
+                "id": "special_requests",
+                "type": "string",
+                "required": false,
+                "description": "Any special requests, notes, or requirements from the customer (e.g., 'Need child seat', 'Wheelchair accessible', 'Extra luggage space'). Optional."
+              },
+              {
+                "id": "total_price",
+                "type": "number",
+                "required": true,
+                "description": "Total price in USD from the calculate_quote response (e.g., 50.00). This exact amount will be charged via Stripe."
+              },
+              {
+                "id": "trip_type",
+                "type": "string",
+                "required": true,
+                "description": "Type of trip: 'one_way' or 'round_trip'. Must match what was used in the quote."
+              },
+              {
+                "id": "source",
+                "type": "string",
+                "required": true,
+                "description": "Source of the booking - always set to 'elevenlabs_voice_agent'",
+                "default": "elevenlabs_voice_agent"
+              }
+            ]
+          },
+          "request_headers": [
+            {
+              "type": "value",
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "response_timeout_secs": 30
+      }
+    };
+
+    function togglePreview(toolNum) {
+      const preview = document.getElementById(`preview-${toolNum}`);
+      const btn = event.target.closest('.btn-secondary');
+      const isShowing = preview.classList.contains('show');
+
+      if (!isShowing) {
+        preview.textContent = JSON.stringify(toolConfigs[toolNum], null, 2);
+        preview.classList.add('show');
+        btn.innerHTML = '<span>✕</span> Hide';
+      } else {
+        preview.classList.remove('show');
+        btn.innerHTML = '<span>👁️</span> Preview';
+      }
+    }
+
+    async function copyJSON(toolNum) {
+      const json = JSON.stringify(toolConfigs[toolNum], null, 2);
+      const btn = event.target.closest('.btn-success');
+      const originalHTML = btn.innerHTML;
+
+      try {
+        await navigator.clipboard.writeText(json);
+        btn.innerHTML = '<span>✓</span> Copied!';
+        btn.classList.add('copied');
+
+        setTimeout(() => {
+          btn.innerHTML = originalHTML;
+          btn.classList.remove('copied');
+        }, 2000);
+      } catch (err) {
+        const textarea = document.createElement('textarea');
+        textarea.value = json;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        try {
+          document.execCommand('copy');
+          btn.innerHTML = '<span>✓</span> Copied!';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.classList.remove('copied');
+          }, 2000);
+        } catch (err2) {
+          alert('Copy failed. Please use the Download button.');
+        }
+
+        document.body.removeChild(textarea);
+      }
+    }
+  </script>
+</body>
+</html>

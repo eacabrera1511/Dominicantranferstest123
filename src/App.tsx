@@ -16,6 +16,7 @@ import { CompactGallery } from './components/CompactGallery';
 import Gallery from './components/Gallery';
 import { initializeChatConversation, saveChatMessage, getCurrentChatConversationId, resetChatConversation } from './lib/chatTranscripts';
 import { logGoogleAdsStatus } from './lib/gtagVerification';
+import { initializeTracking, trackEvent } from './lib/eventTracking';
 
 declare global {
   interface Window {
@@ -85,6 +86,11 @@ function App() {
   }, []);
 
   useEffect(() => {
+    initializeTracking();
+    console.log('📊 Event tracking initialized - Page views and active sessions now being tracked');
+  }, []);
+
+  useEffect(() => {
     agent.setLanguage(language);
   }, [language, agent]);
 
@@ -94,16 +100,61 @@ function App() {
         try {
           const { data } = await supabase
             .from('bookings')
-            .select('total_price, id')
+            .select('total_price, id, payment_status')
             .eq('reference', paymentBookingRef)
             .maybeSingle();
 
-          if (data && window.gtag) {
-            console.log('🎯 Firing Google Ads conversion:', {
-              value: data.total_price,
-              transaction_id: paymentBookingRef
-            });
+          if (!data) {
+            console.error('❌ Booking not found:', paymentBookingRef);
+            return;
+          }
 
+          if (data.payment_status !== 'paid') {
+            console.warn('⚠️ Payment not confirmed yet. Conversion will NOT fire until payment_status = paid', {
+              booking: paymentBookingRef,
+              status: data.payment_status
+            });
+            return;
+          }
+
+          console.log('✅ Payment confirmed! Tracking conversion...', {
+            booking: paymentBookingRef,
+            value: data.total_price,
+            status: data.payment_status
+          });
+
+          const urlParams = new URLSearchParams(window.location.search);
+          const utmSource = urlParams.get('utm_source') || sessionStorage.getItem('utm_source');
+          const utmCampaign = urlParams.get('utm_campaign') || sessionStorage.getItem('utm_campaign');
+          const utmTerm = urlParams.get('utm_term') || sessionStorage.getItem('utm_term');
+          const gclid = urlParams.get('gclid') || sessionStorage.getItem('gclid');
+
+          await supabase.from('conversion_events').insert({
+            conversion_type: 'purchase',
+            conversion_value: data.total_price || 0,
+            currency: 'USD',
+            transaction_id: paymentBookingRef,
+            booking_id: data.id,
+            booking_reference: paymentBookingRef,
+            session_id: sessionStorage.getItem('session_id'),
+            device_id: localStorage.getItem('device_id'),
+            page_url: window.location.href,
+            page_title: document.title,
+            referrer: document.referrer || null,
+            user_agent: navigator.userAgent,
+            google_ads_account: 'AW-17810479345',
+            sent_to_google: true,
+            payment_confirmed: true,
+            payment_confirmed_at: new Date().toISOString(),
+            utm_source: utmSource,
+            utm_medium: urlParams.get('utm_medium') || sessionStorage.getItem('utm_medium'),
+            utm_campaign: utmCampaign,
+            utm_term: utmTerm,
+            utm_content: urlParams.get('utm_content') || sessionStorage.getItem('utm_content'),
+            gclid: gclid
+          });
+
+          if (window.gtag) {
             window.gtag('event', 'conversion', {
               'send_to': 'AW-17810479345',
               'value': data.total_price || 0,
@@ -111,8 +162,14 @@ function App() {
               'transaction_id': paymentBookingRef
             });
 
-            console.log('✅ Conversion event sent successfully');
-          } else if (!window.gtag) {
+            console.log('🎯 Google Ads conversion sent successfully!', {
+              value: data.total_price,
+              transaction_id: paymentBookingRef,
+              campaign: utmCampaign,
+              keyword: utmTerm,
+              gclid: gclid
+            });
+          } else {
             console.error('❌ gtag function not available');
           }
         } catch (error) {
@@ -738,17 +795,21 @@ function App() {
   };
 
   const handleCallAgent = () => {
-    if (typeof window.gtag_report_conversion === 'function') {
-      window.gtag_report_conversion();
-    }
+    trackEvent({
+      eventName: 'phone_clicked',
+      eventCategory: 'contact',
+      metadata: { phone: '+31625584645' }
+    });
     window.open('tel:+31625584645', '_self');
     setShowAgentMenu(false);
   };
 
   const handleEmailAgent = () => {
-    if (typeof window.gtag_report_conversion === 'function') {
-      window.gtag_report_conversion();
-    }
+    trackEvent({
+      eventName: 'email_clicked',
+      eventCategory: 'contact',
+      metadata: { email: 'info@dominicantransfers.com' }
+    });
     window.open('mailto:info@dominicantransfers.com?subject=Transfer Inquiry', '_self');
     setShowAgentMenu(false);
   };
@@ -807,9 +868,15 @@ function App() {
     }
 
     if (response.bookingAction) {
-      if (typeof window.gtag_report_conversion === 'function') {
-        window.gtag_report_conversion();
-      }
+      trackEvent({
+        eventName: 'vehicle_selected',
+        eventCategory: 'booking',
+        eventValue: response.bookingAction.estimatedPrice,
+        metadata: {
+          vehicle_type: response.bookingAction.vehicleType,
+          route: `${response.bookingAction.pickupLocation} to ${response.bookingAction.dropoffLocation}`
+        }
+      });
       setChatBookingData(response.bookingAction);
       setBookingModalKey(prev => prev + 1);
       setShowChatBooking(true);

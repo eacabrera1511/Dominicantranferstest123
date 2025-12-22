@@ -73,7 +73,7 @@ Deno.serve(async (req: Request) => {
     const findZone = (location: string): string | null => {
       const lowerLocation = location.toLowerCase();
 
-      if (lowerLocation.includes('puj') || lowerLocation.includes('punta cana airport')) return 'PUJ';
+      if (lowerLocation.includes('puj') || lowerLocation.includes('punta cana airport') || lowerLocation.includes('punta cana international')) return 'PUJ';
       if (lowerLocation.includes('sdq') || lowerLocation.includes('santo domingo airport') || lowerLocation.includes('las americas')) return 'SDQ';
       if (lowerLocation.includes('lrm') || lowerLocation.includes('la romana airport')) return 'LRM';
       if (lowerLocation.includes('pop') || lowerLocation.includes('puerto plata')) return 'POP';
@@ -89,11 +89,12 @@ Deno.serve(async (req: Request) => {
         }
       }
 
-      if (lowerLocation.includes('bavaro') || lowerLocation.includes('zone a')) return 'Zone A';
-      if (lowerLocation.includes('cap cana') || lowerLocation.includes('zone b')) return 'Zone B';
-      if (lowerLocation.includes('uvero alto') || lowerLocation.includes('zone c')) return 'Zone C';
-      if (lowerLocation.includes('bayahibe') || lowerLocation.includes('la romana') || lowerLocation.includes('zone d')) return 'Zone D';
-      if (lowerLocation.includes('santo domingo') || lowerLocation.includes('zone e')) return 'Zone E';
+      if (lowerLocation.includes('bavaro') || lowerLocation.includes('punta cana') || lowerLocation.includes('zone a')) return 'Bavaro / Punta Cana';
+      if (lowerLocation.includes('cap cana') || lowerLocation.includes('zone b')) return 'Cap Cana';
+      if (lowerLocation.includes('uvero alto') || lowerLocation.includes('zone c')) return 'Uvero Alto';
+      if (lowerLocation.includes('bayahibe') || lowerLocation.includes('zone d')) return 'Bayahibe / La Romana';
+      if (lowerLocation.includes('la romana') && !lowerLocation.includes('airport')) return 'Bayahibe / La Romana';
+      if (lowerLocation.includes('santo domingo') || lowerLocation.includes('zone e')) return 'Santo Domingo';
 
       return null;
     };
@@ -110,26 +111,28 @@ Deno.serve(async (req: Request) => {
       if (luggage && vehicle.luggage_capacity < luggage) continue;
 
       let matchingRule = null;
-      for (const rule of pricingRules || []) {
-        if (rule.vehicle_type_id !== vehicle.id) continue;
-        if (rule.origin !== originZone) continue;
-        
-        const ruleDestLower = rule.destination.toLowerCase();
-        if (ruleDestLower === lowerDestination ||
-            lowerDestination.includes(ruleDestLower) ||
-            ruleDestLower.includes(lowerDestination) ||
-            rule.destination === destinationZone) {
-          matchingRule = rule;
-          break;
-        }
-      }
 
-      if (!matchingRule && originZone && destinationZone) {
+      if (originZone && destinationZone) {
         matchingRule = pricingRules?.find(r =>
           r.vehicle_type_id === vehicle.id &&
           r.origin === originZone &&
           r.destination === destinationZone
         );
+      }
+
+      if (!matchingRule) {
+        for (const rule of pricingRules || []) {
+          if (rule.vehicle_type_id !== vehicle.id) continue;
+          if (rule.origin !== originZone) continue;
+
+          const ruleDestLower = rule.destination.toLowerCase();
+          if (ruleDestLower === lowerDestination ||
+              lowerDestination.includes(ruleDestLower) ||
+              ruleDestLower.includes(lowerDestination)) {
+            matchingRule = rule;
+            break;
+          }
+        }
       }
 
       if (!matchingRule && originZone) {

@@ -638,6 +638,15 @@ export class TravelAgent {
       return true;
     }
 
+    // CATCH-ALL: If it has question words or question mark, and not clearly booking input, treat as general question
+    // This ensures random questions go through ChatGPT
+    const isLikelyQuestion = hasQuestionWord || trimmedQuery.endsWith('?') || trimmedQuery.split(/\s+/).length > 5;
+    const isNotObviouslyBookingInput = !(/^\d+$/.test(trimmedQuery) || /^(puj|sdq|lrm|pop)$/i.test(trimmedQuery));
+
+    if (isLikelyQuestion && isNotObviouslyBookingInput) {
+      return true;
+    }
+
     return false;
   }
 
@@ -946,28 +955,64 @@ export class TravelAgent {
       }
     }
 
-    // Extract hotel/destination
-    const hotelMatch = this.findHotelInDatabase(query);
-    if (hotelMatch) {
-      info.hotel = hotelMatch.hotel_name;
-      info.region = hotelMatch.zone_name;
-      info.acknowledgedInfo.push(`${hotelMatch.hotel_name}`);
-      info.hasInfo = true;
-    } else {
-      // Check for region mentions
-      const regionPatterns = [
-        { pattern: /\b(bavaro|punta cana beach|arena gorda)\b/i, region: 'Zone A - Bavaro' },
-        { pattern: /\b(uvero alto)\b/i, region: 'Zone B - Uvero Alto' },
-        { pattern: /\b(cap cana|cabo)\b/i, region: 'Zone C - Cap Cana' },
-        { pattern: /\b(la romana|bayahibe)\b/i, region: 'Zone D - La Romana' }
-      ];
+    // Enhanced hotel/destination extraction with specific "need to go" patterns
+    const needToGoPatterns = [
+      /(?:i (?:am|'m) arriving (?:at|to|in) .+? (?:and )?(?:i )?(?:need|want|going|headed) to (?:go )?(?:to )?(?:the )?(.+?)(?:\s|$|\?|\.|\,))/i,
+      /(?:i (?:am|'m) (?:flying|coming|landing|getting) (?:in|into|to) .+? (?:and )?(?:i )?(?:need|want|going|headed) to (?:go )?(?:to )?(?:the )?(.+?)(?:\s|$|\?|\.|\,))/i,
+      /(?:i (?:need|want|would like) to go (?:to )?(?:the )?(.+?)(?:\s|$|\?|\.|\,))/i,
+      /(?:going to|headed to|traveling to) (?:the )?(.+?)(?:\s|$|\?|\.|\,)/i,
+      /(?:transfer to|pickup (?:to|at)|drop off (?:at|to)) (?:the )?(.+?)(?:\s|$|\?|\.|\,)/i
+    ];
 
-      for (const { pattern, region } of regionPatterns) {
-        if (pattern.test(lowerQuery)) {
-          info.region = region;
-          info.acknowledgedInfo.push(region);
-          info.hasInfo = true;
-          break;
+    let destinationExtracted = false;
+    for (const pattern of needToGoPatterns) {
+      const match = query.match(pattern);
+      if (match && match[1]) {
+        let destination = match[1].trim();
+        destination = destination.replace(/\s+(airport|and|i|need|want|to|go|the|hotel|resort)$/i, '').trim();
+
+        if (destination.length > 2) {
+          const hotelMatch = this.findHotelInDatabase(destination);
+          if (hotelMatch) {
+            info.hotel = hotelMatch.hotel_name;
+            info.region = hotelMatch.zone_name;
+            info.acknowledgedInfo.push(`${hotelMatch.hotel_name}`);
+            info.hasInfo = true;
+            destinationExtracted = true;
+            break;
+          } else {
+            info.hotel = destination;
+            info.acknowledgedInfo.push(destination);
+            info.hasInfo = true;
+            destinationExtracted = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!destinationExtracted) {
+      const hotelMatch = this.findHotelInDatabase(query);
+      if (hotelMatch) {
+        info.hotel = hotelMatch.hotel_name;
+        info.region = hotelMatch.zone_name;
+        info.acknowledgedInfo.push(`${hotelMatch.hotel_name}`);
+        info.hasInfo = true;
+      } else {
+        const regionPatterns = [
+          { pattern: /\b(bavaro|punta cana beach|arena gorda)\b/i, region: 'Zone A - Bavaro' },
+          { pattern: /\b(uvero alto)\b/i, region: 'Zone B - Uvero Alto' },
+          { pattern: /\b(cap cana|cabo)\b/i, region: 'Zone C - Cap Cana' },
+          { pattern: /\b(la romana|bayahibe)\b/i, region: 'Zone D - La Romana' }
+        ];
+
+        for (const { pattern, region } of regionPatterns) {
+          if (pattern.test(lowerQuery)) {
+            info.region = region;
+            info.acknowledgedInfo.push(region);
+            info.hasInfo = true;
+            break;
+          }
         }
       }
     }

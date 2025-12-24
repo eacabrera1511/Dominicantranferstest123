@@ -9,12 +9,7 @@ import { supabase } from '../lib/supabase';
 import { BookingAction } from '../lib/travelAgent';
 import { StripeService } from '../lib/stripe';
 import { trackConversionEvent } from '../lib/eventTracking';
-
-declare global {
-  interface Window {
-    gtag?: (command: string, targetId: string, config?: any) => void;
-  }
-}
+import { fireGoogleAdsConversion } from '../lib/googleAdsConversion';
 
 interface TransferBookingModalProps {
   isOpen: boolean;
@@ -262,23 +257,16 @@ export function TransferBookingModal({ isOpen, onClose, bookingData, onComplete 
     if (step === 5 && reference) {
       const finalPrice = calculatedPrice();
 
-      console.log('🎯 Firing Google Ads conversion from TransferBookingModal:', {
+      const tracked = fireGoogleAdsConversion({
         value: finalPrice,
-        transaction_id: reference,
-        source: 'chat'
+        currency: 'EUR',
+        transactionId: reference,
+        source: 'chat',
+        preventDuplicates: true
       });
 
-      if (window.gtag) {
-        window.gtag('event', 'conversion', {
-          'send_to': 'AW-17810479345/vMD-CIrB8dMbEPGx2axC',
-          'value': finalPrice,
-          'currency': 'USD',
-          'transaction_id': reference
-        });
-
-        console.log('✅ Google Ads conversion event sent successfully');
-      } else {
-        console.error('❌ gtag function not available in TransferBookingModal');
+      if (tracked) {
+        console.log('✅ Conversion tracked successfully from TransferBookingModal');
       }
 
       trackConversionEvent('purchase', finalPrice, reference).catch(err => {

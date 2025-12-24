@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
 import { useEffect } from 'react';
+import { fireGoogleAdsConversion } from '../../lib/googleAdsConversion';
 
 interface SuccessStepProps {
   item: any;
@@ -10,32 +11,22 @@ interface SuccessStepProps {
   onClose: () => void;
 }
 
-declare global {
-  interface Window {
-    gtag?: (command: string, targetId: string, config?: any) => void;
-  }
-}
-
 export function SuccessStep({ item, bookingData, customerInfo, totalPrice, completedBooking, onClose }: SuccessStepProps) {
   const bookingReference = completedBooking?.reference || `BK-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
 
   useEffect(() => {
-    if (window.gtag && completedBooking) {
-      console.log('🎯 Firing Google Ads conversion from SuccessStep:', {
+    if (completedBooking && bookingReference) {
+      const tracked = fireGoogleAdsConversion({
         value: totalPrice,
-        transaction_id: bookingReference
+        currency: 'EUR',
+        transactionId: bookingReference,
+        source: 'checkout',
+        preventDuplicates: true
       });
 
-      window.gtag('event', 'conversion', {
-        'send_to': 'AW-17810479345/vMD-CIrB8dMbEPGx2axC',
-        'value': totalPrice,
-        'currency': 'EUR',
-        'transaction_id': bookingReference
-      });
-
-      console.log('✅ Conversion event sent successfully');
-    } else if (!window.gtag) {
-      console.error('❌ gtag function not available in SuccessStep');
+      if (tracked) {
+        console.log('✅ Conversion tracked successfully from SuccessStep');
+      }
     } else if (!completedBooking) {
       console.warn('⚠️ No completed booking data for conversion tracking');
     }

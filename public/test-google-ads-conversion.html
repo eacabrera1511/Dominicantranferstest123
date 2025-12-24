@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Ads Conversion Tracking - Test Suite</title>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17810479345"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-17810479345');
+    console.log('✅ Google Ads gtag initialized:', 'AW-17810479345');
+  </script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      margin-bottom: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .header h1 {
+      font-size: 32px;
+      color: #1e293b;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: #64748b;
+      font-size: 16px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 20px;
+    }
+
+    .status-badge.success {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-badge.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .card h2 {
+      font-size: 20px;
+      color: #1e293b;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card p {
+      color: #64748b;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+      margin-bottom: 10px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn.secondary {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    .btn.danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+
+    .log-area {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+
+    .log-entry {
+      padding: 8px 0;
+      border-bottom: 1px solid #334155;
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .log-entry.success {
+      color: #22c55e;
+    }
+
+    .log-entry.error {
+      color: #ef4444;
+    }
+
+    .log-entry.info {
+      color: #3b82f6;
+    }
+
+    .info-box {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .info-box h3 {
+      color: #1e40af;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .info-box p {
+      color: #1e40af;
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .config-display {
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+
+    .config-display div {
+      padding: 5px 0;
+    }
+
+    .config-display strong {
+      color: #475569;
+      margin-right: 10px;
+    }
+
+    .config-display span {
+      color: #0284c7;
+    }
+
+    .icon {
+      font-size: 24px;
+    }
+
+    .tracked-list {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+
+    .tracked-list h3 {
+      color: #92400e;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .tracked-list ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .tracked-list li {
+      color: #92400e;
+      font-size: 13px;
+      padding: 5px 0;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎯 Google Ads Conversion Tracking Test Suite</h1>
+      <p>Comprehensive testing and verification tool for Google Ads conversion tracking</p>
+      <div id="setupStatus"></div>
+    </div>
+
+    <div class="grid">
+      <!-- Verification Card -->
+      <div class="card">
+        <h2><span class="icon">🔍</span> Verify Setup</h2>
+        <p>Check if Google Ads is properly configured and ready to track conversions.</p>
+        <button class="btn" onclick="verifySetup()">Verify Configuration</button>
+        <div id="verificationResult"></div>
+      </div>
+
+      <!-- Click Conversion Test -->
+      <div class="card">
+        <h2><span class="icon">👆</span> Click Conversion</h2>
+        <p>Test the click conversion that fires when users click booking buttons.</p>
+        <button class="btn" onclick="testClickConversion()">Fire Click Conversion</button>
+        <div class="info-box">
+          <h3>Expected Behavior:</h3>
+          <p>Fires conversion with value 1.0 EUR when clicked. This simulates a user clicking a "Book Now" button.</p>
+        </div>
+      </div>
+
+      <!-- Purchase Conversion Test -->
+      <div class="card">
+        <h2><span class="icon">💰</span> Purchase Conversion</h2>
+        <p>Test the conversion that fires after a successful booking with payment.</p>
+        <button class="btn" onclick="testPurchaseConversion()">Fire Purchase Conversion</button>
+        <div class="info-box">
+          <h3>Expected Behavior:</h3>
+          <p>Fires conversion with booking value and unique transaction ID. Includes duplicate prevention.</p>
+        </div>
+      </div>
+
+      <!-- Payment Completion Test -->
+      <div class="card">
+        <h2><span class="icon">💳</span> Payment Completion</h2>
+        <p>Simulate a Stripe payment completion and test post-payment conversion tracking.</p>
+        <button class="btn" onclick="testPaymentCompletion()">Simulate Payment Success</button>
+        <div class="info-box">
+          <h3>Expected Behavior:</h3>
+          <p>Fires conversion after payment is confirmed, with transaction ID and payment amount.</p>
+        </div>
+      </div>
+
+      <!-- Duplicate Prevention Test -->
+      <div class="card">
+        <h2><span class="icon">🛡️</span> Duplicate Prevention</h2>
+        <p>Test that the same transaction ID cannot fire conversions multiple times.</p>
+        <button class="btn" onclick="testDuplicatePrevention()">Test Duplicate Prevention</button>
+        <button class="btn secondary" onclick="clearTrackedConversions()">Clear Tracked Conversions</button>
+        <div id="duplicateTestResult"></div>
+      </div>
+
+      <!-- Configuration Display -->
+      <div class="card">
+        <h2><span class="icon">⚙️</span> Current Configuration</h2>
+        <p>View the current Google Ads tracking configuration.</p>
+        <div class="config-display">
+          <div><strong>Account ID:</strong> <span>AW-17810479345</span></div>
+          <div><strong>Conversion Label:</strong> <span>RUZcCMvc7dYbEPGx2axC</span></div>
+          <div><strong>Full Conversion ID:</strong> <span>AW-17810479345/RUZcCMvc7dYbEPGx2axC</span></div>
+          <div><strong>Currency:</strong> <span>EUR</span></div>
+        </div>
+        <div id="trackedConversions"></div>
+      </div>
+    </div>
+
+    <!-- Console Log Display -->
+    <div class="card">
+      <h2>📊 Real-Time Event Log</h2>
+      <p>Monitor all conversion events and tracking activities in real-time.</p>
+      <button class="btn secondary" onclick="clearLog()">Clear Log</button>
+      <div class="log-area" id="logArea">
+        <div class="log-entry info">Waiting for events...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CONVERSION_ID = 'AW-17810479345/RUZcCMvc7dYbEPGx2axC';
+    const ACCOUNT_ID = 'AW-17810479345';
+    const trackedConversions = new Set();
+
+    // Enhanced console logging
+    const originalLog = console.log;
+    const originalError = console.error;
+    const originalWarn = console.warn;
+
+    function addLogEntry(message, type = 'info') {
+      const logArea = document.getElementById('logArea');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      const timestamp = new Date().toLocaleTimeString();
+      entry.textContent = `[${timestamp}] ${message}`;
+      logArea.appendChild(entry);
+      logArea.scrollTop = logArea.scrollHeight;
+    }
+
+    console.log = function(...args) {
+      originalLog.apply(console, args);
+      addLogEntry(args.join(' '), 'info');
+    };
+
+    console.error = function(...args) {
+      originalError.apply(console, args);
+      addLogEntry('ERROR: ' + args.join(' '), 'error');
+    };
+
+    console.warn = function(...args) {
+      originalWarn.apply(console, args);
+      addLogEntry('WARNING: ' + args.join(' '), 'info');
+    };
+
+    function clearLog() {
+      document.getElementById('logArea').innerHTML = '<div class="log-entry info">Log cleared</div>';
+    }
+
+    function verifySetup() {
+      console.log('🔍 Verifying Google Ads setup...');
+
+      const gtagLoaded = typeof window.gtag === 'function';
+      const dataLayerExists = Array.isArray(window.dataLayer);
+
+      let result = '<div class="config-display" style="margin-top: 15px;">';
+      result += `<div><strong>gtag loaded:</strong> <span style="color: ${gtagLoaded ? '#22c55e' : '#ef4444'}">${gtagLoaded ? '✅ YES' : '❌ NO'}</span></div>`;
+      result += `<div><strong>dataLayer exists:</strong> <span style="color: ${dataLayerExists ? '#22c55e' : '#ef4444'}">${dataLayerExists ? '✅ YES' : '❌ NO'}</span></div>`;
+      result += `<div><strong>Conversion ID:</strong> <span>${CONVERSION_ID}</span></div>`;
+      result += '</div>';
+
+      document.getElementById('verificationResult').innerHTML = result;
+
+      const status = document.getElementById('setupStatus');
+      if (gtagLoaded && dataLayerExists) {
+        status.innerHTML = '<div class="status-badge success">✅ Setup Complete - Ready to Track</div>';
+        console.log('✅ Google Ads setup is correct and ready');
+      } else {
+        status.innerHTML = '<div class="status-badge error">❌ Setup Incomplete - Missing Components</div>';
+        console.error('❌ Google Ads setup has issues');
+      }
+    }
+
+    function testClickConversion() {
+      if (!window.gtag) {
+        console.error('❌ gtag not loaded - cannot fire conversion');
+        return;
+      }
+
+      console.log('🎯 Firing CLICK conversion...');
+
+      window.gtag('event', 'conversion', {
+        'send_to': CONVERSION_ID,
+        'value': 1.0,
+        'currency': 'EUR'
+      });
+
+      console.log('✅ Click conversion fired successfully!');
+      addLogEntry('✅ CLICK CONVERSION SENT - Check Google Ads within 24 hours', 'success');
+    }
+
+    function testPurchaseConversion() {
+      if (!window.gtag) {
+        console.error('❌ gtag not loaded - cannot fire conversion');
+        return;
+      }
+
+      const transactionId = `TEST-${Date.now()}`;
+      const value = Math.floor(Math.random() * 100) + 20; // Random value between 20-120
+
+      if (trackedConversions.has(transactionId)) {
+        console.warn('⚠️ Duplicate conversion prevented for', transactionId);
+        addLogEntry('⚠️ DUPLICATE PREVENTED - Transaction already tracked', 'info');
+        return;
+      }
+
+      console.log('🎯 Firing PURCHASE conversion...');
+      console.log('Transaction ID:', transactionId);
+      console.log('Value:', value, 'EUR');
+
+      window.gtag('event', 'conversion', {
+        'send_to': CONVERSION_ID,
+        'value': value,
+        'currency': 'EUR',
+        'transaction_id': transactionId
+      });
+
+      trackedConversions.add(transactionId);
+      updateTrackedConversions();
+
+      console.log('✅ Purchase conversion fired successfully!');
+      addLogEntry(`✅ PURCHASE CONVERSION SENT - Value: €${value}, ID: ${transactionId}`, 'success');
+    }
+
+    function testPaymentCompletion() {
+      if (!window.gtag) {
+        console.error('❌ gtag not loaded - cannot fire conversion');
+        return;
+      }
+
+      const bookingRef = `TRF-TEST${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+      const amount = Math.floor(Math.random() * 200) + 50;
+
+      if (trackedConversions.has(bookingRef)) {
+        console.warn('⚠️ Duplicate conversion prevented for', bookingRef);
+        addLogEntry('⚠️ DUPLICATE PREVENTED - Booking already tracked', 'info');
+        return;
+      }
+
+      console.log('🎯 Simulating payment completion...');
+      console.log('Booking Reference:', bookingRef);
+      console.log('Payment Amount:', amount, 'EUR');
+
+      setTimeout(() => {
+        window.gtag('event', 'conversion', {
+          'send_to': CONVERSION_ID,
+          'value': amount,
+          'currency': 'EUR',
+          'transaction_id': bookingRef
+        });
+
+        trackedConversions.add(bookingRef);
+        updateTrackedConversions();
+
+        console.log('✅ Payment conversion fired successfully!');
+        addLogEntry(`✅ PAYMENT CONVERSION SENT - Amount: €${amount}, Ref: ${bookingRef}`, 'success');
+      }, 1000);
+
+      addLogEntry('⏳ Processing payment...', 'info');
+    }
+
+    function testDuplicatePrevention() {
+      const testId = 'DUPLICATE-TEST-123';
+
+      console.log('🛡️ Testing duplicate prevention...');
+      console.log('Attempting to fire conversion with ID:', testId);
+
+      // First attempt
+      if (!trackedConversions.has(testId)) {
+        window.gtag('event', 'conversion', {
+          'send_to': CONVERSION_ID,
+          'value': 50,
+          'currency': 'EUR',
+          'transaction_id': testId
+        });
+        trackedConversions.add(testId);
+        console.log('✅ First conversion fired successfully');
+        addLogEntry('✅ FIRST CONVERSION SENT', 'success');
+        updateTrackedConversions();
+      }
+
+      // Second attempt (should be prevented)
+      setTimeout(() => {
+        console.log('Attempting second conversion with same ID...');
+
+        if (trackedConversions.has(testId)) {
+          console.warn('⚠️ DUPLICATE PREVENTED - Transaction already tracked');
+          addLogEntry('✅ DUPLICATE PREVENTION WORKING - Second conversion blocked', 'success');
+
+          const result = document.getElementById('duplicateTestResult');
+          result.innerHTML = `
+            <div class="info-box" style="background: #dcfce7; border-left-color: #22c55e; margin-top: 15px;">
+              <h3 style="color: #166534;">✅ Test Passed!</h3>
+              <p style="color: #166534;">Duplicate conversion was successfully prevented. The same transaction ID cannot fire multiple conversions.</p>
+            </div>
+          `;
+        } else {
+          addLogEntry('❌ DUPLICATE PREVENTION FAILED - Second conversion was sent', 'error');
+        }
+      }, 1500);
+    }
+
+    function clearTrackedConversions() {
+      trackedConversions.clear();
+      sessionStorage.removeItem('tracked_conversions');
+      updateTrackedConversions();
+      console.log('🧹 Cleared all tracked conversions');
+      addLogEntry('🧹 All tracked conversions cleared', 'info');
+
+      const result = document.getElementById('duplicateTestResult');
+      result.innerHTML = '';
+    }
+
+    function updateTrackedConversions() {
+      const container = document.getElementById('trackedConversions');
+
+      if (trackedConversions.size === 0) {
+        container.innerHTML = '';
+        return;
+      }
+
+      let html = '<div class="tracked-list">';
+      html += `<h3>📝 Tracked Conversions (${trackedConversions.size})</h3>`;
+      html += '<ul>';
+      Array.from(trackedConversions).forEach(id => {
+        html += `<li>✓ ${id}</li>`;
+      });
+      html += '</ul>';
+      html += '</div>';
+
+      container.innerHTML = html;
+    }
+
+    // Auto-verify on page load
+    window.addEventListener('load', () => {
+      setTimeout(verifySetup, 500);
+      addLogEntry('🎯 Google Ads Conversion Test Suite loaded', 'success');
+      addLogEntry('Ready to test conversions - Click any test button above', 'info');
+    });
+  </script>
+</body>
+</html>

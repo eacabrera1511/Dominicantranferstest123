@@ -18,6 +18,7 @@ import GoogleAdsLanding from './components/GoogleAdsLanding';
 import { initializeChatConversation, saveChatMessage, getCurrentChatConversationId, resetChatConversation } from './lib/chatTranscripts';
 import { logGoogleAdsStatus } from './lib/gtagVerification';
 import { initializeTracking, trackEvent } from './lib/eventTracking';
+import { fireGoogleAdsConversion } from './lib/googleAdsConversion';
 
 declare global {
   interface Window {
@@ -169,7 +170,7 @@ function App() {
           await supabase.from('conversion_events').insert({
             conversion_type: 'purchase',
             conversion_value: data.total_price || 0,
-            currency: 'USD',
+            currency: 'EUR',
             transaction_id: paymentBookingRef,
             booking_id: data.id,
             booking_reference: paymentBookingRef,
@@ -191,23 +192,22 @@ function App() {
             gclid: gclid
           });
 
-          if (window.gtag) {
-            window.gtag('event', 'conversion', {
-              'send_to': 'AW-17810479345',
-              'value': data.total_price || 0,
-              'currency': 'USD',
-              'transaction_id': paymentBookingRef
-            });
+          const tracked = fireGoogleAdsConversion({
+            value: data.total_price || 0,
+            currency: 'EUR',
+            transactionId: paymentBookingRef,
+            source: 'payment',
+            preventDuplicates: true
+          });
 
-            console.log('🎯 Google Ads conversion sent successfully!', {
+          if (tracked) {
+            console.log('✅ Payment conversion tracked successfully!', {
               value: data.total_price,
               transaction_id: paymentBookingRef,
               campaign: utmCampaign,
               keyword: utmTerm,
               gclid: gclid
             });
-          } else {
-            console.error('❌ gtag function not available');
           }
         } catch (error) {
           console.error('Error tracking conversion:', error);

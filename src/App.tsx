@@ -14,6 +14,7 @@ import { useLanguage } from './contexts/LanguageContext';
 import { getTranslations } from './lib/translations';
 import { CompactGallery } from './components/CompactGallery';
 import Gallery from './components/Gallery';
+import GoogleAdsLanding from './components/GoogleAdsLanding';
 import { initializeChatConversation, saveChatMessage, getCurrentChatConversationId, resetChatConversation } from './lib/chatTranscripts';
 import { logGoogleAdsStatus } from './lib/gtagVerification';
 import { initializeTracking, trackEvent } from './lib/eventTracking';
@@ -54,8 +55,13 @@ function App() {
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [showVoiceWidget, setShowVoiceWidget] = useState(false);
+  const [showLandingPage, setShowLandingPage] = useState(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('landing') === 'true' || window.location.pathname.includes('/landing');
+  });
   const [paymentBookingRef, setPaymentBookingRef] = useState<string>('');
   const [darkMode, setDarkMode] = useState(() => {
+    if (window.location.pathname.includes('/landing')) return false;
     const stored = localStorage.getItem('theme');
     if (stored) return stored === 'dark';
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -1049,6 +1055,32 @@ function App() {
           <Gallery />
         </div>
       </div>
+    );
+  }
+
+  if (showLandingPage) {
+    return (
+      <GoogleAdsLanding
+        onBookNowClick={async () => {
+          setShowLandingPage(false);
+          setDarkMode(false);
+          trackEvent('landing_page_book_now_clicked', { source: 'google_ads_landing' });
+          await initializeAgent();
+          inputRef.current?.focus();
+        }}
+        onRouteClick={(airport: string, destination: string) => {
+          setShowLandingPage(false);
+          setDarkMode(false);
+          agent.setLandingPageContext({ airport, destination });
+          trackEvent('landing_page_route_clicked', { airport, destination });
+          setTimeout(async () => {
+            await initializeAgent();
+            const initialMessage = `I need a transfer from ${airport} to ${destination}`;
+            setInput(initialMessage);
+            inputRef.current?.focus();
+          }, 100);
+        }}
+      />
     );
   }
 

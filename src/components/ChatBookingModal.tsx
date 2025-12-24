@@ -55,7 +55,7 @@ export function ChatBookingModal({ isOpen, onClose, bookingData, onComplete }: C
     specialRequests: '',
   });
 
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'paypal' | 'cash'>('card');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'paypal'>('card');
   const [cardDetails, setCardDetails] = useState({
     number: '',
     expiry: '',
@@ -613,8 +613,8 @@ export function ChatBookingModal({ isOpen, onClose, bookingData, onComplete }: C
               Payment - ${calculateTotalPrice().toFixed(2)} USD
             </h3>
 
-            <div className="grid grid-cols-3 gap-2">
-              {(['card', 'paypal', 'cash'] as const).map((method) => (
+            <div className="grid grid-cols-2 gap-2">
+              {(['card', 'paypal'] as const).map((method) => (
                 <button
                   key={method}
                   type="button"
@@ -684,12 +684,6 @@ export function ChatBookingModal({ isOpen, onClose, bookingData, onComplete }: C
               <div className="bg-white/5 rounded-lg p-3 min-[480px]:p-4 text-center">
                 <p className="text-gray-400 text-xs min-[480px]:text-sm mb-2">You will be redirected to PayPal.</p>
                 <div className="text-base min-[480px]:text-lg font-bold text-white">${calculateTotalPrice().toFixed(2)} USD</div>
-              </div>
-            )}
-
-            {paymentMethod === 'cash' && (
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-2.5 min-[480px]:p-3">
-                <p className="text-amber-400 text-[10px] min-[480px]:text-xs">Pay cash to your driver upon arrival. Please have the exact amount ready in USD.</p>
               </div>
             )}
 

@@ -95,7 +95,7 @@ export function TransferBookingModal({ isOpen, onClose, bookingData, onComplete 
 
   const [selectedBeverages, setSelectedBeverages] = useState<Record<string, number>>({});
 
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card');
+  const [paymentMethod, setPaymentMethod] = useState<'card'>('card');
 
   const calculatedPrice = useCallback(() => {
     if (!selectedVehicle) return 0;
@@ -403,7 +403,7 @@ export function TransferBookingModal({ isOpen, onClose, bookingData, onComplete 
 
   const handleStripeCheckout = async () => {
     if (finalPrice <= 0) {
-      alert('Unable to calculate price for this route. Please select Pay Cash.');
+      alert('Unable to calculate price for this route.');
       return;
     }
 
@@ -547,7 +547,7 @@ export function TransferBookingModal({ isOpen, onClose, bookingData, onComplete 
     } catch (error: any) {
       console.error('Stripe checkout error:', error);
       const errorMessage = error?.message || 'Unknown error';
-      alert(`Payment error: ${errorMessage}. Please try again or select Pay Cash.`);
+      alert(`Payment error: ${errorMessage}. Please try again.`);
       setLoading(false);
     }
   };
@@ -561,7 +561,7 @@ export function TransferBookingModal({ isOpen, onClose, bookingData, onComplete 
     }
 
     if (paymentMethod === 'card' && finalPrice <= 0) {
-      alert('Price not available. Please refresh or select Pay Cash.');
+      alert('Price not available. Please refresh.');
       return;
     }
 
@@ -597,7 +597,7 @@ export function TransferBookingModal({ isOpen, onClose, bookingData, onComplete 
           }, 0) * (selectedTripType === 'roundtrip' ? 2 : 1),
           total_price: finalPrice,
           status: 'confirmed',
-          payment_status: paymentMethod === 'cash' ? 'pending' : 'paid',
+          payment_status: 'paid',
           payment_method: paymentMethod,
           source: 'chat',
           price_source: 'standard',
@@ -1500,33 +1500,6 @@ export function TransferBookingModal({ isOpen, onClose, bookingData, onComplete 
                     </p>
                   </div>
                   {paymentMethod === 'card' && <CheckCircle className="w-5 h-5 text-blue-400" />}
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('cash')}
-                className={`w-full p-3.5 rounded-xl border-2 transition-all text-left ${
-                  paymentMethod === 'cash'
-                    ? 'bg-amber-500/20 border-amber-500/50'
-                    : 'bg-white/5 border-white/10 hover:bg-white/10'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                    paymentMethod === 'cash' ? 'bg-amber-500/30' : 'bg-white/10'
-                  }`}>
-                    <span className={`text-base ${paymentMethod === 'cash' ? 'text-amber-400' : 'text-white/60'}`}>$</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className={`font-medium text-sm ${paymentMethod === 'cash' ? 'text-amber-400' : 'text-white'}`}>
-                      Pay Cash
-                    </p>
-                    <p className={`text-xs ${paymentMethod === 'cash' ? 'text-amber-400/70' : 'text-white/50'}`}>
-                      Pay ${finalPrice} to driver
-                    </p>
-                  </div>
-                  {paymentMethod === 'cash' && <CheckCircle className="w-5 h-5 text-amber-400" />}
                 </div>
               </button>
             </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Clock, Shield, MapPin, DollarSign, Users, Star, CheckCircle, Phone, Menu, X, Sparkles, Play } from 'lucide-react';
+import { MessageCircle, Clock, Shield, MapPin, DollarSign, Users, Star, CheckCircle, Phone, Menu, X, Sparkles, Play, Plane } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { StreamingReviewBar } from './StreamingReviewBar';
 import { AnimatedReviews } from './AnimatedReviews';
@@ -103,10 +103,14 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-green-500 flex items-center justify-center shadow-lg shadow-teal-500/40 ring-2 ring-teal-400/20">
-                <MapPin className="w-7 h-7 text-white drop-shadow-md" />
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 via-green-500 to-teal-600 flex items-center justify-center shadow-lg shadow-teal-500/40 ring-2 ring-teal-400/20">
+                <Plane className="w-6 h-6 text-white drop-shadow-md transform -rotate-45" />
+                <MapPin className="w-4 h-4 text-white/90 drop-shadow-md absolute bottom-1 right-1" />
               </div>
-              <span className="text-xl font-bold text-slate-900">Dominican Transfers</span>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold text-slate-900 leading-none">Dominican Transfers</span>
+                <span className="text-xs text-teal-600 font-semibold">Airport Shuttles</span>
+              </div>
             </div>
 
             <div className="hidden md:flex items-center gap-6">
@@ -147,71 +151,95 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
         )}
       </nav>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
-        <header className="text-center mb-16 animate-fade-in">
-          <div className="relative mb-8 rounded-3xl overflow-hidden shadow-2xl max-w-4xl mx-auto">
-            <video
-              key={heroVideoUrl}
-              autoPlay
-              muted
-              loop
-              playsInline
-              controls={false}
-              preload="auto"
-              crossOrigin="anonymous"
-              className="w-full h-auto"
-              onError={(e) => console.error('Video error:', e)}
-              onLoadStart={() => console.log('Video loading...')}
-              onLoadedData={() => console.log('Video loaded!')}
-            >
-              <source src={heroVideoUrl || 'https://gwlaxeonvfywhecwtupv.supabase.co/storage/v1/object/public/landing-videos/istockphoto-1496193631-640_adpp_is.mp4'} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20 pointer-events-none"></div>
-          </div>
+      <section className="relative w-full h-screen min-h-[600px] max-h-[900px] overflow-hidden">
+        <video
+          key={heroVideoUrl}
+          autoPlay
+          muted
+          loop
+          playsInline
+          controls={false}
+          preload="auto"
+          crossOrigin="anonymous"
+          className="absolute inset-0 w-full h-full object-cover"
+          onError={(e) => console.error('Video error:', e)}
+          onLoadStart={() => console.log('Video loading...')}
+          onLoadedData={() => console.log('Video loaded!')}
+        >
+          <source src={heroVideoUrl || 'https://gwlaxeonvfywhecwtupv.supabase.co/storage/v1/object/public/landing-videos/istockphoto-1496193631-640_adpp_is.mp4'} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
 
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/30 mb-6 shadow-lg">
-            <Sparkles className="w-4 h-4 text-white" />
-            <span className="text-white text-sm font-bold drop-shadow-lg">Limited Time Offer - From $25</span>
-          </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-2xl">
-            Punta Cana Airport Transfer From $25
-            <br />
-            <span className="text-white drop-shadow-2xl">
-              Private PUJ Airport Transfers
-            </span>
-          </h1>
+        <div className="relative z-10 h-full flex items-center justify-center px-4 sm:px-6 lg:px-8">
+          <div className="max-w-5xl mx-auto text-center animate-fade-in">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-500/90 to-orange-500/90 backdrop-blur-md border border-white/40 mb-6 shadow-2xl animate-pulse-subtle">
+              <Sparkles className="w-5 h-5 text-white" />
+              <span className="text-white text-sm sm:text-base font-bold tracking-wide">Up to 40% Off – Limited Time Only</span>
+            </div>
 
-          <p className="text-xl sm:text-2xl text-white/95 mb-10 max-w-3xl mx-auto drop-shadow-lg font-medium">
-            Private Airport Pickup • No Waiting • Fixed Prices
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button
-              onClick={onBookNowClick}
-              className="group relative w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-teal-500 via-green-500 to-teal-500 text-white rounded-2xl font-semibold text-lg transition-all duration-300 hover:scale-105 overflow-hidden shadow-xl hover:shadow-teal-500/30 animate-gradient bg-[length:200%_auto]"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-              <span className="relative flex items-center justify-center gap-2">
-                <Sparkles className="w-5 h-5" />
-                Book Your Transfer Now
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 leading-tight drop-shadow-2xl">
+              Punta Cana Airport Transfer
+              <br />
+              <span className="bg-gradient-to-r from-teal-400 via-green-400 to-teal-400 bg-clip-text text-transparent">
+                From Just $25
               </span>
-            </button>
+            </h1>
 
-            <button
-              onClick={onBookNowClick}
-              className="group relative w-full sm:w-auto px-8 py-4 bg-white/80 backdrop-blur-md text-teal-700 rounded-2xl font-semibold text-lg hover:bg-white transition-all duration-300 hover:scale-105 border border-slate-200 shadow-xl overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-teal-50 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-              <span className="relative flex items-center justify-center gap-2">
-                <MessageCircle className="w-5 h-5" />
-                Chat for Instant Price
-              </span>
-            </button>
+            <p className="text-xl sm:text-2xl md:text-3xl text-white/95 mb-10 max-w-3xl mx-auto drop-shadow-xl font-medium leading-relaxed">
+              Private Airport Pickup • No Waiting • Fixed Prices
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+              <button
+                onClick={onBookNowClick}
+                className="group relative w-full sm:w-auto px-10 py-5 bg-gradient-to-r from-teal-500 via-green-500 to-teal-500 text-white rounded-2xl font-bold text-lg sm:text-xl transition-all duration-300 hover:scale-105 overflow-hidden shadow-2xl hover:shadow-teal-500/50 animate-gradient bg-[length:200%_auto] border-2 border-white/30"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                <span className="relative flex items-center justify-center gap-3">
+                  <Sparkles className="w-6 h-6" />
+                  Book Your Transfer Now
+                </span>
+              </button>
+
+              <button
+                onClick={onBookNowClick}
+                className="group relative w-full sm:w-auto px-10 py-5 bg-white/95 backdrop-blur-md text-teal-700 rounded-2xl font-bold text-lg sm:text-xl hover:bg-white transition-all duration-300 hover:scale-105 border-2 border-teal-300 shadow-2xl overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-teal-50 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                <span className="relative flex items-center justify-center gap-3">
+                  <MessageCircle className="w-6 h-6" />
+                  Chat for Instant Price
+                </span>
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-6 text-white/90 text-sm sm:text-base">
+              <div className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-teal-400" />
+                <span className="font-medium">Licensed & Insured</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-teal-400" />
+                <span className="font-medium">24/7 Available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-teal-400" />
+                <span className="font-medium">10,000+ Happy Customers</span>
+              </div>
+            </div>
           </div>
-        </header>
+        </div>
 
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+          <div className="w-8 h-12 rounded-full border-2 border-white/50 flex items-start justify-center p-2">
+            <div className="w-1.5 h-3 bg-white/70 rounded-full"></div>
+          </div>
+        </div>
+      </section>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div ref={reviewSectionRef} className="h-1"></div>
 
         <section className="mb-16">
@@ -665,6 +693,21 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
 
         .animate-fade-in {
           animation: fade-in 0.8s ease-out;
+        }
+
+        @keyframes pulse-subtle {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.05);
+            opacity: 0.95;
+          }
+        }
+
+        .animate-pulse-subtle {
+          animation: pulse-subtle 2s ease-in-out infinite;
         }
 
         html {

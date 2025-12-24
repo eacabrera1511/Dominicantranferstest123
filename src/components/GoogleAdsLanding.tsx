@@ -9,11 +9,13 @@ interface GoogleAdsLandingProps {
   onRouteClick: (airport: string, destination: string) => void;
 }
 
+const DEFAULT_VIDEO = 'https://gwlaxeonvfywhecwtupv.supabase.co/storage/v1/object/public/landing-videos/Male_Tourist_Taking_Suitcases_Out_Of_Car_Trunk_preview_3495591.mp4';
+
 export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: GoogleAdsLandingProps) {
   const [showCTA, setShowCTA] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [heroVideoUrl, setHeroVideoUrl] = useState<string | null>(null);
+  const [heroVideoUrl, setHeroVideoUrl] = useState<string>(DEFAULT_VIDEO);
   const [videoPosterUrl, setVideoPosterUrl] = useState<string | null>(null);
   const [showStreamingBar, setShowStreamingBar] = useState(false);
   const [showAllReviewsModal, setShowAllReviewsModal] = useState(false);
@@ -34,8 +36,6 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
   }, []);
 
   useEffect(() => {
-    const defaultVideoUrl = 'https://gwlaxeonvfywhecwtupv.supabase.co/storage/v1/object/public/landing-videos/istockphoto-1496193631-640_adpp_is.mp4';
-
     const fetchLandingSettings = async () => {
       const { data } = await supabase
         .from('landing_page_settings')
@@ -43,11 +43,9 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
         .eq('is_active', true)
         .maybeSingle();
 
-      if (data?.hero_video_url) {
+      if (data?.hero_video_url && data.hero_video_url !== DEFAULT_VIDEO) {
         setHeroVideoUrl(data.hero_video_url);
         setVideoPosterUrl(data.hero_video_poster_url || null);
-      } else {
-        setHeroVideoUrl(defaultVideoUrl);
       }
     };
     fetchLandingSettings();
@@ -172,14 +170,12 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
           loop
           playsInline
           controls={false}
-          preload="auto"
+          preload="metadata"
           crossOrigin="anonymous"
+          poster={videoPosterUrl || undefined}
           className="absolute inset-0 w-full h-full object-cover"
-          onError={(e) => console.error('Video error:', e)}
-          onLoadStart={() => console.log('Video loading...')}
-          onLoadedData={() => console.log('Video loaded!')}
         >
-          <source src={heroVideoUrl || 'https://gwlaxeonvfywhecwtupv.supabase.co/storage/v1/object/public/landing-videos/istockphoto-1496193631-640_adpp_is.mp4'} type="video/mp4" />
+          <source src={heroVideoUrl} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
 

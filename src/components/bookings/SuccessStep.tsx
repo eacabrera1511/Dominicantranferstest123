@@ -27,9 +27,9 @@ export function SuccessStep({ item, bookingData, customerInfo, totalPrice, compl
       });
 
       window.gtag('event', 'conversion', {
-        'send_to': 'AW-17810479345',
+        'send_to': 'AW-17810479345/vMD-CIrB8dMbEPGx2axC',
         'value': totalPrice,
-        'currency': 'USD',
+        'currency': 'EUR',
         'transaction_id': bookingReference
       });
 

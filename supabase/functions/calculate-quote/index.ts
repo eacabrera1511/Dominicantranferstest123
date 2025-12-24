@@ -88,22 +88,26 @@ Deno.serve(async (req: Request) => {
         calculatedPrice = Math.round(base_price * ROUNDTRIP_MULTIPLIER);
       }
 
-      // Apply global discount if active
-      const { data: activeDiscount } = await supabase
-        .from('global_discount_settings')
-        .select('discount_percentage')
-        .eq('is_active', true)
-        .lte('start_date', new Date().toISOString())
-        .or('end_date.is.null,end_date.gt.' + new Date().toISOString())
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (activeDiscount && activeDiscount.discount_percentage > 0) {
-        const discountMultiplier = 1 - (Number(activeDiscount.discount_percentage) / 100);
-        total_price = Math.round(calculatedPrice * discountMultiplier);
-      } else {
+      // Apply global discount if active (unless route prohibits discounts)
+      if (pricingRule.no_discount_allowed) {
         total_price = calculatedPrice;
+      } else {
+        const { data: activeDiscount } = await supabase
+          .from('global_discount_settings')
+          .select('discount_percentage')
+          .eq('is_active', true)
+          .lte('start_date', new Date().toISOString())
+          .or('end_date.is.null,end_date.gt.' + new Date().toISOString())
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (activeDiscount && activeDiscount.discount_percentage > 0) {
+          const discountMultiplier = 1 - (Number(activeDiscount.discount_percentage) / 100);
+          total_price = Math.round(calculatedPrice * discountMultiplier);
+        } else {
+          total_price = calculatedPrice;
+        }
       }
     } else {
       // No pricing rule found - return error

@@ -87,6 +87,7 @@ interface BookingContext {
   priceSource?: string;
   originalPrice?: number;
   matchedPrice?: number;
+  noDiscountAllowed?: boolean;
 }
 
 const AIRPORTS: Record<string, string> = {
@@ -146,6 +147,7 @@ interface PricingRule {
   vehicle_type_id: string;
   base_price: number;
   zone: string;
+  no_discount_allowed?: boolean;
 }
 
 interface FleetVehicle {
@@ -190,7 +192,7 @@ export class TravelAgent {
         supabase.from('hotels').select('*'),
         supabase.from('services').select('*'),
         supabase.from('vehicle_types').select('id, name, passenger_capacity, luggage_capacity').eq('is_active', true),
-        supabase.from('pricing_rules').select('id, origin, destination, vehicle_type_id, base_price, zone').eq('is_active', true),
+        supabase.from('pricing_rules').select('id, origin, destination, vehicle_type_id, base_price, zone, no_discount_allowed').eq('is_active', true),
         supabase.from('fleet_vehicles').select('id, make, model, year, color, capacity, luggage_capacity, image_url, amenities, vehicle_type_id').eq('status', 'available'),
         supabase.from('hotel_zones').select('*').eq('is_active', true),
         supabase.from('global_discount_settings').select('discount_percentage').eq('is_active', true).order('created_at', { ascending: false }).limit(1).maybeSingle()
@@ -1189,7 +1191,7 @@ export class TravelAgent {
           if (vehicle) {
             let oneWayPrice = Number(rule.base_price);
 
-            if (this.globalDiscountPercentage > 0) {
+            if (this.globalDiscountPercentage > 0 && !rule.no_discount_allowed) {
               const discountMultiplier = 1 - (this.globalDiscountPercentage / 100);
               oneWayPrice = Math.round(oneWayPrice * discountMultiplier);
             }
@@ -1544,7 +1546,7 @@ export class TravelAgent {
           let oneWayPrice = Number(rule.base_price);
 
           // Apply global discount
-          if (this.globalDiscountPercentage > 0) {
+          if (this.globalDiscountPercentage > 0 && !rule.no_discount_allowed) {
             const discountMultiplier = 1 - (this.globalDiscountPercentage / 100);
             oneWayPrice = Math.round(oneWayPrice * discountMultiplier);
           }
@@ -1769,6 +1771,7 @@ export class TravelAgent {
 
       if (rule) {
         basePrice = Number(rule.base_price);
+        this.context.noDiscountAllowed = rule.no_discount_allowed || false;
       }
     }
 
@@ -1789,7 +1792,7 @@ export class TravelAgent {
       this.context.originalPrice = calculatedPrice;
     }
 
-    if (this.globalDiscountPercentage > 0) {
+    if (this.globalDiscountPercentage > 0 && !this.context.noDiscountAllowed) {
       const discountMultiplier = 1 - (this.globalDiscountPercentage / 100);
       calculatedPrice = Math.round(calculatedPrice * discountMultiplier);
     }

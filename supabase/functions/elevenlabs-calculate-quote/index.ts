@@ -147,7 +147,7 @@ Deno.serve(async (req: Request) => {
       console.log(`${vehicle.name} base price:`, basePrice, matchingRule ? '(from rule)' : '(fallback)');
 
       let oneWayPrice = basePrice;
-      if (discountPercentage > 0) {
+      if (discountPercentage > 0 && !(matchingRule?.no_discount_allowed)) {
         oneWayPrice = Math.round(basePrice * (1 - discountPercentage / 100));
       }
 

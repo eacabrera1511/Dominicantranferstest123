@@ -300,7 +300,7 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
 
         <div className="relative z-10 h-full flex items-center justify-center px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto text-center animate-fade-in">
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500/90 to-blue-500/90 backdrop-blur-md border border-white/50 mb-6 shadow-[0_0_30px_rgba(6,182,212,0.5)] animate-pulse-subtle">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500/90 to-blue-500/90 backdrop-blur-md mb-6 shadow-[0_0_30px_rgba(6,182,212,0.5)] animate-pulse-subtle">
               <Sparkles className="w-5 h-5 text-white animate-spin-slow" />
               <span className="text-white text-sm sm:text-base font-bold tracking-wide">Up to 40% Off – Limited Time Only</span>
             </div>

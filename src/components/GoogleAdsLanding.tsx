@@ -34,6 +34,8 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
   }, []);
 
   useEffect(() => {
+    const defaultVideoUrl = 'https://gwlaxeonvfywhecwtupv.supabase.co/storage/v1/object/public/landing-videos/istockphoto-1496193631-640_adpp_is.mp4';
+
     const fetchLandingSettings = async () => {
       const { data } = await supabase
         .from('landing_page_settings')
@@ -44,6 +46,8 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
       if (data?.hero_video_url) {
         setHeroVideoUrl(data.hero_video_url);
         setVideoPosterUrl(data.hero_video_poster_url || null);
+      } else {
+        setHeroVideoUrl(defaultVideoUrl);
       }
     };
     fetchLandingSettings();
@@ -145,23 +149,26 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
         <header className="text-center mb-16 animate-fade-in">
-          {heroVideoUrl && (
-            <div className="relative mb-8 rounded-3xl overflow-hidden shadow-2xl max-w-4xl mx-auto">
-              <video
-                key={heroVideoUrl}
-                autoPlay
-                muted
-                loop
-                playsInline
-                poster={videoPosterUrl || undefined}
-                className="w-full h-auto"
-              >
-                <source src={heroVideoUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20 pointer-events-none"></div>
-            </div>
-          )}
+          <div className="relative mb-8 rounded-3xl overflow-hidden shadow-2xl max-w-4xl mx-auto">
+            <video
+              key={heroVideoUrl}
+              autoPlay
+              muted
+              loop
+              playsInline
+              controls={false}
+              preload="auto"
+              crossOrigin="anonymous"
+              className="w-full h-auto"
+              onError={(e) => console.error('Video error:', e)}
+              onLoadStart={() => console.log('Video loading...')}
+              onLoadedData={() => console.log('Video loaded!')}
+            >
+              <source src={heroVideoUrl || 'https://gwlaxeonvfywhecwtupv.supabase.co/storage/v1/object/public/landing-videos/istockphoto-1496193631-640_adpp_is.mp4'} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20 pointer-events-none"></div>
+          </div>
 
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/30 mb-6 shadow-lg">
             <Sparkles className="w-4 h-4 text-white" />

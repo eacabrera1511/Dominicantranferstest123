@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, Clock, Shield, MapPin, DollarSign, Users, Star, CheckCircle, Phone, Menu, X, Sparkles, Play } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { StreamingReviewBar } from './StreamingReviewBar';
 import { AnimatedReviews } from './AnimatedReviews';
 
 interface GoogleAdsLandingProps {
@@ -14,10 +15,19 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [heroVideoUrl, setHeroVideoUrl] = useState<string | null>(null);
   const [videoPosterUrl, setVideoPosterUrl] = useState<string | null>(null);
+  const [showStreamingBar, setShowStreamingBar] = useState(false);
+  const [showAllReviewsModal, setShowAllReviewsModal] = useState(false);
+  const reviewSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
+
+      if (reviewSectionRef.current) {
+        const rect = reviewSectionRef.current.getBoundingClientRect();
+        const isPastReviewSection = rect.bottom < 100;
+        setShowStreamingBar(isPastReviewSection);
+      }
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -74,6 +84,17 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50">
+      {showStreamingBar && (
+        <StreamingReviewBar onSeeMoreClick={() => setShowAllReviewsModal(true)} />
+      )}
+
+      {showAllReviewsModal && (
+        <AnimatedReviews
+          showAllReviews={showAllReviewsModal}
+          onShowAllReviewsChange={setShowAllReviewsModal}
+        />
+      )}
+
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200/50 shadow-sm' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
@@ -125,36 +146,37 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
         <header className="text-center mb-16 animate-fade-in">
           {heroVideoUrl && (
-            <div className="relative mb-8 rounded-3xl overflow-hidden shadow-2xl max-w-4xl mx-auto group">
+            <div className="relative mb-8 rounded-3xl overflow-hidden shadow-2xl max-w-4xl mx-auto">
               <video
-                src={heroVideoUrl}
-                poster={videoPosterUrl || undefined}
-                controls
+                key={heroVideoUrl}
                 autoPlay
                 muted
                 loop
                 playsInline
+                poster={videoPosterUrl || undefined}
                 className="w-full h-auto"
               >
+                <source src={heroVideoUrl} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20 pointer-events-none"></div>
             </div>
           )}
 
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-teal-500/10 to-green-500/10 border border-teal-500/20 backdrop-blur-sm mb-6 animate-pulse-glow">
-            <Sparkles className="w-4 h-4 text-teal-600" />
-            <span className="text-teal-700 text-sm font-medium">Limited Time Offer - From $25</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/30 mb-6 shadow-lg">
+            <Sparkles className="w-4 h-4 text-white" />
+            <span className="text-white text-sm font-bold drop-shadow-lg">Limited Time Offer - From $25</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-2xl">
             Punta Cana Airport Transfer From $25
             <br />
-            <span className="bg-gradient-to-r from-teal-600 via-green-600 to-teal-600 bg-clip-text text-transparent animate-gradient">
+            <span className="text-white drop-shadow-2xl">
               Private PUJ Airport Transfers
             </span>
           </h1>
 
-          <p className="text-xl sm:text-2xl text-slate-600 mb-10 max-w-3xl mx-auto">
+          <p className="text-xl sm:text-2xl text-white/95 mb-10 max-w-3xl mx-auto drop-shadow-lg font-medium">
             Private Airport Pickup • No Waiting • Fixed Prices
           </p>
 
@@ -183,9 +205,7 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
           </div>
         </header>
 
-        <section className="mb-16">
-          <AnimatedReviews />
-        </section>
+        <div ref={reviewSectionRef} className="h-1"></div>
 
         <section className="mb-16">
           <div className="text-center mb-8">
@@ -198,12 +218,12 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[
-              { src: '/image2.jpeg', alt: 'Professional drivers with fleet' },
-              { src: '/image3.jpeg', alt: 'Customer with our driver' },
-              { src: '/image4.jpeg', alt: 'Happy customer with driver team' },
-              { src: '/image5.jpeg', alt: 'Night service available' },
-              { src: '/image6.jpeg', alt: 'Fleet vehicles ready' },
-              { src: '/vehicles/image3.jpeg', alt: 'Premium vehicle interior' }
+              { src: '/image2.jpeg', alt: 'Our professional fleet aerial view' },
+              { src: '/image4.jpeg', alt: 'Happy customers with our driver team' },
+              { src: '/image5.jpeg', alt: 'Premium night service available' },
+              { src: '/vehicles/image3.jpeg', alt: 'Luxury vehicle exterior' },
+              { src: '/vehicles/image5.jpeg', alt: 'Professional driver service' },
+              { src: '/vehicles/image7.jpeg', alt: 'Modern fleet vehicles' }
             ].map((image, index) => (
               <div
                 key={index}

@@ -21,7 +21,11 @@ export function StreamingReviewBar({ onSeeMoreClick }: StreamingReviewBarProps) 
   const [reviews, setReviews] = useState<Review[]>([]);
 
   useEffect(() => {
-    fetchReviews();
+    const timer = setTimeout(() => {
+      fetchReviews();
+    }, 200);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const fetchReviews = async () => {

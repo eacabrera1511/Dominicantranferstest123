@@ -13,18 +13,31 @@ interface Review {
   verified_purchase: boolean;
 }
 
-export function AnimatedReviews() {
+interface AnimatedReviewsProps {
+  showAllReviews?: boolean;
+  onShowAllReviewsChange?: (show: boolean) => void;
+}
+
+export function AnimatedReviews({ showAllReviews: showAllReviewsProp = false, onShowAllReviewsChange }: AnimatedReviewsProps = {}) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [currentReview, setCurrentReview] = useState<Review | null>(null);
   const [isDismissed, setIsDismissed] = useState(false);
-  const [showAllReviews, setShowAllReviews] = useState(false);
+  const [showAllReviewsInternal, setShowAllReviewsInternal] = useState(false);
+
+  const showAllReviews = showAllReviewsProp || showAllReviewsInternal;
+  const setShowAllReviews = onShowAllReviewsChange || setShowAllReviewsInternal;
 
   useEffect(() => {
     const dismissed = localStorage.getItem('reviews_dismissed');
     if (dismissed === 'true') {
       setIsDismissed(true);
     }
-    fetchReviews();
+
+    const timer = setTimeout(() => {
+      fetchReviews();
+    }, 300);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const fetchReviews = async () => {
@@ -54,7 +67,7 @@ export function AnimatedReviews() {
 
   if (showAllReviews) {
     return (
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
         <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
           <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between sticky top-0 bg-white dark:bg-slate-800 z-10">
             <div>
@@ -71,7 +84,13 @@ export function AnimatedReviews() {
               </p>
             </div>
             <button
-              onClick={() => setShowAllReviews(false)}
+              onClick={() => {
+                if (onShowAllReviewsChange) {
+                  onShowAllReviewsChange(false);
+                } else {
+                  setShowAllReviewsInternal(false);
+                }
+              }}
               className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
             >
               <X className="w-6 h-6 text-slate-500" />
@@ -218,7 +237,13 @@ export function AnimatedReviews() {
         </p>
 
         <button
-          onClick={() => setShowAllReviews(true)}
+          onClick={() => {
+            if (onShowAllReviewsChange) {
+              onShowAllReviewsChange(true);
+            } else {
+              setShowAllReviewsInternal(true);
+            }
+          }}
           className="w-full px-6 py-3 bg-gradient-to-r from-teal-500 to-green-500 hover:from-teal-600 hover:to-green-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:scale-105"
         >
           <img

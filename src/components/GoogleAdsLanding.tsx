@@ -22,33 +22,46 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
   const reviewSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+    let ticking = false;
 
-      if (reviewSectionRef.current) {
-        const rect = reviewSectionRef.current.getBoundingClientRect();
-        const isPastReviewSection = rect.bottom < 100;
-        setShowStreamingBar(isPastReviewSection);
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 20);
+
+          if (reviewSectionRef.current) {
+            const rect = reviewSectionRef.current.getBoundingClientRect();
+            const isPastReviewSection = rect.bottom < 100;
+            setShowStreamingBar(isPastReviewSection);
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
-    window.addEventListener('scroll', handleScroll);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
-    const fetchLandingSettings = async () => {
-      const { data } = await supabase
-        .from('landing_page_settings')
-        .select('hero_video_url, hero_video_poster_url')
-        .eq('is_active', true)
-        .maybeSingle();
+    const timer = setTimeout(() => {
+      const fetchLandingSettings = async () => {
+        const { data } = await supabase
+          .from('landing_page_settings')
+          .select('hero_video_url, hero_video_poster_url')
+          .eq('is_active', true)
+          .maybeSingle();
 
-      if (data?.hero_video_url && data.hero_video_url !== DEFAULT_VIDEO) {
-        setHeroVideoUrl(data.hero_video_url);
-        setVideoPosterUrl(data.hero_video_poster_url || null);
-      }
-    };
-    fetchLandingSettings();
+        if (data?.hero_video_url && data.hero_video_url !== DEFAULT_VIDEO) {
+          setHeroVideoUrl(data.hero_video_url);
+          setVideoPosterUrl(data.hero_video_poster_url || null);
+        }
+      };
+      fetchLandingSettings();
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const popularRoutes = [

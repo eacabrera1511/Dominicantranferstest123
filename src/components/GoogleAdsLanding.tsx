@@ -119,6 +119,9 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
             </div>
 
             <div className="hidden md:flex items-center gap-6">
+              <a href="/chat" className={`transition-colors font-medium ${
+                scrolled ? 'text-slate-600 hover:text-teal-600' : 'text-white hover:text-teal-200 drop-shadow-md'
+              }`}>Chat</a>
               <a href="#services" className={`transition-colors font-medium ${
                 scrolled ? 'text-slate-600 hover:text-teal-600' : 'text-white hover:text-teal-200 drop-shadow-md'
               }`}>Services</a>
@@ -260,6 +263,7 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
         {mobileMenuOpen && (
           <div className="md:hidden bg-white/95 backdrop-blur-xl border-t border-slate-200/50 shadow-lg">
             <div className="px-4 py-4 space-y-3">
+              <a href="/chat" className="block text-slate-600 hover:text-teal-600 py-2 transition-colors font-medium">Chat</a>
               <a href="#services" className="block text-slate-600 hover:text-teal-600 py-2 transition-colors font-medium">Services</a>
               <a href="#routes" className="block text-slate-600 hover:text-teal-600 py-2 transition-colors font-medium">Popular Routes</a>
               <a

@@ -56,12 +56,13 @@ function App() {
   const [showGallery, setShowGallery] = useState(false);
   const [showVoiceWidget, setShowVoiceWidget] = useState(false);
   const [showLandingPage, setShowLandingPage] = useState(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('landing') === 'true' || window.location.pathname.includes('/landing');
+    const pathname = window.location.pathname;
+    return pathname === '/' || pathname === '/landing' || pathname.includes('/landing');
   });
   const [paymentBookingRef, setPaymentBookingRef] = useState<string>('');
   const [darkMode, setDarkMode] = useState(() => {
-    if (window.location.pathname.includes('/landing')) return false;
+    const pathname = window.location.pathname;
+    if (pathname === '/' || pathname === '/landing' || pathname.includes('/landing')) return false;
     const stored = localStorage.getItem('theme');
     if (stored) return stored === 'dark';
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -79,6 +80,20 @@ function App() {
     }
     localStorage.setItem('theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const pathname = window.location.pathname;
+      const isLanding = pathname === '/' || pathname === '/landing' || pathname.includes('/landing');
+      setShowLandingPage(isLanding);
+      if (isLanding) {
+        setDarkMode(false);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -1072,6 +1087,7 @@ function App() {
     return (
       <GoogleAdsLanding
         onBookNowClick={async () => {
+          window.history.pushState({}, '', '/chat');
           setShowLandingPage(false);
           setDarkMode(false);
           trackEvent('landing_page_book_now_clicked', { source: 'google_ads_landing' });
@@ -1079,6 +1095,7 @@ function App() {
           inputRef.current?.focus();
         }}
         onRouteClick={(airport: string, destination: string) => {
+          window.history.pushState({}, '', '/chat');
           setShowLandingPage(false);
           setDarkMode(false);
           agent.setLandingPageContext({ airport, destination });

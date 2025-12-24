@@ -12,7 +12,6 @@ interface GoogleAdsLandingProps {
 const DEFAULT_VIDEO = 'https://gwlaxeonvfywhecwtupv.supabase.co/storage/v1/object/public/landing-videos/Male_Tourist_Taking_Suitcases_Out_Of_Car_Trunk_preview_3495591.mp4';
 
 export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: GoogleAdsLandingProps) {
-  const [showCTA, setShowCTA] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [heroVideoUrl, setHeroVideoUrl] = useState<string>(DEFAULT_VIDEO);
@@ -508,12 +507,7 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
             {popularRoutes.map((route, index) => (
               <a
                 key={index}
-                href={`?landing=true&arrival=${encodeURIComponent(route.from)}&destination=${encodeURIComponent(route.to)}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.history.pushState({}, '', `?landing=true&arrival=${encodeURIComponent(route.from)}&destination=${encodeURIComponent(route.to)}`);
-                  onRouteClick(route.from, route.to);
-                }}
+                href={`/?arrival=${encodeURIComponent(route.from)}&destination=${encodeURIComponent(route.to)}`}
                 className="group relative bg-white/70 backdrop-blur-md rounded-2xl p-4 border border-slate-200/50 hover:border-teal-500/50 hover:shadow-xl hover:shadow-teal-500/10 transition-all duration-300 text-left overflow-hidden hover:scale-105 block"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-teal-500/0 via-teal-500/5 to-teal-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
@@ -656,29 +650,9 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
         </footer>
       </div>
 
-      {showCTA && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200/50 shadow-2xl shadow-teal-500/10 p-4 z-50 md:hidden">
-          <div className="flex gap-2">
-            <button
-              onClick={onBookNowClick}
-              className="group relative flex-1 px-6 py-3 bg-gradient-to-r from-teal-500 to-green-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-teal-500/30 transition-all duration-300 overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></div>
-              <span className="relative">Book Now</span>
-            </button>
-            <button
-              onClick={onBookNowClick}
-              className="group relative flex-1 px-6 py-3 bg-slate-100 text-teal-700 rounded-xl font-semibold shadow-lg hover:bg-white transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden border border-slate-200"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-teal-50 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></div>
-              <span className="relative flex items-center gap-2">
-                <MessageCircle className="w-5 h-5" />
-                Chat
-              </span>
-            </button>
-          </div>
-        </div>
-      )}
+      <div className="md:hidden">
+        <StreamingReviewBar onSeeMoreClick={() => setShowAllReviewsModal(true)} />
+      </div>
 
       <style>{`
         @keyframes gradient {

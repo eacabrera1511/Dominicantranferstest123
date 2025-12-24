@@ -77,9 +77,9 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200/50 shadow-sm' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-green-500 flex items-center justify-center shadow-lg shadow-teal-500/30">
-                <MapPin className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-green-500 flex items-center justify-center shadow-lg shadow-teal-500/40 ring-2 ring-teal-400/20">
+                <MapPin className="w-7 h-7 text-white drop-shadow-md" />
               </div>
               <span className="text-xl font-bold text-slate-900">Dominican Transfers</span>
             </div>
@@ -130,16 +130,14 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
                 src={heroVideoUrl}
                 poster={videoPosterUrl || undefined}
                 controls
-                className="w-full h-auto"
+                autoPlay
+                muted
+                loop
                 playsInline
+                className="w-full h-auto"
               >
                 Your browser does not support the video tag.
               </video>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none flex items-center justify-center">
-                <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
-                  <Play className="w-8 h-8 text-white" />
-                </div>
-              </div>
             </div>
           )}
 
@@ -184,6 +182,43 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
             </button>
           </div>
         </header>
+
+        <section className="mb-16">
+          <AnimatedReviews />
+        </section>
+
+        <section className="mb-16">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3">
+              Our Professional Team & Fleet
+            </h2>
+            <p className="text-lg text-slate-600">
+              Meet the drivers and vehicles that make your journey comfortable and safe
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {[
+              { src: '/image2.jpeg', alt: 'Professional drivers with fleet' },
+              { src: '/image3.jpeg', alt: 'Customer with our driver' },
+              { src: '/image4.jpeg', alt: 'Happy customer with driver team' },
+              { src: '/image5.jpeg', alt: 'Night service available' },
+              { src: '/image6.jpeg', alt: 'Fleet vehicles ready' },
+              { src: '/vehicles/image3.jpeg', alt: 'Premium vehicle interior' }
+            ].map((image, index) => (
+              <div
+                key={index}
+                className="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105"
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-teal-600/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
+                <img
+                  src={image.src}
+                  alt={image.alt}
+                  className="w-full h-48 md:h-64 object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+              </div>
+            ))}
+          </div>
+        </section>
 
         <section id="services" className="mb-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -564,8 +599,6 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
           </div>
         </div>
       )}
-
-      <AnimatedReviews />
 
       <style>{`
         @keyframes gradient {

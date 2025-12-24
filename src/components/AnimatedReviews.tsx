@@ -16,36 +16,16 @@ interface Review {
 export function AnimatedReviews() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [currentReview, setCurrentReview] = useState<Review | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
-  const [reviewIndex, setReviewIndex] = useState(0);
 
   useEffect(() => {
+    const dismissed = localStorage.getItem('reviews_dismissed');
+    if (dismissed === 'true') {
+      setIsDismissed(true);
+    }
     fetchReviews();
   }, []);
-
-  useEffect(() => {
-    if (reviews.length === 0 || showAllReviews) return;
-
-    const showNextReview = () => {
-      setIsVisible(false);
-
-      setTimeout(() => {
-        const nextIndex = (reviewIndex + 1) % reviews.length;
-        setCurrentReview(reviews[nextIndex]);
-        setReviewIndex(nextIndex);
-        setIsVisible(true);
-
-        setTimeout(() => {
-          setIsVisible(false);
-        }, 8000);
-      }, 500);
-    };
-
-    const timer = setTimeout(showNextReview, isVisible ? 8500 : 100);
-
-    return () => clearTimeout(timer);
-  }, [reviews, reviewIndex, isVisible, showAllReviews]);
 
   const fetchReviews = async () => {
     const { data } = await supabase
@@ -54,12 +34,9 @@ export function AnimatedReviews() {
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
 
-    if (data) {
+    if (data && data.length > 0) {
       setReviews(data);
-      if (data.length > 0) {
-        setCurrentReview(data[0]);
-        setIsVisible(true);
-      }
+      setCurrentReview(data[0]);
     }
   };
 
@@ -71,7 +48,8 @@ export function AnimatedReviews() {
   };
 
   const closePopup = () => {
-    setIsVisible(false);
+    setIsDismissed(true);
+    localStorage.setItem('reviews_dismissed', 'true');
   };
 
   if (showAllReviews) {
@@ -89,7 +67,7 @@ export function AnimatedReviews() {
                 Customer Reviews
               </h2>
               <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                Trusted by {reviews.length.toLocaleString()}+ travelers
+                Trusted by 1,500+ travelers
               </p>
             </div>
             <button
@@ -177,51 +155,50 @@ export function AnimatedReviews() {
     );
   }
 
-  if (!currentReview || !isVisible) return null;
+  if (!currentReview || isDismissed) return null;
 
   return (
-    <div
-      className={`fixed bottom-6 left-6 z-40 max-w-md transition-all duration-500 ${
-        isVisible
-          ? 'translate-y-0 opacity-100'
-          : 'translate-y-4 opacity-0 pointer-events-none'
-      }`}
-    >
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-5 backdrop-blur-sm">
-        <div className="flex items-start justify-between mb-3">
+    <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6">
+        <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3 flex-1">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-teal-500 to-green-500 flex items-center justify-center text-white font-bold text-xl flex-shrink-0 shadow-lg">
               {currentReview.reviewer_name.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-slate-900 dark:text-white truncate">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-semibold text-slate-900 dark:text-white text-lg">
                   {currentReview.reviewer_name}
                 </h3>
                 {currentReview.verified_purchase && (
-                  <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-xs font-medium flex-shrink-0">
-                    Verified
+                  <span className="px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-xs font-semibold flex-shrink-0">
+                    Verified Booking
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              {currentReview.reviewer_location && (
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                  {currentReview.reviewer_location}
+                </p>
+              )}
+              <p className="text-xs text-teal-600 dark:text-teal-400 font-medium mt-1">
                 {getTimeAgo()}
               </p>
             </div>
           </div>
           <button
             onClick={closePopup}
-            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors flex-shrink-0 ml-2"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors flex-shrink-0"
           >
-            <X className="w-4 h-4 text-slate-400" />
+            <X className="w-5 h-5 text-slate-400" />
           </button>
         </div>
 
-        <div className="flex items-center gap-1 mb-3">
+        <div className="flex items-center gap-1 mb-4">
           {[...Array(5)].map((_, i) => (
             <Star
               key={i}
-              className={`w-4 h-4 ${
+              className={`w-5 h-5 ${
                 i < currentReview.rating
                   ? 'fill-yellow-400 text-yellow-400'
                   : 'text-slate-300 dark:text-slate-600'
@@ -231,25 +208,25 @@ export function AnimatedReviews() {
         </div>
 
         {currentReview.review_title && (
-          <h4 className="font-semibold text-slate-900 dark:text-white mb-2 text-sm">
+          <h4 className="font-bold text-slate-900 dark:text-white mb-3 text-base">
             {currentReview.review_title}
           </h4>
         )}
 
-        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-4 line-clamp-3">
+        <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-5">
           {currentReview.review_text}
         </p>
 
         <button
           onClick={() => setShowAllReviews(true)}
-          className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2"
+          className="w-full px-6 py-3 bg-gradient-to-r from-teal-500 to-green-500 hover:from-teal-600 hover:to-green-600 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:scale-105"
         >
           <img
             src="https://static.tacdn.com/img2/brand_refresh/Tripadvisor_logoset_solid_green.svg"
             alt="TripAdvisor"
-            className="h-4 brightness-0 invert"
+            className="h-5 brightness-0 invert"
           />
-          See all {reviews.length.toLocaleString()}+ reviews
+          See all 1,500+ reviews
         </button>
       </div>
     </div>

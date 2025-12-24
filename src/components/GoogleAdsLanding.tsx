@@ -150,13 +150,18 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
             <div className="px-4 py-4 space-y-3">
               <a href="#services" className="block text-slate-600 hover:text-teal-600 py-2 transition-colors font-medium">Services</a>
               <a href="#routes" className="block text-slate-600 hover:text-teal-600 py-2 transition-colors font-medium">Popular Routes</a>
-              <a href="#how-it-works" className="block text-slate-600 hover:text-teal-600 py-2 transition-colors font-medium">How It Works</a>
-              <button
-                onClick={onBookNowClick}
-                className="w-full px-6 py-3 bg-gradient-to-r from-teal-500 to-green-500 text-white rounded-xl font-semibold shadow-lg"
+              <a
+                href="#reviews"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowAllReviewsModal(true);
+                  setMobileMenuOpen(false);
+                }}
+                className="block text-slate-600 hover:text-teal-600 py-2 transition-colors font-medium"
               >
-                Book Now
-              </button>
+                Reviews
+              </a>
+              <a href="#how-it-works" className="block text-slate-600 hover:text-teal-600 py-2 transition-colors font-medium">How It Works</a>
             </div>
           </div>
         )}
@@ -203,7 +208,7 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
             <div className="flex flex-col sm:flex-row gap-5 justify-center items-center mb-8">
               <button
                 onClick={onBookNowClick}
-                className="group relative w-full sm:w-auto px-12 py-6 bg-gradient-to-br from-teal-400 via-green-500 to-emerald-600 text-white rounded-2xl font-bold text-lg sm:text-xl transition-all duration-500 hover:scale-110 overflow-hidden shadow-[0_8px_32px_rgba(20,184,166,0.4),0_0_60px_rgba(16,185,129,0.3)] hover:shadow-[0_12px_48px_rgba(20,184,166,0.6),0_0_90px_rgba(16,185,129,0.5)] border-2 border-white/60 backdrop-blur-sm"
+                className="group relative w-full sm:w-auto px-12 py-6 bg-gradient-to-br from-teal-400 via-green-500 to-emerald-600 text-white rounded-2xl font-bold text-lg sm:text-xl transition-all duration-500 hover:scale-110 overflow-hidden shadow-[0_8px_32px_rgba(20,184,166,0.4),0_0_60px_rgba(16,185,129,0.3)] hover:shadow-[0_12px_48px_rgba(20,184,166,0.6),0_0_90px_rgba(16,185,129,0.5)] border-2 border-transparent bg-gradient-to-br from-teal-300 via-green-400 to-emerald-500 bg-clip-padding backdrop-blur-sm ring-2 ring-teal-400/50 ring-offset-2 ring-offset-transparent"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent opacity-50"></div>
@@ -217,7 +222,7 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
 
               <button
                 onClick={onBookNowClick}
-                className="group relative w-full sm:w-auto px-12 py-6 bg-black/20 backdrop-blur-2xl text-white rounded-2xl font-bold text-lg sm:text-xl hover:bg-black/30 transition-all duration-500 hover:scale-110 border-2 border-white/60 shadow-[0_8px_32px_rgba(255,255,255,0.2),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_12px_48px_rgba(255,255,255,0.3),inset_0_1px_0_rgba(255,255,255,0.5)] overflow-hidden"
+                className="group relative w-full sm:w-auto px-12 py-6 bg-black/20 backdrop-blur-2xl text-white rounded-2xl font-bold text-lg sm:text-xl hover:bg-black/30 transition-all duration-500 hover:scale-110 border-2 border-transparent shadow-[0_8px_32px_rgba(255,255,255,0.2),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_12px_48px_rgba(255,255,255,0.3),inset_0_1px_0_rgba(255,255,255,0.5)] overflow-hidden ring-2 ring-teal-400/50 ring-offset-2 ring-offset-transparent"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-white/10"></div>
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
@@ -501,10 +506,15 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {popularRoutes.map((route, index) => (
-              <button
+              <a
                 key={index}
-                onClick={() => onRouteClick(route.from, route.to)}
-                className="group relative bg-white/70 backdrop-blur-md rounded-2xl p-4 border border-slate-200/50 hover:border-teal-500/50 hover:shadow-xl hover:shadow-teal-500/10 transition-all duration-300 text-left overflow-hidden hover:scale-105"
+                href={`?landing=true&arrival=${encodeURIComponent(route.from)}&destination=${encodeURIComponent(route.to)}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.history.pushState({}, '', `?landing=true&arrival=${encodeURIComponent(route.from)}&destination=${encodeURIComponent(route.to)}`);
+                  onRouteClick(route.from, route.to);
+                }}
+                className="group relative bg-white/70 backdrop-blur-md rounded-2xl p-4 border border-slate-200/50 hover:border-teal-500/50 hover:shadow-xl hover:shadow-teal-500/10 transition-all duration-300 text-left overflow-hidden hover:scale-105 block"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-teal-500/0 via-teal-500/5 to-teal-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                 <div className="relative flex items-center gap-3">
@@ -515,7 +525,7 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
                     {route.label}
                   </span>
                 </div>
-              </button>
+              </a>
             ))}
           </div>
         </section>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Clock, Shield, MapPin, DollarSign, Users, Star, CheckCircle, Phone, Menu, X, Sparkles, Play, Plane } from 'lucide-react';
+import { MessageCircle, Clock, Shield, MapPin, DollarSign, Users, Star, CheckCircle, Phone, Menu, X, Sparkles, Play, Plane, Car } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { StreamingReviewBar } from './StreamingReviewBar';
 import { AnimatedReviews } from './AnimatedReviews';
@@ -104,19 +104,18 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-3">
               <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 via-green-500 to-teal-600 flex items-center justify-center shadow-lg shadow-teal-500/40 ring-2 ring-teal-400/20">
-                <Plane className="w-6 h-6 text-white drop-shadow-md transform -rotate-45" />
-                <MapPin className="w-4 h-4 text-white/90 drop-shadow-md absolute bottom-1 right-1" />
+                <Car className="w-7 h-7 text-white drop-shadow-md" />
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-slate-900 leading-none">Dominican Transfers</span>
-                <span className="text-xs text-teal-600 font-semibold">Airport Shuttles</span>
+                <span className="text-xl font-bold text-white leading-none drop-shadow-lg">Dominican Transfers</span>
+                <span className="text-xs text-teal-200 font-semibold drop-shadow-md">Airport Shuttles</span>
               </div>
             </div>
 
             <div className="hidden md:flex items-center gap-6">
-              <a href="#services" className="text-slate-600 hover:text-teal-600 transition-colors font-medium">Services</a>
-              <a href="#routes" className="text-slate-600 hover:text-teal-600 transition-colors font-medium">Popular Routes</a>
-              <a href="#how-it-works" className="text-slate-600 hover:text-teal-600 transition-colors font-medium">How It Works</a>
+              <a href="#services" className="text-white hover:text-teal-200 transition-colors font-medium drop-shadow-md">Services</a>
+              <a href="#routes" className="text-white hover:text-teal-200 transition-colors font-medium drop-shadow-md">Popular Routes</a>
+              <a href="#how-it-works" className="text-white hover:text-teal-200 transition-colors font-medium drop-shadow-md">How It Works</a>
               <button
                 onClick={onBookNowClick}
                 className="px-6 py-2.5 bg-gradient-to-r from-teal-500 to-green-500 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-teal-500/30 transition-all duration-300 hover:scale-105"
@@ -174,15 +173,15 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
 
         <div className="relative z-10 h-full flex items-center justify-center px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto text-center animate-fade-in">
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-500/90 to-orange-500/90 backdrop-blur-md border border-white/40 mb-6 shadow-2xl animate-pulse-subtle">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500/90 to-blue-500/90 backdrop-blur-md border border-white/50 mb-6 shadow-[0_0_30px_rgba(6,182,212,0.5)] animate-pulse-subtle">
+              <Sparkles className="w-5 h-5 text-white animate-spin-slow" />
               <span className="text-white text-sm sm:text-base font-bold tracking-wide">Up to 40% Off – Limited Time Only</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 leading-tight drop-shadow-2xl">
               Punta Cana Airport Transfer
               <br />
-              <span className="bg-gradient-to-r from-teal-400 via-green-400 to-teal-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-teal-400 via-green-400 to-teal-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(20,184,166,0.8)]">
                 From Just $25
               </span>
             </h1>
@@ -194,22 +193,24 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
               <button
                 onClick={onBookNowClick}
-                className="group relative w-full sm:w-auto px-10 py-5 bg-gradient-to-r from-teal-500 via-green-500 to-teal-500 text-white rounded-2xl font-bold text-lg sm:text-xl transition-all duration-300 hover:scale-105 overflow-hidden shadow-2xl hover:shadow-teal-500/50 animate-gradient bg-[length:200%_auto] border-2 border-white/30"
+                className="group relative w-full sm:w-auto px-10 py-5 bg-gradient-to-r from-teal-500 via-green-500 to-teal-500 text-white rounded-2xl font-bold text-lg sm:text-xl transition-all duration-300 hover:scale-110 overflow-hidden shadow-[0_0_40px_rgba(20,184,166,0.6)] hover:shadow-[0_0_60px_rgba(20,184,166,0.9)] animate-gradient bg-[length:200%_auto] border-2 border-white/40"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
                 <span className="relative flex items-center justify-center gap-3">
-                  <Sparkles className="w-6 h-6" />
+                  <Sparkles className="w-6 h-6 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
                   Book Your Transfer Now
                 </span>
               </button>
 
               <button
                 onClick={onBookNowClick}
-                className="group relative w-full sm:w-auto px-10 py-5 bg-white/95 backdrop-blur-md text-teal-700 rounded-2xl font-bold text-lg sm:text-xl hover:bg-white transition-all duration-300 hover:scale-105 border-2 border-teal-300 shadow-2xl overflow-hidden"
+                className="group relative w-full sm:w-auto px-10 py-5 bg-white/10 backdrop-blur-xl text-white rounded-2xl font-bold text-lg sm:text-xl hover:bg-white/20 transition-all duration-300 hover:scale-110 border-2 border-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:shadow-[0_0_50px_rgba(255,255,255,0.5)] overflow-hidden"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-teal-50 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
                 <span className="relative flex items-center justify-center gap-3">
-                  <MessageCircle className="w-6 h-6" />
+                  <MessageCircle className="w-6 h-6 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
                   Chat for Instant Price
                 </span>
               </button>
@@ -708,6 +709,19 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
 
         .animate-pulse-subtle {
           animation: pulse-subtle 2s ease-in-out infinite;
+        }
+
+        @keyframes spin-slow {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .animate-spin-slow {
+          animation: spin-slow 3s linear infinite;
         }
 
         html {

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DNS Records Verification - Dominican Transfers</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 16px;
+    }
+
+    .content {
+      padding: 40px;
+    }
+
+    .status-card {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-left: 4px solid #94a3b8;
+    }
+
+    .status-card.success {
+      border-left-color: #22c55e;
+      background: #f0fdf4;
+    }
+
+    .status-card.error {
+      border-left-color: #ef4444;
+      background: #fef2f2;
+    }
+
+    .status-card.warning {
+      border-left-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .status-card h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-card p {
+      font-size: 14px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+
+    .status-card code {
+      display: block;
+      background: white;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 10px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 20px;
+      transition: transform 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .spinner {
+      border: 3px solid #e2e8f0;
+      border-top-color: #0ea5e9;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .icon {
+      font-size: 20px;
+    }
+
+    .summary {
+      background: #f1f5f9;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 30px;
+    }
+
+    .summary h3 {
+      font-size: 18px;
+      margin-bottom: 15px;
+      color: #0f172a;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .summary-item:last-child {
+      border-bottom: none;
+    }
+
+    .summary-item span:first-child {
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge.success {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .badge.warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔍 DNS Records Verification</h1>
+      <p>Check if your email domain is properly configured</p>
+    </div>
+
+    <div class="content">
+      <button class="btn" id="checkBtn" onclick="checkDNS()">
+        Check DNS Records
+      </button>
+
+      <div id="results"></div>
+    </div>
+  </div>
+
+  <script>
+    async function checkDNS() {
+      const btn = document.getElementById('checkBtn');
+      const results = document.getElementById('results');
+
+      btn.disabled = true;
+      btn.textContent = 'Checking...';
+
+      results.innerHTML = '<div class="loading"><div class="spinner"></div><p>Checking DNS records...</p></div>';
+
+      const checks = [
+        {
+          name: 'Domain Verification Record',
+          type: 'TXT',
+          record: '_resend.dominicantransfers.com',
+          expected: 'resend-verification=',
+          description: 'Proves you own the domain to Resend'
+        },
+        {
+          name: 'SPF Record',
+          type: 'TXT',
+          record: 'dominicantransfers.com',
+          expected: 'v=spf1',
+          description: 'Authorizes Resend to send emails on your behalf'
+        },
+        {
+          name: 'DKIM Record',
+          type: 'CNAME',
+          record: 'resend._domainkey.dominicantransfers.com',
+          expected: 'resend._domainkey.resend.com',
+          description: 'Cryptographic signature for email authentication'
+        },
+        {
+          name: 'DMARC Record',
+          type: 'TXT',
+          record: '_dmarc.dominicantransfers.com',
+          expected: 'v=DMARC1',
+          description: 'Email authentication policy'
+        }
+      ];
+
+      let resultsHTML = '';
+      let successCount = 0;
+
+      for (const check of checks) {
+        try {
+          const response = await fetch(`https://dns.google/resolve?name=${check.record}&type=${check.type === 'TXT' ? '16' : '5'}`);
+          const data = await response.json();
+
+          let status = 'error';
+          let message = 'Record not found';
+          let value = 'Not configured';
+
+          if (data.Answer && data.Answer.length > 0) {
+            value = data.Answer[0].data;
+
+            if (check.type === 'CNAME') {
+              value = value.replace(/\.$/, ''); // Remove trailing dot
+            }
+
+            if (value.includes(check.expected) || value === check.expected) {
+              status = 'success';
+              message = '✅ Record found and configured correctly';
+              successCount++;
+            } else {
+              status = 'warning';
+              message = '⚠️ Record found but may be incorrect';
+            }
+          } else {
+            status = 'error';
+            message = '❌ Record not found - needs to be added to GoDaddy';
+          }
+
+          resultsHTML += `
+            <div class="status-card ${status}">
+              <h3><span class="icon">${status === 'success' ? '✅' : status === 'warning' ? '⚠️' : '❌'}</span> ${check.name}</h3>
+              <p><strong>Type:</strong> ${check.type} | <strong>Name:</strong> ${check.record}</p>
+              <p>${check.description}</p>
+              <p><strong>Status:</strong> ${message}</p>
+              ${value !== 'Not configured' ? `<code>${value}</code>` : ''}
+            </div>
+          `;
+        } catch (error) {
+          resultsHTML += `
+            <div class="status-card error">
+              <h3><span class="icon">❌</span> ${check.name}</h3>
+              <p>Error checking record: ${error.message}</p>
+            </div>
+          `;
+        }
+      }
+
+      const percentage = Math.round((successCount / checks.length) * 100);
+      let summaryStatus = 'error';
+      let summaryMessage = 'Domain not ready';
+
+      if (successCount === checks.length) {
+        summaryStatus = 'success';
+        summaryMessage = '✅ Domain fully configured!';
+      } else if (successCount > 0) {
+        summaryStatus = 'warning';
+        summaryMessage = '⚠️ Partial configuration';
+      } else {
+        summaryStatus = 'error';
+        summaryMessage = '❌ No records found';
+      }
+
+      resultsHTML += `
+        <div class="summary">
+          <h3>Summary</h3>
+          <div class="summary-item">
+            <span>Status</span>
+            <span class="badge ${summaryStatus}">${summaryMessage}</span>
+          </div>
+          <div class="summary-item">
+            <span>Records Configured</span>
+            <span>${successCount} / ${checks.length}</span>
+          </div>
+          <div class="summary-item">
+            <span>Completion</span>
+            <span>${percentage}%</span>
+          </div>
+          <div class="summary-item">
+            <span>Email Delivery</span>
+            <span class="badge ${successCount === checks.length ? 'success' : 'error'}">
+              ${successCount === checks.length ? 'READY' : 'NOT READY'}
+            </span>
+          </div>
+        </div>
+      `;
+
+      if (successCount < checks.length) {
+        resultsHTML += `
+          <div class="status-card warning" style="margin-top: 20px;">
+            <h3>⚠️ Action Required</h3>
+            <p><strong>Missing records must be added to GoDaddy:</strong></p>
+            <ol style="margin: 15px 0 0 20px; line-height: 1.8;">
+              <li>Log into GoDaddy.com</li>
+              <li>Go to DNS management for dominicantransfers.com</li>
+              <li>Add the missing DNS records from Resend dashboard</li>
+              <li>Wait 30-60 minutes for DNS propagation</li>
+              <li>Click "Check DNS Records" again to verify</li>
+            </ol>
+            <p style="margin-top: 15px;"><strong>📖 Full instructions:</strong> See EMAIL_DELIVERY_ROOT_CAUSE_FOUND.md</p>
+          </div>
+        `;
+      } else {
+        resultsHTML += `
+          <div class="status-card success" style="margin-top: 20px;">
+            <h3>🎉 All Records Configured!</h3>
+            <p><strong>Your domain is ready for email sending.</strong></p>
+            <p style="margin-top: 10px;">Next steps:</p>
+            <ol style="margin: 10px 0 0 20px; line-height: 1.8;">
+              <li>Go to Resend dashboard and click "Verify Domain"</li>
+              <li>Send a test email to yourself</li>
+              <li>Create a test booking to verify end-to-end flow</li>
+              <li>Monitor email_logs table for delivery status</li>
+            </ol>
+          </div>
+        `;
+      }
+
+      results.innerHTML = resultsHTML;
+      btn.disabled = false;
+      btn.textContent = 'Check Again';
+    }
+
+    // Auto-check on page load
+    window.addEventListener('load', () => {
+      setTimeout(checkDNS, 500);
+    });
+  </script>
+</body>
+</html>

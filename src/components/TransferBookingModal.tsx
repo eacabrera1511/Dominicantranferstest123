@@ -8,6 +8,13 @@ import {
 import { supabase } from '../lib/supabase';
 import { BookingAction } from '../lib/travelAgent';
 import { StripeService } from '../lib/stripe';
+import { trackConversionEvent } from '../lib/eventTracking';
+
+declare global {
+  interface Window {
+    gtag?: (command: string, targetId: string, config?: any) => void;
+  }
+}
 
 interface TransferBookingModalProps {
   isOpen: boolean;
@@ -249,6 +256,36 @@ export function TransferBookingModal({ isOpen, onClose, bookingData, onComplete 
       localStorage.setItem('dominican_transfers_customer_info', JSON.stringify(customerInfo));
     }
   }, [customerInfo]);
+
+  // Track conversion when booking is completed (step 5)
+  useEffect(() => {
+    if (step === 5 && reference) {
+      const finalPrice = calculatedPrice();
+
+      console.log('🎯 Firing Google Ads conversion from TransferBookingModal:', {
+        value: finalPrice,
+        transaction_id: reference,
+        source: 'chat'
+      });
+
+      if (window.gtag) {
+        window.gtag('event', 'conversion', {
+          'send_to': 'AW-17810479345/vMD-CIrB8dMbEPGx2axC',
+          'value': finalPrice,
+          'currency': 'USD',
+          'transaction_id': reference
+        });
+
+        console.log('✅ Google Ads conversion event sent successfully');
+      } else {
+        console.error('❌ gtag function not available in TransferBookingModal');
+      }
+
+      trackConversionEvent('purchase', finalPrice, reference).catch(err => {
+        console.error('Error tracking conversion to database:', err);
+      });
+    }
+  }, [step, reference, calculatedPrice]);
 
   // Handle resume incomplete booking from URL
   useEffect(() => {

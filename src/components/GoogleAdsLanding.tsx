@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MessageCircle, Clock, Shield, MapPin, DollarSign, Users, Star, CheckCircle, Phone, Menu, X, Sparkles, Play } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { AnimatedReviews } from './AnimatedReviews';
 
 interface GoogleAdsLandingProps {
   onBookNowClick: () => void;
@@ -563,6 +564,8 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
           </div>
         </div>
       )}
+
+      <AnimatedReviews />
 
       <style>{`
         @keyframes gradient {

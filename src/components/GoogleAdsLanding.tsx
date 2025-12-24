@@ -103,19 +103,33 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-3">
-              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 via-green-500 to-teal-600 flex items-center justify-center shadow-lg shadow-teal-500/40 ring-2 ring-teal-400/20">
-                <Car className="w-7 h-7 text-white drop-shadow-md" />
+              <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center shadow-lg transition-all duration-300 ${
+                scrolled
+                  ? 'bg-gradient-to-br from-teal-500 via-green-500 to-teal-600 shadow-teal-500/40 ring-2 ring-teal-400/20'
+                  : 'bg-gradient-to-br from-teal-500 via-green-500 to-teal-600 shadow-teal-500/40 ring-2 ring-white/30'
+              }`}>
+                <span className="text-2xl" role="img" aria-label="taxi">🚕</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-white leading-none drop-shadow-lg">Dominican Transfers</span>
-                <span className="text-xs text-teal-200 font-semibold drop-shadow-md">Airport Shuttles</span>
+                <span className={`text-xl font-bold leading-none transition-all duration-300 ${
+                  scrolled ? 'text-slate-900' : 'text-white drop-shadow-lg'
+                }`}>Dominican Transfers</span>
+                <span className={`text-xs font-semibold transition-all duration-300 ${
+                  scrolled ? 'text-teal-600' : 'text-teal-200 drop-shadow-md'
+                }`}>#1 Rated Airport Transfers</span>
               </div>
             </div>
 
             <div className="hidden md:flex items-center gap-6">
-              <a href="#services" className="text-white hover:text-teal-200 transition-colors font-medium drop-shadow-md">Services</a>
-              <a href="#routes" className="text-white hover:text-teal-200 transition-colors font-medium drop-shadow-md">Popular Routes</a>
-              <a href="#how-it-works" className="text-white hover:text-teal-200 transition-colors font-medium drop-shadow-md">How It Works</a>
+              <a href="#services" className={`transition-colors font-medium ${
+                scrolled ? 'text-slate-600 hover:text-teal-600' : 'text-white hover:text-teal-200 drop-shadow-md'
+              }`}>Services</a>
+              <a href="#routes" className={`transition-colors font-medium ${
+                scrolled ? 'text-slate-600 hover:text-teal-600' : 'text-white hover:text-teal-200 drop-shadow-md'
+              }`}>Popular Routes</a>
+              <a href="#how-it-works" className={`transition-colors font-medium ${
+                scrolled ? 'text-slate-600 hover:text-teal-600' : 'text-white hover:text-teal-200 drop-shadow-md'
+              }`}>How It Works</a>
               <button
                 onClick={onBookNowClick}
                 className="px-6 py-2.5 bg-gradient-to-r from-teal-500 to-green-500 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-teal-500/30 transition-all duration-300 hover:scale-105"
@@ -126,7 +140,7 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-slate-900"
+              className={`md:hidden p-2 transition-colors ${scrolled ? 'text-slate-900' : 'text-white drop-shadow-lg'}`}
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -182,7 +196,7 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
               Punta Cana Airport Transfer
               <br />
               <span className="bg-gradient-to-r from-teal-400 via-green-400 to-teal-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(20,184,166,0.8)]">
-                From Just $25
+                From Just $10
               </span>
             </h1>
 
@@ -190,28 +204,32 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
               Private Airport Pickup • No Waiting • Fixed Prices
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+            <div className="flex flex-col sm:flex-row gap-5 justify-center items-center mb-8">
               <button
                 onClick={onBookNowClick}
-                className="group relative w-full sm:w-auto px-10 py-5 bg-gradient-to-r from-teal-500 via-green-500 to-teal-500 text-white rounded-2xl font-bold text-lg sm:text-xl transition-all duration-300 hover:scale-110 overflow-hidden shadow-[0_0_40px_rgba(20,184,166,0.6)] hover:shadow-[0_0_60px_rgba(20,184,166,0.9)] animate-gradient bg-[length:200%_auto] border-2 border-white/40"
+                className="group relative w-full sm:w-auto px-12 py-6 bg-gradient-to-br from-teal-400 via-green-500 to-emerald-600 text-white rounded-2xl font-bold text-lg sm:text-xl transition-all duration-500 hover:scale-110 overflow-hidden shadow-[0_8px_32px_rgba(20,184,166,0.4),0_0_60px_rgba(16,185,129,0.3)] hover:shadow-[0_12px_48px_rgba(20,184,166,0.6),0_0_90px_rgba(16,185,129,0.5)] border-2 border-white/60 backdrop-blur-sm"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
-                <span className="relative flex items-center justify-center gap-3">
-                  <Sparkles className="w-6 h-6 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
-                  Book Your Transfer Now
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent opacity-50"></div>
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-teal-300 via-green-300 to-emerald-300 rounded-2xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500"></div>
+                <span className="relative flex items-center justify-center gap-3 drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
+                  <Sparkles className="w-6 h-6 drop-shadow-[0_0_10px_rgba(255,255,255,0.9)] group-hover:animate-pulse" />
+                  <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/95">Book Your Transfer Now</span>
                 </span>
               </button>
 
               <button
                 onClick={onBookNowClick}
-                className="group relative w-full sm:w-auto px-10 py-5 bg-white/10 backdrop-blur-xl text-white rounded-2xl font-bold text-lg sm:text-xl hover:bg-white/20 transition-all duration-300 hover:scale-110 border-2 border-white/50 shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:shadow-[0_0_50px_rgba(255,255,255,0.5)] overflow-hidden"
+                className="group relative w-full sm:w-auto px-12 py-6 bg-black/20 backdrop-blur-2xl text-white rounded-2xl font-bold text-lg sm:text-xl hover:bg-black/30 transition-all duration-500 hover:scale-110 border-2 border-white/60 shadow-[0_8px_32px_rgba(255,255,255,0.2),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_12px_48px_rgba(255,255,255,0.3),inset_0_1px_0_rgba(255,255,255,0.5)] overflow-hidden"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
-                <span className="relative flex items-center justify-center gap-3">
-                  <MessageCircle className="w-6 h-6 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
-                  Chat for Instant Price
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-white/10"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
+                <div className="absolute inset-0 rounded-2xl bg-white/20 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-white via-teal-200 to-white rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500"></div>
+                <span className="relative flex items-center justify-center gap-3 drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]">
+                  <MessageCircle className="w-6 h-6 drop-shadow-[0_0_10px_rgba(255,255,255,0.9)] group-hover:animate-pulse" />
+                  <span>Chat for Instant Price</span>
                 </span>
               </button>
             </div>

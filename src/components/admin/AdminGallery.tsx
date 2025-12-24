@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  Plus, Trash2, Edit2, Save, X, Image as ImageIcon, Video, Eye, EyeOff, Upload
+  Plus, Trash2, Edit2, Save, X, Image as ImageIcon, Video, Eye, EyeOff, Upload, Monitor, Smartphone
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -25,6 +25,19 @@ interface GalleryItem {
   is_active: boolean;
 }
 
+interface HeroVideoSettings {
+  id: string;
+  hero_video_url: string | null;
+  hero_video_mobile_url: string | null;
+  hero_video_poster_url: string | null;
+  show_video_on_mobile: boolean;
+  mobile_video_autoplay: boolean;
+  desktop_video_autoplay: boolean;
+  video_muted: boolean;
+  video_loop: boolean;
+  video_playback_speed: number;
+}
+
 export function AdminGallery() {
   const [categories, setCategories] = useState<GalleryCategory[]>([]);
   const [allItems, setAllItems] = useState<GalleryItem[]>([]);
@@ -40,9 +53,13 @@ export function AdminGallery() {
     description: '',
   });
   const [editForm, setEditForm] = useState<Partial<GalleryItem>>({});
+  const [heroVideo, setHeroVideo] = useState<HeroVideoSettings | null>(null);
+  const [editingHero, setEditingHero] = useState(false);
+  const [heroForm, setHeroForm] = useState<Partial<HeroVideoSettings>>({});
 
   useEffect(() => {
     fetchGallery();
+    fetchHeroVideo();
   }, []);
 
   const fetchGallery = async () => {
@@ -66,6 +83,52 @@ export function AdminGallery() {
     }
     if (itemsResult.data) setAllItems(itemsResult.data);
     setLoading(false);
+  };
+
+  const fetchHeroVideo = async () => {
+    const { data } = await supabase
+      .from('landing_page_settings')
+      .select('*')
+      .limit(1)
+      .maybeSingle();
+
+    if (data) {
+      setHeroVideo(data);
+    }
+  };
+
+  const handleUpdateHeroVideo = async () => {
+    if (!heroVideo?.id) return;
+
+    const { error } = await supabase
+      .from('landing_page_settings')
+      .update({
+        hero_video_url: heroForm.hero_video_url || null,
+        hero_video_mobile_url: heroForm.hero_video_mobile_url || null,
+        hero_video_poster_url: heroForm.hero_video_poster_url || null,
+        show_video_on_mobile: heroForm.show_video_on_mobile ?? true,
+        mobile_video_autoplay: heroForm.mobile_video_autoplay ?? true,
+        desktop_video_autoplay: heroForm.desktop_video_autoplay ?? true,
+        video_muted: heroForm.video_muted ?? true,
+        video_loop: heroForm.video_loop ?? true,
+        video_playback_speed: heroForm.video_playback_speed ?? 1.0,
+      })
+      .eq('id', heroVideo.id);
+
+    if (!error) {
+      setEditingHero(false);
+      fetchHeroVideo();
+    }
+  };
+
+  const startEditHero = () => {
+    setEditingHero(true);
+    setHeroForm(heroVideo || {});
+  };
+
+  const cancelEditHero = () => {
+    setEditingHero(false);
+    setHeroForm({});
   };
 
   const getCategoryItems = (categoryId: string) => {
@@ -164,9 +227,230 @@ export function AdminGallery() {
 
   return (
     <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Gallery Management</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Manage hero video and experience gallery
+        </p>
+      </div>
+
+      <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-slate-800 dark:to-slate-700 rounded-xl border border-blue-200 dark:border-slate-600 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center">
+              <Video className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Hero Video Settings</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-300">Configure landing page video with mobile responsiveness</p>
+            </div>
+          </div>
+          {!editingHero && (
+            <button
+              onClick={startEditHero}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <Edit2 className="w-4 h-4" />
+              Edit
+            </button>
+          )}
+        </div>
+
+        {editingHero ? (
+          <div className="space-y-4 bg-white dark:bg-slate-900 rounded-xl p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <Monitor className="w-4 h-4" />
+                  Desktop Video URL
+                </label>
+                <input
+                  type="text"
+                  value={heroForm.hero_video_url || ''}
+                  onChange={(e) => setHeroForm({ ...heroForm, hero_video_url: e.target.value })}
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm"
+                  placeholder="https://... (Desktop video)"
+                />
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <Smartphone className="w-4 h-4" />
+                  Mobile Video URL
+                </label>
+                <input
+                  type="text"
+                  value={heroForm.hero_video_mobile_url || ''}
+                  onChange={(e) => setHeroForm({ ...heroForm, hero_video_mobile_url: e.target.value })}
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm"
+                  placeholder="https://... (Smaller file for mobile)"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <ImageIcon className="w-4 h-4" />
+                  Poster/Thumbnail URL
+                </label>
+                <input
+                  type="text"
+                  value={heroForm.hero_video_poster_url || ''}
+                  onChange={(e) => setHeroForm({ ...heroForm, hero_video_poster_url: e.target.value })}
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm"
+                  placeholder="https://... (Image shown before video loads)"
+                />
+              </div>
+            </div>
+
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+              <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Video Behavior</h4>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <label className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={heroForm.show_video_on_mobile ?? true}
+                    onChange={(e) => setHeroForm({ ...heroForm, show_video_on_mobile: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">Show on Mobile</span>
+                </label>
+
+                <label className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={heroForm.desktop_video_autoplay ?? true}
+                    onChange={(e) => setHeroForm({ ...heroForm, desktop_video_autoplay: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">Desktop Autoplay</span>
+                </label>
+
+                <label className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={heroForm.mobile_video_autoplay ?? true}
+                    onChange={(e) => setHeroForm({ ...heroForm, mobile_video_autoplay: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">Mobile Autoplay</span>
+                </label>
+
+                <label className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={heroForm.video_muted ?? true}
+                    onChange={(e) => setHeroForm({ ...heroForm, video_muted: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">Muted</span>
+                </label>
+
+                <label className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={heroForm.video_loop ?? true}
+                    onChange={(e) => setHeroForm({ ...heroForm, video_loop: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">Loop Video</span>
+                </label>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">
+                    Playback Speed
+                  </label>
+                  <select
+                    value={heroForm.video_playback_speed ?? 1.0}
+                    onChange={(e) => setHeroForm({ ...heroForm, video_playback_speed: parseFloat(e.target.value) })}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm"
+                  >
+                    <option value="0.5">0.5x</option>
+                    <option value="0.75">0.75x</option>
+                    <option value="1.0">1.0x (Normal)</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="2.0">2.0x</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <button
+                onClick={handleUpdateHeroVideo}
+                className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors"
+              >
+                <Save className="w-4 h-4" />
+                Save Changes
+              </button>
+              <button
+                onClick={cancelEditHero}
+                className="px-4 py-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg flex items-center gap-2 transition-colors"
+              >
+                <X className="w-4 h-4" />
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Monitor className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Desktop Video</span>
+              </div>
+              <p className="text-sm text-slate-900 dark:text-white break-all">
+                {heroVideo?.hero_video_url || 'Not set'}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Smartphone className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Mobile Video</span>
+              </div>
+              <p className="text-sm text-slate-900 dark:text-white break-all">
+                {heroVideo?.hero_video_mobile_url || 'Uses desktop video'}
+              </p>
+            </div>
+            <div className="md:col-span-2 flex flex-wrap gap-2">
+              {heroVideo?.show_video_on_mobile && (
+                <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-medium">
+                  Mobile Enabled
+                </span>
+              )}
+              {heroVideo?.desktop_video_autoplay && (
+                <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-medium">
+                  Desktop Autoplay
+                </span>
+              )}
+              {heroVideo?.mobile_video_autoplay && (
+                <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-medium">
+                  Mobile Autoplay
+                </span>
+              )}
+              {heroVideo?.video_muted && (
+                <span className="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full text-xs font-medium">
+                  Muted
+                </span>
+              )}
+              {heroVideo?.video_loop && (
+                <span className="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full text-xs font-medium">
+                  Loop
+                </span>
+              )}
+              {heroVideo?.video_playback_speed !== 1.0 && (
+                <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full text-xs font-medium">
+                  {heroVideo?.video_playback_speed}x Speed
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Experience Gallery</h2>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white">Experience Gallery</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Manage photos and videos for Fleet, Reviews, and Drivers
           </p>

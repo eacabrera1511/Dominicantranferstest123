@@ -602,9 +602,9 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
               <span className="font-semibold">Best Price Guaranteed</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Punta Cana Airport Transportation From $25
+              Punta Cana Airport Transportation From $10
             </h2>
-            <p className="text-xl mb-2 opacity-90">One-way private transfer starting at just $25</p>
+            <p className="text-xl mb-2 opacity-90">One way starting at $10 roundtrip at $20</p>
             <p className="text-lg mb-8 opacity-90">Roundtrip transfers available • Up to 4 passengers per vehicle</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button

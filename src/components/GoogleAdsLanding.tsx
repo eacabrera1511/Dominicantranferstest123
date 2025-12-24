@@ -14,6 +14,7 @@ const DEFAULT_VIDEO = 'https://gwlaxeonvfywhecwtupv.supabase.co/storage/v1/objec
 export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: GoogleAdsLandingProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showPhoneMenu, setShowPhoneMenu] = useState(false);
   const [heroVideoUrl, setHeroVideoUrl] = useState<string>(DEFAULT_VIDEO);
   const [videoPosterUrl, setVideoPosterUrl] = useState<string | null>(null);
   const [showStreamingBar, setShowStreamingBar] = useState(false);
@@ -127,6 +128,61 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
               <a href="#how-it-works" className={`transition-colors font-medium ${
                 scrolled ? 'text-slate-600 hover:text-teal-600' : 'text-white hover:text-teal-200 drop-shadow-md'
               }`}>How It Works</a>
+              <div className="relative">
+                <button
+                  onClick={() => setShowPhoneMenu(!showPhoneMenu)}
+                  className={`p-2.5 rounded-full transition-all duration-300 ${
+                    scrolled
+                      ? 'bg-green-500 hover:bg-green-600 text-white shadow-md'
+                      : 'bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm'
+                  }`}
+                  title="Contact Us"
+                >
+                  <Phone className="w-5 h-5" />
+                </button>
+                {showPhoneMenu && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-[-1]"
+                      onClick={() => setShowPhoneMenu(false)}
+                    />
+                    <div className="absolute top-full right-0 mt-2 w-56 rounded-xl overflow-hidden bg-white shadow-2xl border border-slate-200 animate-slideDown z-50">
+                      <div className="p-2">
+                        <button
+                          onClick={() => {
+                            window.open('tel:+31625584645', '_self');
+                            setShowPhoneMenu(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-3 text-left rounded-lg hover:bg-slate-100 transition-colors"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center">
+                            <Phone className="w-4 h-4 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-sm text-slate-900">Call Now</div>
+                            <div className="text-xs text-slate-500">24/7 Support</div>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => {
+                            window.open('https://wa.me/31625584645?text=Hi, I need help with my transfer booking', '_blank');
+                            setShowPhoneMenu(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-3 text-left rounded-lg hover:bg-slate-100 transition-colors"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                            <MessageCircle className="w-4 h-4 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-sm text-slate-900">WhatsApp</div>
+                            <div className="text-xs text-slate-500">Chat with us now</div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
               <button
                 onClick={onBookNowClick}
                 className="px-6 py-2.5 bg-gradient-to-r from-teal-500 to-green-500 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-teal-500/30 transition-all duration-300 hover:scale-105"
@@ -135,12 +191,69 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
               </button>
             </div>
 
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`md:hidden p-2 transition-colors ${scrolled ? 'text-slate-900' : 'text-white drop-shadow-lg'}`}
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            <div className="md:hidden flex items-center gap-2">
+              <div className="relative">
+                <button
+                  onClick={() => setShowPhoneMenu(!showPhoneMenu)}
+                  className={`p-2 rounded-full transition-all ${
+                    scrolled
+                      ? 'bg-green-500 text-white'
+                      : 'bg-white/20 text-white backdrop-blur-sm'
+                  }`}
+                  title="Contact Us"
+                >
+                  <Phone className="w-5 h-5" />
+                </button>
+                {showPhoneMenu && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowPhoneMenu(false)}
+                    />
+                    <div className="absolute top-full right-0 mt-2 w-56 rounded-xl overflow-hidden bg-white shadow-2xl border border-slate-200 z-50">
+                      <div className="p-2">
+                        <button
+                          onClick={() => {
+                            window.open('tel:+31625584645', '_self');
+                            setShowPhoneMenu(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-3 text-left rounded-lg hover:bg-slate-100 transition-colors"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center">
+                            <Phone className="w-4 h-4 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-sm text-slate-900">Call Now</div>
+                            <div className="text-xs text-slate-500">24/7 Support</div>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => {
+                            window.open('https://wa.me/31625584645?text=Hi, I need help with my transfer booking', '_blank');
+                            setShowPhoneMenu(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-3 text-left rounded-lg hover:bg-slate-100 transition-colors"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                            <MessageCircle className="w-4 h-4 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-sm text-slate-900">WhatsApp</div>
+                            <div className="text-xs text-slate-500">Chat with us now</div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className={`p-2 transition-colors ${scrolled ? 'text-slate-900' : 'text-white drop-shadow-lg'}`}
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
           </div>
         </div>
 

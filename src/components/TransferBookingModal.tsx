@@ -700,28 +700,6 @@ export function TransferBookingModal({ isOpen, onClose, bookingData, onComplete 
       await supabase.from('orders').insert(orderData);
 
       try {
-        const newBookingResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/handle-new-booking`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              booking_id: crmBooking.id,
-            }),
-          }
-        );
-
-        if (!newBookingResponse.ok) {
-          console.warn('Failed to send booking emails');
-        }
-      } catch (emailError) {
-        console.warn('Email send error:', emailError);
-      }
-
-      try {
         await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auto-dispatch`,
           {

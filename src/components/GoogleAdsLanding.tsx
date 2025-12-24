@@ -87,7 +87,9 @@ export default function GoogleAdsLanding({ onBookNowClick, onRouteClick }: Googl
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50">
       {showStreamingBar && (
-        <StreamingReviewBar onSeeMoreClick={() => setShowAllReviewsModal(true)} />
+        <div className="hidden md:block">
+          <StreamingReviewBar onSeeMoreClick={() => setShowAllReviewsModal(true)} />
+        </div>
       )}
 
       {showAllReviewsModal && (

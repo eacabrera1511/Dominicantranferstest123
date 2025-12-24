@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, Loader2, Phone, ChevronDown, Star, Sun, Moon, History, Mic, MessageCircle } from 'lucide-react';
+import { Send, Loader2, Phone, ChevronDown, Star, Sun, Moon, History, Mic, MessageCircle, Home } from 'lucide-react';
 import { supabase, Message } from './lib/supabase';
 import { TravelAgent, BookingAction } from './lib/travelAgent';
 import { ChatMessage } from './components/ChatMessage';
@@ -57,12 +57,25 @@ function App() {
   const [showVoiceWidget, setShowVoiceWidget] = useState(false);
   const [showLandingPage, setShowLandingPage] = useState(() => {
     const pathname = window.location.pathname;
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasRouteParams = urlParams.has('arrival') || urlParams.has('destination');
+
+    if (hasRouteParams) {
+      return false;
+    }
+
     return pathname === '/' || pathname === '/landing' || pathname.includes('/landing');
   });
   const [paymentBookingRef, setPaymentBookingRef] = useState<string>('');
   const [darkMode, setDarkMode] = useState(() => {
     const pathname = window.location.pathname;
-    if (pathname === '/' || pathname === '/landing' || pathname.includes('/landing')) return false;
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasRouteParams = urlParams.has('arrival') || urlParams.has('destination');
+
+    if (!hasRouteParams && (pathname === '/' || pathname === '/landing' || pathname.includes('/landing'))) {
+      return false;
+    }
+
     const stored = localStorage.getItem('theme');
     if (stored) return stored === 'dark';
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -84,7 +97,10 @@ function App() {
   useEffect(() => {
     const handlePopState = () => {
       const pathname = window.location.pathname;
-      const isLanding = pathname === '/' || pathname === '/landing' || pathname.includes('/landing');
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasRouteParams = urlParams.has('arrival') || urlParams.has('destination');
+
+      const isLanding = !hasRouteParams && (pathname === '/' || pathname === '/landing' || pathname.includes('/landing'));
       setShowLandingPage(isLanding);
       if (isLanding) {
         setDarkMode(false);
@@ -1171,6 +1187,15 @@ function App() {
                 )}
               </div>
               <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2">
+                <button
+                  onClick={() => window.location.href = '/'}
+                  className={`rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-all active:scale-95 ${
+                    scrolled ? 'w-7 h-7 xs:w-8 xs:h-8' : 'w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10'
+                  }`}
+                  title="Home"
+                >
+                  <Home className={`${scrolled ? 'w-3 h-3 xs:w-3.5 xs:h-3.5' : 'w-3.5 h-3.5 xs:w-4 xs:h-4'}`} />
+                </button>
                 <button
                   onClick={() => setShowHistory(true)}
                   className={`rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-all active:scale-95 ${

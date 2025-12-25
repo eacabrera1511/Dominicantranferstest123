@@ -1304,7 +1304,7 @@ function App() {
         </header>
 
         <>
-            <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-2 xs:px-3 sm:px-4 pt-24 xs:pt-28 sm:pt-32 md:pt-36 pb-2 xs:pb-3 sm:pb-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-2 xs:px-3 sm:px-4 pt-24 xs:pt-28 sm:pt-32 md:pt-36 pb-24 xs:pb-28 sm:pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
               <div className="space-y-3 xs:space-y-4">
                 {messages.map((message, index) => {
               const isLastAssistantMessage = message.role === 'assistant' && index === messages.length - 1;
@@ -1381,8 +1381,8 @@ function App() {
           </div>
         </div>
 
-            <div className="p-2 xs:p-2.5 sm:p-3 md:p-4" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
-              <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-xl xs:rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-xl p-2 xs:p-2.5 sm:p-3">
+            <div className="fixed bottom-0 left-0 right-0 z-40 p-2 xs:p-2.5 sm:p-3 md:p-4 bg-gradient-to-t from-slate-50 via-slate-50/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 dark:to-transparent" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
+              <div className="max-w-4xl mx-auto bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-xl xs:rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-xl p-2 xs:p-2.5 sm:p-3">
                 <div className="flex gap-2 xs:gap-2.5 sm:gap-3 items-center">
                   <input
                     ref={inputRef}
@@ -1392,7 +1392,8 @@ function App() {
                     onKeyPress={handleKeyPress}
                     placeholder={getTranslations(language).chat.placeholder}
                     disabled={loading}
-                    className="flex-1 min-w-0 bg-slate-100/80 dark:bg-slate-700/80 border-0 rounded-lg xs:rounded-xl px-3 xs:px-3.5 sm:px-4 py-2.5 xs:py-3 text-slate-900 dark:text-white text-xs xs:text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 disabled:opacity-50 transition-all"
+                    className="flex-1 min-w-0 bg-slate-100/80 dark:bg-slate-700/80 border-0 rounded-lg xs:rounded-xl px-3 xs:px-3.5 sm:px-4 py-2.5 xs:py-3 text-slate-900 dark:text-white text-base placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 disabled:opacity-50 transition-all"
+                    style={{ fontSize: '16px' }}
                   />
                   <button
                     onClick={() => setShowVoiceWidget(!showVoiceWidget)}

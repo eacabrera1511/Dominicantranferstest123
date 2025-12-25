@@ -731,7 +731,7 @@ export class TravelAgent {
 
     return {
       message,
-      suggestions: ['1 passenger', '2 passengers', '3-4 passengers', '5-6 passengers', '7+ passengers']
+      suggestions: ['1 passenger', '2 passengers', '4 passengers', '6 passengers', '12 passengers', '20 passengers']
     };
   }
 
@@ -1109,7 +1109,7 @@ export class TravelAgent {
         this.context.step = 'AWAITING_PASSENGERS';
         return {
           message: recapMessage + "How many passengers will be traveling?",
-          suggestions: ['1 passenger', '2 passengers', '3-4 passengers', '5-6 passengers', '7+ passengers']
+          suggestions: ['1 passenger', '2 passengers', '4 passengers', '6 passengers', '12 passengers', '20 passengers']
         };
       }
 
@@ -1143,7 +1143,7 @@ export class TravelAgent {
       this.context.step = 'AWAITING_PASSENGERS';
       return {
         message: recapMessage + "How many passengers will be traveling? (including children)",
-        suggestions: ['1 passenger', '2 passengers', '3-4 passengers', '5-6 passengers']
+        suggestions: ['1 passenger', '2 passengers', '4 passengers', '6 passengers', '12 passengers', '20 passengers']
       };
     }
 
@@ -1267,7 +1267,7 @@ export class TravelAgent {
       this.context.step = 'AWAITING_PASSENGERS';
       return {
         message: `Perfect! I see you're looking for a transfer from ${this.context.airport} to ${this.context.hotel}.\n\nHow many passengers will be traveling?`,
-        suggestions: ['1 passenger', '2 passengers', '3 passengers', '4 passengers', '6 passengers']
+        suggestions: ['1 passenger', '2 passengers', '4 passengers', '6 passengers', '12 passengers', '20 passengers']
       };
     } else if (this.context.airport) {
       this.context.step = 'AWAITING_HOTEL';
@@ -1364,7 +1364,7 @@ export class TravelAgent {
       const airportName = AIRPORTS[this.context.airport!]?.split(' (')[0] || this.context.airport;
       return {
         message: `Got it, ${hotelName}!\n\nHow many passengers will be traveling? (including children)`,
-        suggestions: ['1 passenger', '2 passengers', '3-4 passengers', '5-6 passengers', '7+ passengers']
+        suggestions: ['1 passenger', '2 passengers', '4 passengers', '6 passengers', '12 passengers', '20 passengers']
       };
     }
 
@@ -1450,7 +1450,7 @@ export class TravelAgent {
     const airportName = AIRPORTS[this.context.airport!]?.split(' (')[0] || this.context.airport;
     return {
       message: `Excellent! Transfer from ${airportName} to ${this.context.hotel}.\n\nHow many passengers will be traveling? (including children)`,
-      suggestions: ['1 passenger', '2 passengers', '3-4 passengers', '5-6 passengers', '7+ passengers']
+      suggestions: ['1 passenger', '2 passengers', '4 passengers', '6 passengers', '12 passengers', '20 passengers']
     };
   }
 
@@ -1487,7 +1487,7 @@ export class TravelAgent {
 
     return {
       message: "How many passengers will be traveling? This helps me recommend the right vehicle.",
-      suggestions: ['1 passenger', '2 passengers', '3-4 passengers', '5-6 passengers', '7+ passengers']
+      suggestions: ['1 passenger', '2 passengers', '4 passengers', '6 passengers', '12 passengers', '20 passengers']
     };
   }
 

@@ -1381,7 +1381,7 @@ function App() {
           </div>
         </div>
 
-            <div className="fixed bottom-0 left-0 right-0 z-40 p-2 xs:p-2.5 sm:p-3 md:p-4 bg-gradient-to-t from-slate-50 via-slate-50/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 dark:to-transparent" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
+            <div className="fixed bottom-0 left-0 right-0 z-40 p-2 xs:p-2.5 sm:p-3 md:p-4" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
               <div className="max-w-4xl mx-auto bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-xl xs:rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-xl p-2 xs:p-2.5 sm:p-3">
                 <div className="flex gap-2 xs:gap-2.5 sm:gap-3 items-center">
                   <input
